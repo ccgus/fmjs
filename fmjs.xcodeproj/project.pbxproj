@@ -8,7 +8,15 @@
 
 /* Begin PBXBuildFile section */
 		CC2F20AD214D7A3700F38D03 /* FMJS.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = CC2F20A3214D7A3700F38D03 /* FMJS.framework */; };
-		CC2F20B2214D7A3700F38D03 /* FJSTests.m in Sources */ = {isa = PBXBuildFile; fileRef = CC2F20B1214D7A3700F38D03 /* FJSTests.m */; };
+		CC2F20B2214D7A3700F38D03 /* FJSSimpleTests.m in Sources */ = {isa = PBXBuildFile; fileRef = CC2F20B1214D7A3700F38D03 /* FJSSimpleTests.m */; };
+		CC4C3C7A2150193F005CA4A6 /* AppDelegate.m in Sources */ = {isa = PBXBuildFile; fileRef = CC4C3C792150193F005CA4A6 /* AppDelegate.m */; };
+		CC4C3C7C21501940005CA4A6 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = CC4C3C7B21501940005CA4A6 /* Assets.xcassets */; };
+		CC4C3C7F21501940005CA4A6 /* MainMenu.xib in Resources */ = {isa = PBXBuildFile; fileRef = CC4C3C7D21501940005CA4A6 /* MainMenu.xib */; };
+		CC4C3C8221501940005CA4A6 /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = CC4C3C8121501940005CA4A6 /* main.m */; };
+		CC4C3C88215019F6005CA4A6 /* FMJS.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = CC2F20A3214D7A3700F38D03 /* FMJS.framework */; };
+		CC4C3C8B21504612005CA4A6 /* JavaScriptCore.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = CC4C3C89215045E0005CA4A6 /* JavaScriptCore.framework */; };
+		CC4C3C8C2150462A005CA4A6 /* JavaScriptCore.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = CC4C3C89215045E0005CA4A6 /* JavaScriptCore.framework */; };
+		CC4C3C8D21504638005CA4A6 /* JavaScriptCore.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = CC4C3C89215045E0005CA4A6 /* JavaScriptCore.framework */; };
 		CCB18568214D7B3000346D2F /* FJS.bridgesupport in Resources */ = {isa = PBXBuildFile; fileRef = CCB1855A214D7B3000346D2F /* FJS.bridgesupport */; };
 		CCB18569214D7B3000346D2F /* FJS.h in Headers */ = {isa = PBXBuildFile; fileRef = CCB1855B214D7B3000346D2F /* FJS.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		CCB1856A214D7B3000346D2F /* FJSBridgeParser.h in Headers */ = {isa = PBXBuildFile; fileRef = CCB1855C214D7B3000346D2F /* FJSBridgeParser.h */; };
@@ -39,8 +47,17 @@
 		CC2F20A3214D7A3700F38D03 /* FMJS.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = FMJS.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		CC2F20A7214D7A3700F38D03 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		CC2F20AC214D7A3700F38D03 /* fmjsTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; name = fmjsTests.xctest; path = FMJSTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
-		CC2F20B1214D7A3700F38D03 /* FJSTests.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = FJSTests.m; sourceTree = "<group>"; };
+		CC2F20B1214D7A3700F38D03 /* FJSSimpleTests.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = FJSSimpleTests.m; sourceTree = "<group>"; };
 		CC2F20B3214D7A3700F38D03 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		CC4C3C762150193F005CA4A6 /* FJSTestApp.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = FJSTestApp.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		CC4C3C782150193F005CA4A6 /* AppDelegate.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = AppDelegate.h; sourceTree = "<group>"; };
+		CC4C3C792150193F005CA4A6 /* AppDelegate.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = AppDelegate.m; sourceTree = "<group>"; };
+		CC4C3C7B21501940005CA4A6 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
+		CC4C3C7E21501940005CA4A6 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.xib; name = Base; path = Base.lproj/MainMenu.xib; sourceTree = "<group>"; };
+		CC4C3C8021501940005CA4A6 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		CC4C3C8121501940005CA4A6 /* main.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = main.m; sourceTree = "<group>"; };
+		CC4C3C8321501940005CA4A6 /* FJSTestApp.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = FJSTestApp.entitlements; sourceTree = "<group>"; };
+		CC4C3C89215045E0005CA4A6 /* JavaScriptCore.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = JavaScriptCore.framework; path = System/Library/Frameworks/JavaScriptCore.framework; sourceTree = SDKROOT; };
 		CCB1855A214D7B3000346D2F /* FJS.bridgesupport */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.xml; path = FJS.bridgesupport; sourceTree = "<group>"; };
 		CCB1855B214D7B3000346D2F /* FJS.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = FJS.h; sourceTree = "<group>"; };
 		CCB1855C214D7B3000346D2F /* FJSBridgeParser.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = FJSBridgeParser.h; sourceTree = "<group>"; };
@@ -62,6 +79,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				CC4C3C8B21504612005CA4A6 /* JavaScriptCore.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -70,6 +88,16 @@
 			buildActionMask = 2147483647;
 			files = (
 				CC2F20AD214D7A3700F38D03 /* FMJS.framework in Frameworks */,
+				CC4C3C8D21504638005CA4A6 /* JavaScriptCore.framework in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		CC4C3C732150193F005CA4A6 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				CC4C3C88215019F6005CA4A6 /* FMJS.framework in Frameworks */,
+				CC4C3C8C2150462A005CA4A6 /* JavaScriptCore.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -81,7 +109,9 @@
 			children = (
 				CC2F20A5214D7A3700F38D03 /* fmjs */,
 				CC2F20B0214D7A3700F38D03 /* fmjsTests */,
+				CC4C3C772150193F005CA4A6 /* FJSTestApp */,
 				CC2F20A4214D7A3700F38D03 /* Products */,
+				CC4C3C87215019F6005CA4A6 /* Frameworks */,
 			);
 			sourceTree = "<group>";
 		};
@@ -90,6 +120,7 @@
 			children = (
 				CC2F20A3214D7A3700F38D03 /* FMJS.framework */,
 				CC2F20AC214D7A3700F38D03 /* fmjsTests.xctest */,
+				CC4C3C762150193F005CA4A6 /* FJSTestApp.app */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -119,10 +150,32 @@
 		CC2F20B0214D7A3700F38D03 /* fmjsTests */ = {
 			isa = PBXGroup;
 			children = (
-				CC2F20B1214D7A3700F38D03 /* FJSTests.m */,
+				CC2F20B1214D7A3700F38D03 /* FJSSimpleTests.m */,
 				CC2F20B3214D7A3700F38D03 /* Info.plist */,
 			);
 			path = fmjsTests;
+			sourceTree = "<group>";
+		};
+		CC4C3C772150193F005CA4A6 /* FJSTestApp */ = {
+			isa = PBXGroup;
+			children = (
+				CC4C3C782150193F005CA4A6 /* AppDelegate.h */,
+				CC4C3C792150193F005CA4A6 /* AppDelegate.m */,
+				CC4C3C7B21501940005CA4A6 /* Assets.xcassets */,
+				CC4C3C7D21501940005CA4A6 /* MainMenu.xib */,
+				CC4C3C8021501940005CA4A6 /* Info.plist */,
+				CC4C3C8121501940005CA4A6 /* main.m */,
+				CC4C3C8321501940005CA4A6 /* FJSTestApp.entitlements */,
+			);
+			path = FJSTestApp;
+			sourceTree = "<group>";
+		};
+		CC4C3C87215019F6005CA4A6 /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+				CC4C3C89215045E0005CA4A6 /* JavaScriptCore.framework */,
+			);
+			name = Frameworks;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -181,6 +234,23 @@
 			productReference = CC2F20AC214D7A3700F38D03 /* fmjsTests.xctest */;
 			productType = "com.apple.product-type.bundle.unit-test";
 		};
+		CC4C3C752150193F005CA4A6 /* FJSTestApp */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = CC4C3C8421501940005CA4A6 /* Build configuration list for PBXNativeTarget "FJSTestApp" */;
+			buildPhases = (
+				CC4C3C722150193F005CA4A6 /* Sources */,
+				CC4C3C732150193F005CA4A6 /* Frameworks */,
+				CC4C3C742150193F005CA4A6 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = FJSTestApp;
+			productName = FJSTestApp;
+			productReference = CC4C3C762150193F005CA4A6 /* FJSTestApp.app */;
+			productType = "com.apple.product-type.application";
+		};
 /* End PBXNativeTarget section */
 
 /* Begin PBXProject section */
@@ -196,6 +266,9 @@
 					CC2F20AB214D7A3700F38D03 = {
 						CreatedOnToolsVersion = 10.0;
 					};
+					CC4C3C752150193F005CA4A6 = {
+						CreatedOnToolsVersion = 10.0;
+					};
 				};
 			};
 			buildConfigurationList = CC2F209D214D7A3700F38D03 /* Build configuration list for PBXProject "fmjs" */;
@@ -204,6 +277,7 @@
 			hasScannedForEncodings = 0;
 			knownRegions = (
 				en,
+				Base,
 			);
 			mainGroup = CC2F2099214D7A3700F38D03;
 			productRefGroup = CC2F20A4214D7A3700F38D03 /* Products */;
@@ -212,6 +286,7 @@
 			targets = (
 				CC2F20A2214D7A3700F38D03 /* FMJS */,
 				CC2F20AB214D7A3700F38D03 /* FMJSTests */,
+				CC4C3C752150193F005CA4A6 /* FJSTestApp */,
 			);
 		};
 /* End PBXProject section */
@@ -229,6 +304,15 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		CC4C3C742150193F005CA4A6 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				CC4C3C7C21501940005CA4A6 /* Assets.xcassets in Resources */,
+				CC4C3C7F21501940005CA4A6 /* MainMenu.xib in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -252,7 +336,16 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				CC2F20B2214D7A3700F38D03 /* FJSTests.m in Sources */,
+				CC2F20B2214D7A3700F38D03 /* FJSSimpleTests.m in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		CC4C3C722150193F005CA4A6 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				CC4C3C8221501940005CA4A6 /* main.m in Sources */,
+				CC4C3C7A2150193F005CA4A6 /* AppDelegate.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -265,6 +358,17 @@
 			targetProxy = CC2F20AE214D7A3700F38D03 /* PBXContainerItemProxy */;
 		};
 /* End PBXTargetDependency section */
+
+/* Begin PBXVariantGroup section */
+		CC4C3C7D21501940005CA4A6 /* MainMenu.xib */ = {
+			isa = PBXVariantGroup;
+			children = (
+				CC4C3C7E21501940005CA4A6 /* Base */,
+			);
+			name = MainMenu.xib;
+			sourceTree = "<group>";
+		};
+/* End PBXVariantGroup section */
 
 /* Begin XCBuildConfiguration section */
 		CC2F20B5214D7A3700F38D03 /* Debug */ = {
@@ -470,6 +574,44 @@
 			};
 			name = Release;
 		};
+		CC4C3C8521501940005CA4A6 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_ENTITLEMENTS = FJSTestApp/FJSTestApp.entitlements;
+				CODE_SIGN_STYLE = Automatic;
+				COMBINE_HIDPI_IMAGES = YES;
+				DEVELOPMENT_TEAM = WZCN9HJ4VP;
+				INFOPLIST_FILE = FJSTestApp/Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+				);
+				MACOSX_DEPLOYMENT_TARGET = 10.13;
+				PRODUCT_BUNDLE_IDENTIFIER = com.flyingmeat.FJSTestApp;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+			};
+			name = Debug;
+		};
+		CC4C3C8621501940005CA4A6 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_ENTITLEMENTS = FJSTestApp/FJSTestApp.entitlements;
+				CODE_SIGN_STYLE = Automatic;
+				COMBINE_HIDPI_IMAGES = YES;
+				DEVELOPMENT_TEAM = WZCN9HJ4VP;
+				INFOPLIST_FILE = FJSTestApp/Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+				);
+				MACOSX_DEPLOYMENT_TARGET = 10.13;
+				PRODUCT_BUNDLE_IDENTIFIER = com.flyingmeat.FJSTestApp;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+			};
+			name = Release;
+		};
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
@@ -496,6 +638,15 @@
 			buildConfigurations = (
 				CC2F20BB214D7A3700F38D03 /* Debug */,
 				CC2F20BC214D7A3700F38D03 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		CC4C3C8421501940005CA4A6 /* Build configuration list for PBXNativeTarget "FJSTestApp" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				CC4C3C8521501940005CA4A6 /* Debug */,
+				CC4C3C8621501940005CA4A6 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;

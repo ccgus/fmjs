@@ -21,16 +21,16 @@
     
 }
 
-
-@property (weak) FJSRuntime *previousCoScript;
+@property (weak) FJSRuntime *previousRuntime;
+@property (assign) JSGlobalContextRef jsContext;
+@property (assign) JSClassRef globalClass;
 
 @end
 
-#define FJSRuntimeLookupKey @"__cosRuntimeLookup__"
+#define FJSRuntimeLookupKey @"__FJSRuntimeLookupKey__"
 
 static FJSRuntime *FJSCurrentCOScriptLite;
 
-static JSClassRef FJSGlobalClass = NULL;
 static void FJS_initialize(JSContextRef ctx, JSObjectRef object);
 static void FJS_finalize(JSObjectRef object);
 JSValueRef FJS_getGlobalProperty(JSContextRef ctx, JSObjectRef object, JSStringRef propertyNameJS, JSValueRef *exception);
@@ -39,33 +39,11 @@ static JSValueRef FJS_callAsFunction(JSContextRef ctx, JSObjectRef functionJS, J
 
 @implementation FJSRuntime
 
-
-+ (void)initialize {
-    if (self == [FJSRuntime class]) {
-        JSClassDefinition COSGlobalClassDefinition      = kJSClassDefinitionEmpty;
-        COSGlobalClassDefinition.className              = "CocoaScriptLite";
-        COSGlobalClassDefinition.getProperty            = FJS_getGlobalProperty;
-        COSGlobalClassDefinition.initialize             = FJS_initialize;
-        COSGlobalClassDefinition.finalize               = FJS_finalize;
-        //COSGlobalClassDefinition.hasProperty            = FJS_hasProperty; // If we don't have this, getProperty gets called twice.
-        COSGlobalClassDefinition.callAsFunction         = FJS_callAsFunction;
-        FJSGlobalClass                                 = JSClassCreate(&COSGlobalClassDefinition);
-
-    }
-}
-
-
 + (FJSRuntime*)currentCOScriptLite {
     return FJSCurrentCOScriptLite;
 }
 
 + (instancetype)runtimeInContext:(JSContextRef)context {
-//
-//    JSContext *ctx = [JSContext contextWithJSGlobalContextRef:context];
-//    debug(@"ctx: '%@'", ctx);
-//
-//    return [[ctx objectForKeyedSubscript:FJSRuntimeLookupKey] toObject];
-//
     
     JSValueRef exception = NULL;
     
@@ -78,14 +56,13 @@ static JSValueRef FJS_callAsFunction(JSContextRef ctx, JSObjectRef functionJS, J
         return NULL;
     }
     
-    FJSValue *w = (__bridge FJSValue *)JSObjectGetPrivate((JSObjectRef)jsValue);
+    FJSValue *value = (__bridge FJSValue *)JSObjectGetPrivate((JSObjectRef)jsValue);
     
-    return [w instance];
+    return [value instance];
 }
 
 
-- (instancetype)init
-{
+- (instancetype)init {
     self = [super init];
     if (self) {
         
@@ -94,46 +71,83 @@ static JSValueRef FJS_callAsFunction(JSContextRef ctx, JSObjectRef functionJS, J
         
         [[FJSBridgeParser sharedParser] parseBridgeFileAtPath:FMJSBridgeSupportPath];
         
-        
         [self loadFrameworkAtPath:@"/System/Library/Frameworks/Foundation.framework"];
         [self loadFrameworkAtPath:@"/System/Library/Frameworks/AppKit.framework"];
         [self loadFrameworkAtPath:@"/System/Library/Frameworks/CoreImage.framework"];
+        
+        [self setupJS];
     }
+    
     return self;
 }
 
+- (void)dealloc {
+    [self shutdown];
+}
 
+- (void)setupJS {
+    
+    FMAssert(!_jsContext);
+    if (_jsContext) {
+        NSLog(@"Attempting to recreate a JSGlobalContext on %@ when one already exists", self);
+        return;
+    }
+    
+    
+    JSClassDefinition COSGlobalClassDefinition  = kJSClassDefinitionEmpty;
+    COSGlobalClassDefinition.className          = "CocoaScriptLite";
+    COSGlobalClassDefinition.getProperty        = FJS_getGlobalProperty;
+    COSGlobalClassDefinition.initialize         = FJS_initialize;
+    COSGlobalClassDefinition.finalize           = FJS_finalize;
+    //COSGlobalClassDefinition.hasProperty      = FJS_hasProperty; // If we don't have this, getProperty gets called twice.
+    COSGlobalClassDefinition.callAsFunction     = FJS_callAsFunction;
+    
+    _globalClass                                = JSClassCreate(&COSGlobalClassDefinition);
+    
+    _jsContext = JSGlobalContextCreate(_globalClass);
+    
+    FJSValue *value = [FJSValue wrapperWithWeakInstance:self runtime:self];
+    
+    JSValueRef jsValue = [value JSValue];
+    
+    JSValueRef exception = NULL;
+    JSStringRef jsName = JSStringCreateWithUTF8CString([FJSRuntimeLookupKey UTF8String]);
+    JSObjectSetProperty(_jsContext, JSContextGetGlobalObject(_jsContext), jsName, jsValue, kJSPropertyAttributeReadOnly|kJSPropertyAttributeDontEnum, &exception);
+    JSStringRelease(jsName);
+    
+    FMAssert([self runtimeObjectWithName:FJSRuntimeLookupKey] == self);
+    FMAssert([FJSRuntime runtimeInContext:_jsContext]  == self);
+}
+
+- (void)shutdown {
+    
+    if (_jsContext) {
+        JSValueRef exception = NULL;
+        JSStringRef jsName = JSStringCreateWithUTF8CString([FJSRuntimeLookupKey UTF8String]);
+        JSObjectDeleteProperty(_jsContext, JSContextGetGlobalObject(_jsContext), jsName, &exception);
+        JSStringRelease(jsName);
+        
+        JSClassRelease(_globalClass);
+        
+        JSGarbageCollect(_jsContext);
+        
+        JSGlobalContextRelease(_jsContext);
+        
+        _jsContext = nil;
+    }
+}
 
 - (void)pushAsCurrentFJS {
-    [self setPreviousCoScript:FJSCurrentCOScriptLite];
+    [self setPreviousRuntime:FJSCurrentCOScriptLite];
     FJSCurrentCOScriptLite = self;
 }
 
 - (void)popAsCurrentFJS {
-    FJSCurrentCOScriptLite = [self previousCoScript];
-}
-
-- (JSContext*)context {
-    if (!_jscContext) {
-        JSGlobalContextRef globalContext = JSGlobalContextCreate(FJSGlobalClass);
-        _jscContext = [JSContext contextWithJSGlobalContextRef:globalContext];
-        
-        [_jscContext setExceptionHandler:^(JSContext *context, JSValue *exception) {
-            debug(@"Exception: %@", exception);
-        }];
-        
-        [self setRuntimeObject:self withName:FJSRuntimeLookupKey];
-        
-        FMAssert([self runtimeObjectWithName:FJSRuntimeLookupKey] == self);
-        FMAssert([FJSRuntime runtimeInContext:[self contextRef]]  == self);
-        
-    }
-    
-    return _jscContext;
+    FJSCurrentCOScriptLite = [self previousRuntime];
 }
 
 - (JSContextRef)contextRef {
-    return [[self context] JSGlobalContextRef];
+    return _jsContext;
 }
 
 - (id)runtimeObjectWithName:(NSString *)name {
@@ -154,9 +168,17 @@ static JSValueRef FJS_callAsFunction(JSContextRef ctx, JSObjectRef functionJS, J
     return [w instance];
 }
 
-- (JSValueRef)setRuntimeObject:(id)object withName:(NSString *)name {
+- (JSValueRef)setRuntimeObject:(nullable id)object withName:(NSString *)name {
     
-    FJSValue *w = [FJSValue wrapperWithInstance:object runtime:self];
+    if (!object) {
+        JSValueRef exception = NULL;
+        JSStringRef jsName = JSStringCreateWithUTF8CString([name UTF8String]);
+        JSObjectDeleteProperty([self contextRef], JSContextGetGlobalObject([self contextRef]), jsName, &exception);
+        JSStringRelease(jsName);
+        return nil;
+    }
+    
+    FJSValue *w = [FJSValue wrapperWithInstance:(__bridge CFTypeRef _Nonnull)(object) runtime:self];
     
     JSValueRef jsValue = [self newJSValueForWrapper:w];
     
@@ -175,32 +197,29 @@ static JSValueRef FJS_callAsFunction(JSContextRef ctx, JSObjectRef functionJS, J
 }
 
 - (void)garbageCollect {
-    JSGarbageCollect([_jscContext JSGlobalContextRef]);
+    JSGarbageCollect(_jsContext);
 }
 
-- (id)evaluateScript:(NSString *)script withSourceURL:(NSURL *)sourceURL {
+- (id)evaluateScript:(NSString *)script withSourceURL:(nullable NSURL *)sourceURL {
     
     [self pushAsCurrentFJS];
     
     @try {
-        [[self context] evaluateScript:script withSourceURL:sourceURL];
-    }
-    @catch (NSException *exception) {
-        debug(@"Exception: %@", exception);
-    }
-    @finally {
-        ;
-    }
-    
-    [self popAsCurrentFJS];
-}
-
-- (id)evaluateScript:(NSString*)script {
-    
-    [self pushAsCurrentFJS];
-    
-    @try {
-        [[self context] evaluateScript:script];
+        
+        
+        JSStringRef jsString = JSStringCreateWithCFString((__bridge CFStringRef)script);
+        JSStringRef jsScriptPath = (sourceURL != nil ? JSStringCreateWithUTF8CString([[sourceURL path] UTF8String]) : NULL);
+        JSValueRef exception = NULL;
+        
+        JSValueRef result = JSEvaluateScript([self contextRef], jsString, NULL, jsScriptPath, 1, &exception);
+        
+        if (jsString != NULL) {
+            JSStringRelease(jsString);
+        }
+        if (jsScriptPath != NULL) {
+            JSStringRelease(jsScriptPath);
+        }
+        
     }
     @catch (NSException *exception) {
         debug(@"Exception: %@", exception);
@@ -212,6 +231,11 @@ static JSValueRef FJS_callAsFunction(JSContextRef ctx, JSObjectRef functionJS, J
     [self popAsCurrentFJS];
     
     return nil;
+}
+
+- (id)evaluateScript:(NSString*)script {
+    
+    return [self evaluateScript:script withSourceURL:nil];
 }
 
 - (BOOL)respondsToSelector:(SEL)aSelector {
@@ -251,13 +275,13 @@ static JSValueRef FJS_callAsFunction(JSContextRef ctx, JSObjectRef functionJS, J
     debug(@"%s:%d", __FUNCTION__, __LINE__);
 }
 
-- (JSValueRef)newJSValueForWrapper:(FJSValue*)w {
+- (JSValueRef)newJSValueForWrapper:(FJSValue*)value {
     
     // This should only be called for non-js objects.
-    FMAssert(![w isJSNative]);
+    FMAssert(![value isJSNative]);
     
-    JSObjectRef r = JSObjectMake([[self jscContext] JSGlobalContextRef], FJSGlobalClass, (__bridge void *)(w));
-    CFRetain((__bridge void *)w);
+    JSObjectRef r = JSObjectMake(_jsContext, _globalClass, (__bridge void *)(value));
+    CFRetain((__bridge void *)value);
     
     FMAssert(r);
     
@@ -267,6 +291,8 @@ static JSValueRef FJS_callAsFunction(JSContextRef ctx, JSObjectRef functionJS, J
 @end
 
 static void FJS_initialize(JSContextRef ctx, JSObjectRef object) {
+    
+    debug(@"initialize: %p", object);
     
     //debug(@"FJS_initialize: %@", [FJSJSWrapper wrapperForJSObject:object cos:[COScriptLite currentCOScriptLite]]);
     
@@ -307,10 +333,9 @@ JSValueRef FJS_getGlobalProperty(JSContextRef ctx, JSObjectRef object, JSStringR
     FJSValue *objectWrapper = [FJSValue wrapperForJSObject:object runtime:runtime];
     FJSSymbol *symArgument = [objectWrapper symbol];
     
-    debug(@"objectWrapper: '%@' (%p) %p %d", objectWrapper, object, JSContextGetGlobalObject(ctx), JSValueGetType(ctx, object));
-    debug(@"propertyName: '%@'", propertyName);
-    
-    debug(@"symArgument: '%@'", symArgument);
+//    debug(@"objectWrapper: '%@' (%p) %p %d", objectWrapper, object, JSContextGetGlobalObject(ctx), JSValueGetType(ctx, object));
+//    debug(@"propertyName: '%@'", propertyName);
+//    debug(@"symArgument: '%@'", symArgument);
     
     FJSSymbol *sym = [FJSBridgeParser symbolForName:propertyName];
     if (symArgument) {
@@ -322,9 +347,13 @@ JSValueRef FJS_getGlobalProperty(JSContextRef ctx, JSObjectRef object, JSStringR
         
         if ([[sym symbolType] isEqualToString:@"function"] || [[sym symbolType] isEqualToString:@"method"]) {
             
-            FJSValue *w = [FJSValue wrapperWithSymbol:sym runtime:runtime];
+            FJSValue *value = [FJSValue wrapperWithSymbol:sym runtime:runtime];
             
-            return [runtime newJSValueForWrapper:w];
+            JSValueRef r = [runtime newJSValueForWrapper:value];
+            
+            debug(@"returning function: %p", r);
+            
+            return r;
         }
         else if ([[sym symbolType] isEqualToString:@"class"]) {
             
@@ -334,13 +363,9 @@ JSValueRef FJS_getGlobalProperty(JSContextRef ctx, JSObjectRef object, JSStringR
             FJSValue *w = [FJSValue wrapperWithSymbol:sym runtime:runtime];
             
             
-            [w setInstance:class];
-            
-            debug(@"FJSJSWrapper class: '%@'", w);
+            [w setClass:class];
             
             JSValueRef val = [runtime newJSValueForWrapper:w];
-            
-            debug(@"JSValueRef: '%p'", val);
             
             return val;
         }
@@ -356,9 +381,9 @@ JSValueRef FJS_getGlobalProperty(JSContextRef ctx, JSObjectRef object, JSStringR
             assert([[sym runtimeType] hasPrefix:@"@"]);
             
             id o = (__bridge id)(*(void**)dlsymbol);
-            FJSValue *w = [FJSValue wrapperWithInstance:o runtime:runtime];
+            FJSValue *w = [FJSValue wrapperWithInstance:(__bridge CFTypeRef _Nonnull)(o) runtime:runtime];
             
-            JSObjectRef r = JSObjectMake(ctx, FJSGlobalClass, (__bridge void *)(w));
+            JSObjectRef r = JSObjectMake(ctx, [runtime globalClass], (__bridge void *)(w));
             
             CFRetain((__bridge void *)w);
             
@@ -458,20 +483,22 @@ static JSValueRef FJS_callAsFunction(JSContextRef ctx, JSObjectRef functionJS, J
     
     JSValueRef returnRef = [ret JSValue];
     
-    if ([[[functionToCall symbol] name] isEqualToString:@"new"]) {
-        assert(returnRef);
-    }
-    
     //debug(@"returnRef: %@ for function '%@' (%@)", returnRef, [[functionToCall symbol] name], ret);
     
     return returnRef;
 }
 
 static void FJS_finalize(JSObjectRef object) {
-    FJSValue *objectToCall = (__bridge FJSValue *)(JSObjectGetPrivate(object));
+    debug(@"finalize: %p", object);
     
-    if (objectToCall) {
-        CFRelease((__bridge CFTypeRef)(objectToCall));
+    CFTypeRef value = JSObjectGetPrivate(object);
+    
+    debug(@"value: '%@'", value);
+    
+    //FJSValue *value = (__bridge FJSValue *)(JSObjectGetPrivate(object));
+    
+    if (value) {
+        CFRelease(value);
     }
 }
 

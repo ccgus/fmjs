@@ -19,24 +19,49 @@
 @property (weak) FJSRuntime *runtime;
 @property (assign) JSObjectRef nativeJSObj;
 
+@property (weak) id weakInstance;
+
+#ifdef DEBUG
+@property (assign) BOOL isWeakReference;
+#endif
+
+
 @end
 
 @implementation FJSValue
 
-- (void)dealloc {
-    if ([self isInstance]) {
-        CFRelease((__bridge CFTypeRef)([self instance]));
+- (instancetype)init
+{
+    self = [super init];
+    if (self) {
+        
     }
+    return self;
 }
 
+- (void)dealloc {
+    
+    if ([self isInstance] && _cValue.value.pointerValue) {
+        debug(@"FJSValue dealloc releasing %@", _cValue.value.pointerValue);
+        CFRelease(_cValue.value.pointerValue);
+    }
+    
+#ifdef DEBUG
+    if ([self isInstance] && !_weakInstance && !_isWeakReference && !_cValue.value.pointerValue) {
+        debug(@"Why am I an instance without anything to point to?! %p", self);
+        FMAssert(NO);
+    }
+#endif
+    
+}
 
 + (instancetype)wrapperForJSObject:(nullable JSObjectRef)jso runtime:(FJSRuntime*)runtime {
-    
+    FMAssert(runtime);
     if (!jso) {
         return nil;
     }
     
-    if (JSValueIsObject([[runtime jscContext] JSGlobalContextRef], jso)) {
+    if (JSValueIsObject([runtime contextRef], jso)) {
         FJSValue *wr = (__bridge FJSValue *)(JSObjectGetPrivate(jso));
         if (wr) {
             return wr;
@@ -52,7 +77,7 @@
 }
 
 + (instancetype)wrapperWithSymbol:(FJSSymbol*)sym runtime:(FJSRuntime*)runtime {
-    
+    FMAssert(runtime);
     FJSValue *cw = [[self alloc] init];
     [cw setSymbol:sym];
     [cw setRuntime:runtime];
@@ -65,6 +90,7 @@
 }
 
 + (instancetype)wrapperWithClass:(Class)c runtime:(FJSRuntime*)runtime {
+    FMAssert(runtime);
     FJSValue *cw = [[self alloc] init];
     [cw setClass:c];
     [cw setRuntime:runtime];
@@ -72,7 +98,8 @@
     return cw;
 }
 
-+ (instancetype)wrapperWithInstance:(id)instance runtime:(FJSRuntime*)runtime {
++ (instancetype)wrapperWithInstance:(CFTypeRef)instance runtime:(FJSRuntime*)runtime {
+    FMAssert(runtime);
     FJSValue *cw = [[self alloc] init];
     [cw setInstance:instance];
     [cw setRuntime:runtime];
@@ -80,6 +107,19 @@
     return cw;
 }
 
++ (instancetype)wrapperWithWeakInstance:(id)instance runtime:(FJSRuntime*)runtime {
+    FMAssert(runtime);
+    FJSValue *cw = [[self alloc] init];
+    [cw setWeakInstance:instance];
+    [cw setIsWeakReference:YES];
+    
+    cw->_cValue.type = _C_ID;
+    
+    [cw setRuntime:runtime];
+    debug(@"weak value: %p", cw);
+    
+    return cw;
+}
 
 - (BOOL)isClass {
     return _cValue.type == _C_CLASS;
@@ -90,6 +130,11 @@
 }
 
 - (id)instance {
+    
+    if (_weakInstance) {
+        return _weakInstance;
+    }
+    
     return (__bridge id)_cValue.value.pointerValue;
 }
 
@@ -97,12 +142,14 @@
     return (__bridge Class)_cValue.value.pointerValue;
 }
 
-- (void)setInstance:(id)o {
+- (void)setInstance:(CFTypeRef)o {
+    FMAssert(!_weakInstance);
     FMAssert(!_cValue.value.pointerValue);
+    debug(@"FJSValue retaining %@ currently at %ld", o, CFGetRetainCount(o));
     
-    CFRetain((__bridge CFTypeRef)(o));
+    CFRetain(o);
     _cValue.type = _C_ID;
-    _cValue.value.pointerValue = (__bridge void * _Nonnull)(o);
+    _cValue.value.pointerValue = (void*)o;
 }
 
 - (void)retainReturnValue {
@@ -156,7 +203,7 @@
     
     if ([self isInstance]) {
         
-        vr = [FJSValue nativeObjectToJSValue:[self instance] inJSContext:[[_runtime jscContext] JSGlobalContextRef]];
+        vr = [FJSValue nativeObjectToJSValue:[self instance] inJSContext:[_runtime contextRef]];
         
         if (vr) {
             return vr;
@@ -173,7 +220,7 @@
     switch (_cValue.type) {
             
         case _C_BOOL:
-            vr = JSValueMakeBoolean([[_runtime jscContext] JSGlobalContextRef], _cValue.value.boolValue);
+            vr = JSValueMakeBoolean([_runtime contextRef], _cValue.value.boolValue);
             break;
             
         case _C_CHR:
@@ -203,7 +250,7 @@
                 case _C_FLT:        number = _cValue.value.floatValue; break;
                 case _C_DBL:        number = _cValue.value.doubleValue; break;
             }
-            vr = JSValueMakeNumber([[_runtime jscContext] JSGlobalContextRef], number);
+            vr = JSValueMakeNumber([_runtime contextRef], number);
             break;
         }
         
@@ -258,7 +305,7 @@
     // TODO: check for numbers, etc, and convert them to the right JS type
     debug(@"_instance: %@", [self instance]);
     JSStringRef string = JSStringCreateWithCFString((__bridge CFStringRef)[[self instance] description]);
-    JSValueRef value = JSValueMakeString([[_runtime jscContext] JSGlobalContextRef], string);
+    JSValueRef value = JSValueMakeString([_runtime contextRef], string);
     JSStringRelease(string);
     return value;
 }
@@ -267,87 +314,87 @@
     
     if ([type isEqualToString:@"B"]) {
         _cValue.type = _C_BOOL;
-        _cValue.value.boolValue = [[FJSValue nativeObjectFromJSValue:_nativeJSObj ofType:type inJSContext:[[_runtime jscContext] JSGlobalContextRef]] boolValue];
+        _cValue.value.boolValue = [[FJSValue nativeObjectFromJSValue:_nativeJSObj ofType:type inJSContext:[_runtime contextRef]] boolValue];
         return YES;
     }
     
     if ([type isEqualToString:@"s"]) {
         _cValue.type = _C_SHT;
-        _cValue.value.shortValue = [[FJSValue nativeObjectFromJSValue:_nativeJSObj ofType:type inJSContext:[[_runtime jscContext] JSGlobalContextRef]] shortValue];
+        _cValue.value.shortValue = [[FJSValue nativeObjectFromJSValue:_nativeJSObj ofType:type inJSContext:[_runtime contextRef]] shortValue];
         return YES;
     }
     
     if ([type isEqualToString:@"S"]) {
         _cValue.type = _C_USHT;
-        _cValue.value.ushortValue = [[FJSValue nativeObjectFromJSValue:_nativeJSObj ofType:type inJSContext:[[_runtime jscContext] JSGlobalContextRef]] unsignedShortValue];
+        _cValue.value.ushortValue = [[FJSValue nativeObjectFromJSValue:_nativeJSObj ofType:type inJSContext:[_runtime contextRef]] unsignedShortValue];
         return YES;
     }
     
     if ([type isEqualToString:@"c"]) {
         _cValue.type = _C_CHR;
-        _cValue.value.charValue = [[FJSValue nativeObjectFromJSValue:_nativeJSObj ofType:type inJSContext:[[_runtime jscContext] JSGlobalContextRef]] charValue];
+        _cValue.value.charValue = [[FJSValue nativeObjectFromJSValue:_nativeJSObj ofType:type inJSContext:[_runtime contextRef]] charValue];
         return YES;
     }
     
     if ([type isEqualToString:@"C"]) {
         _cValue.type = _C_UCHR;
-        _cValue.value.ucharValue = [[FJSValue nativeObjectFromJSValue:_nativeJSObj ofType:type inJSContext:[[_runtime jscContext] JSGlobalContextRef]] unsignedCharValue];
+        _cValue.value.ucharValue = [[FJSValue nativeObjectFromJSValue:_nativeJSObj ofType:type inJSContext:[_runtime contextRef]] unsignedCharValue];
         return YES;
     }
     
     if ([type isEqualToString:@"i"]) {
         _cValue.type = _C_INT;
-        _cValue.value.intValue = [[FJSValue nativeObjectFromJSValue:_nativeJSObj ofType:type inJSContext:[[_runtime jscContext] JSGlobalContextRef]] intValue];
+        _cValue.value.intValue = [[FJSValue nativeObjectFromJSValue:_nativeJSObj ofType:type inJSContext:[_runtime contextRef]] intValue];
         return YES;
     }
     
     if ([type isEqualToString:@"I"]) {
         _cValue.type = _C_UINT;
-        _cValue.value.uintValue = [[FJSValue nativeObjectFromJSValue:_nativeJSObj ofType:type inJSContext:[[_runtime jscContext] JSGlobalContextRef]] unsignedIntValue];
+        _cValue.value.uintValue = [[FJSValue nativeObjectFromJSValue:_nativeJSObj ofType:type inJSContext:[_runtime contextRef]] unsignedIntValue];
         return YES;
     }
     
     if ([type isEqualToString:@"l"]) {
         _cValue.type = _C_LNG;
-        _cValue.value.longValue = [[FJSValue nativeObjectFromJSValue:_nativeJSObj ofType:type inJSContext:[[_runtime jscContext] JSGlobalContextRef]] longValue];
+        _cValue.value.longValue = [[FJSValue nativeObjectFromJSValue:_nativeJSObj ofType:type inJSContext:[_runtime contextRef]] longValue];
         return YES;
     }
     
     if ([type isEqualToString:@"L"]) {
         _cValue.type = _C_ULNG;
-        _cValue.value.unsignedLongValue = [[FJSValue nativeObjectFromJSValue:_nativeJSObj ofType:type inJSContext:[[_runtime jscContext] JSGlobalContextRef]] unsignedLongValue];
+        _cValue.value.unsignedLongValue = [[FJSValue nativeObjectFromJSValue:_nativeJSObj ofType:type inJSContext:[_runtime contextRef]] unsignedLongValue];
         return YES;
     }
     
     if ([type isEqualToString:@"q"]) {
         _cValue.type = _C_LNG_LNG;
-        _cValue.value.longLongValue = [[FJSValue nativeObjectFromJSValue:_nativeJSObj ofType:type inJSContext:[[_runtime jscContext] JSGlobalContextRef]] longLongValue];
+        _cValue.value.longLongValue = [[FJSValue nativeObjectFromJSValue:_nativeJSObj ofType:type inJSContext:[_runtime contextRef]] longLongValue];
         return YES;
     }
     
     if ([type isEqualToString:@"Q"]) {
         _cValue.type = _C_ULNG_LNG;
-        _cValue.value.unsignedLongLongValue = [[FJSValue nativeObjectFromJSValue:_nativeJSObj ofType:type inJSContext:[[_runtime jscContext] JSGlobalContextRef]] unsignedLongLongValue];
+        _cValue.value.unsignedLongLongValue = [[FJSValue nativeObjectFromJSValue:_nativeJSObj ofType:type inJSContext:[_runtime contextRef]] unsignedLongLongValue];
         return YES;
     }
     
     if ([type isEqualToString:@"f"]) {
         _cValue.type = _C_FLT;
-        _cValue.value.floatValue = [[FJSValue nativeObjectFromJSValue:_nativeJSObj ofType:type inJSContext:[[_runtime jscContext] JSGlobalContextRef]] floatValue];
+        _cValue.value.floatValue = [[FJSValue nativeObjectFromJSValue:_nativeJSObj ofType:type inJSContext:[_runtime contextRef]] floatValue];
         return YES;
     }
     
     if ([type isEqualToString:@"d"]) {
         _cValue.type = _C_DBL;
-        _cValue.value.doubleValue = [[FJSValue nativeObjectFromJSValue:_nativeJSObj ofType:type inJSContext:[[_runtime jscContext] JSGlobalContextRef]] doubleValue];
+        _cValue.value.doubleValue = [[FJSValue nativeObjectFromJSValue:_nativeJSObj ofType:type inJSContext:[_runtime contextRef]] doubleValue];
         return YES;
     }
     
     
     if ([type isEqualToString:@":"]) {
         
-        if (JSValueIsString([[_runtime jscContext] JSGlobalContextRef], _nativeJSObj)) {
-            JSStringRef resultStringJS = JSValueToStringCopy([[_runtime jscContext] JSGlobalContextRef], _nativeJSObj, NULL);
+        if (JSValueIsString([_runtime contextRef], _nativeJSObj)) {
+            JSStringRef resultStringJS = JSValueToStringCopy([_runtime contextRef], _nativeJSObj, NULL);
             id o = (NSString *)CFBridgingRelease(JSStringCopyCFString(kCFAllocatorDefault, resultStringJS));
             JSStringRelease(resultStringJS);
             _cValue.type = _C_SEL;
@@ -360,9 +407,7 @@
         
     }
     
-    [self setInstance:[FJSValue nativeObjectFromJSValue:_nativeJSObj ofType:type inJSContext:[[_runtime jscContext] JSGlobalContextRef]]];
-    
-    debug(@"[self instance]: '%@'", [self instance]);
+    [self setInstance:(__bridge CFTypeRef)([FJSValue nativeObjectFromJSValue:_nativeJSObj ofType:type inJSContext:[_runtime contextRef]])];
     
     return [self instance] != nil;
 }

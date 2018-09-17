@@ -46,7 +46,8 @@ typedef struct {
 
 + (instancetype)wrapperForJSObject:(nullable JSObjectRef)jso runtime:(FJSRuntime*)runtime;
 + (instancetype)wrapperWithSymbol:(FJSSymbol*)sym runtime:(FJSRuntime*)runtime;
-+ (instancetype)wrapperWithInstance:(id)instance runtime:(FJSRuntime*)runtime;
++ (instancetype)wrapperWithInstance:(CFTypeRef)instance runtime:(FJSRuntime*)runtime;
++ (instancetype)wrapperWithWeakInstance:(id)instance runtime:(FJSRuntime*)runtime;
 + (instancetype)wrapperWithClass:(Class)c runtime:(FJSRuntime*)runtime;
 
 - (BOOL)isClass;
@@ -64,7 +65,7 @@ typedef struct {
 
 - (id)instance;
 - (Class)rtClass;
-- (void)setInstance:(id)o;
+//- (void)setInstance:(id)o;
 - (void)setClass:(Class)c;
 - (void)retainReturnValue;
 

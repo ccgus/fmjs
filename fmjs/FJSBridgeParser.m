@@ -7,8 +7,7 @@
 //
 
 #import "FJSBridgeParser.h"
-
-#define debug NSLog
+#import "FJS.h"
 
 @interface FJSBridgeParser ()
 
@@ -42,7 +41,23 @@
 }
 
 + (FJSSymbol*)symbolForName:(NSString*)name {
-    return [[[self sharedParser] symbols] objectForKey:name];
+    FJSSymbol *sym = [[[self sharedParser] symbols] objectForKey:name];
+    
+    if (!sym) {
+        
+        Class objCClass = NSClassFromString(name);
+        if (objCClass) {
+            
+            sym = [[FJSSymbol alloc] init];
+            [sym setSymbolType:@"class"];
+            [sym setName:name];
+            
+            [[[self sharedParser] symbols] setObject:sym forKey:name];
+         }
+        
+    }
+    
+    return sym;
 }
 
 - (void)parseBridgeFileAtPath:(NSString*)bridgePath {
@@ -154,7 +169,7 @@
         }
     }
     
-    
+    #pragma message "FIXME: What about constants?"
     if ([sym name] && ([elementName isEqualToString:@"class"] || [elementName isEqualToString:@"function"] || [elementName isEqualToString:@"enum"])) {
         [_symbols setObject:sym forKey:[sym name]];
     }
@@ -281,11 +296,9 @@
     SEL selector = NSSelectorFromString(name);
     
     if ([c respondsToSelector:selector]) {
-        debug(@"Found class method '%@' in the runtime", name);
         
         NSMethodSignature *methodSignature = [c methodSignatureForSelector:selector];
         assert(methodSignature);
-        debug(@"methodSignature: '%@'", methodSignature);
         
         FJSSymbol *classMethodSymol = [FJSSymbol new];
         [classMethodSymol setName:name];
@@ -304,12 +317,11 @@
             FJSSymbol *argument = [FJSSymbol new];
             [argument setRuntimeType:[NSString stringWithFormat:@"%s", [methodSignature methodReturnType]]];
             [[classMethodSymol arguments] addObject:argument];
-            debug(@"argument: '%@'", argument);
         }
         
         [[self classMethods] addObject:classMethodSymol];
         
-        assert([NSThread isMainThread]); // need to put things in a queue if we're doing this in a background thread.
+        //assert([NSThread isMainThread]); // need to put things in a queue if we're doing this in a background thread.
         
         return classMethodSymol;
     }

@@ -9,11 +9,40 @@
 #import <XCTest/XCTest.h>
 #import "FJS.h"
 #import "FJSTestStuff.h"
-@interface fmjsTests : XCTestCase
+@interface FJSSimpleTests : XCTestCase
 
 @end
 
-@implementation fmjsTests
+int FJSSimpleTestsInitHappend;
+int FJSSimpleTestsDeallocHappend;
+
+
+@interface AllocInitDeallocTest : NSObject
+
+@end
+
+@implementation AllocInitDeallocTest
+
+- (instancetype)init {
+    self = [super init];
+    if (self) {
+        FJSSimpleTestsInitHappend++;
+    }
+    return self;
+}
+
+- (void)dealloc {
+    FJSSimpleTestsDeallocHappend++;
+    NSLog(@"Gone! (%d)", FJSSimpleTestsDeallocHappend);
+}
+
+@end
+
+
+
+
+@implementation FJSSimpleTests
+
 
 - (void)setUp {
     // Put setup code here. This method is called before the invocation of each test method in the class.
@@ -23,11 +52,45 @@
     // Put teardown code here. This method is called after the invocation of each test method in the class.
 }
 
+- (void)testInitAndDealoc {
+    FJSSimpleTestsInitHappend = 0;
+    FJSSimpleTestsDeallocHappend = 0;
+
+    int count = 100;
+    
+    
+    @autoreleasepool {
+        
+        [[NSRunLoop mainRunLoop] performBlock:^{
+            
+            FJSRuntime *runtime = [[FJSRuntime alloc] init];
+            
+            for (int i = 0; i < count; i++) {
+                [runtime evaluateScript:@"c = AllocInitDeallocTest.new();"];
+            }
+            
+            [runtime shutdown];
+        }];
+        
+    }
+    
+    NSTimeInterval startTime = [NSDate timeIntervalSinceReferenceDate];
+    while (FJSSimpleTestsDeallocHappend != count)  {
+        [[NSRunLoop mainRunLoop] runMode:NSDefaultRunLoopMode beforeDate:[NSDate dateWithTimeIntervalSinceNow:.1]];
+    }
+    
+    debug(@"%f seconds later…", [NSDate timeIntervalSinceReferenceDate] - startTime);
+    
+    XCTAssert(FJSSimpleTestsInitHappend == count);
+    XCTAssert(FJSSimpleTestsDeallocHappend == count);
+}
+
+
+- (void)testX {
+    
+}
+
 - (void)testExample {
-    // This is an example of a functional test case.
-    // Use XCTAssert and related functions to verify your tests produce the correct results.
-    
-    
     
     FJSRuntime *runtime = [FJSRuntime new];
     
@@ -155,13 +218,9 @@
     
     printf("All done\n");
     
-    
-    
-    
-    
 }
 
-- (void)testPerformanceExample {
+- (void)xtestPerformanceExample {
     // This is an example of a performance test case.
     [self measureBlock:^{
         // Put the code you want to measure the time of here.

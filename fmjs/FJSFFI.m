@@ -40,7 +40,7 @@
     FJSSymbol *functionSymbol = [_f symbol];
     assert(functionSymbol);
     NSString *methodName = [functionSymbol name];
-    FJSValue *returnWrapper = nil;
+    FJSValue *returnFValue = nil;
     
     @try {
         
@@ -50,9 +50,7 @@
         
         NSMethodSignature *methodSignature = [object methodSignatureForSelector:selector];
         NSInvocation *invocation = [NSInvocation invocationWithMethodSignature:methodSignature];
-
-//        [invocation retainArguments]; // need to do this for release builds, because it seems ARC likes to let go of our strings early otherwise.
-//
+        
         [invocation setTarget:object];
         [invocation setSelector:selector];
         
@@ -78,20 +76,29 @@
         JSValueRef returnValue = NULL;
         if (FJSCharEquals(returnType, @encode(void))) {
             returnValue = JSValueMakeUndefined([_runtime contextRef]);
-            returnWrapper = [FJSValue wrapperForJSObject:(JSObjectRef)returnValue runtime:_runtime];
+            returnFValue = [FJSValue wrapperForJSObject:(JSObjectRef)returnValue runtime:_runtime];
         }
         // id
         else if (FJSCharEquals(returnType, @encode(id)) || FJSCharEquals(returnType, @encode(Class))) {
-            id object = nil;
+            CFTypeRef object = nil;
             [invocation getReturnValue:&object];
             
-            CFRetain((CFTypeRef)object);
+            debug(@"getReturnValue: %ld", CFGetRetainCount(object));
+            returnFValue = [FJSValue wrapperWithInstance:object runtime:_runtime];
+            debug(@"out of function call at CFGetRetainCount((__bridge CFTypeRef)(object)): %ld", CFGetRetainCount(object));
             
-            FMAssert(_runtime);
+            if ([methodName isEqualToString:@"new"] || [methodName isEqualToString:@"init"] || [methodName hasPrefix:@"create"]) {
+                // We're already +2 on the object now. Time to bring it back down with CFRelease
+                CFRelease(object);
+                
+                debug(@"%@ is down to: %ld", object, CFGetRetainCount(object));
+                debug(@"returnFValue: %@", returnFValue);
+            }
             
-            returnWrapper = [FJSValue wrapperWithInstance:object runtime:_runtime];
             
         }
+        
+        debug(@"returnFValue: '%@'", [returnFValue instance]);
         
     }
     @catch (NSException *e) {
@@ -100,7 +107,7 @@
         return NULL;
     }
     
-    return returnWrapper;
+    return returnFValue;
 }
 
 

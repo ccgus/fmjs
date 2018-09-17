@@ -22,17 +22,17 @@ NS_ASSUME_NONNULL_BEGIN
 
 @interface FJSRuntime : NSObject <COScriptLiteJavaScriptMethods>
 
-@property (strong) JSContext *jscContext;
-
 - (id)evaluateScript:(NSString*)str;
-- (id)evaluateScript:(NSString *)script withSourceURL:(NSURL *)sourceURL;
+- (id)evaluateScript:(NSString *)script withSourceURL:(nullable NSURL *)sourceURL;
 
-- (JSValueRef)setRuntimeObject:(id)object withName:(NSString *)name;
+- (JSValueRef)setRuntimeObject:(nullable id)object withName:(NSString *)name;
 
+- (void)shutdown;
 - (void)garbageCollect;
 
 - (JSValueRef)newJSValueForWrapper:(FJSValue*)w;
 
+//- (JSContext*)context;
 - (JSContextRef)contextRef;
 
 @end

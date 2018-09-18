@@ -12,7 +12,7 @@
 #import "FJS.h"
 #import "FJSRuntime.h"
 #import "FJSValue.h"
-#import "FJSBridgeParser.h"
+#import "FJSSymbolManager.h"
 #import "FJSFFI.h"
 #import <objc/runtime.h>
 #import <dlfcn.h>
@@ -69,7 +69,7 @@ static JSValueRef FJS_callAsFunction(JSContextRef ctx, JSObjectRef functionJS, J
         NSString *FMJSBridgeSupportPath = [[NSBundle bundleForClass:[self class]] pathForResource:@"FJS" ofType:@"bridgesupport"];
         FMAssert(FMJSBridgeSupportPath);
         
-        [[FJSBridgeParser sharedParser] parseBridgeFileAtPath:FMJSBridgeSupportPath];
+        [[FJSSymbolManager sharedManager] parseBridgeFileAtPath:FMJSBridgeSupportPath];
         
         [self loadFrameworkAtPath:@"/System/Library/Frameworks/Foundation.framework"];
         [self loadFrameworkAtPath:@"/System/Library/Frameworks/AppKit.framework"];
@@ -269,7 +269,7 @@ static JSValueRef FJS_callAsFunction(JSContextRef ctx, JSObjectRef functionJS, J
 
     NSString *bridgeXML = [path stringByAppendingPathComponent:[NSString stringWithFormat:@"Resources/BridgeSupport/%@.bridgesupport", frameworkName]];
     if ([[NSFileManager defaultManager] fileExistsAtPath:bridgeXML]) {
-        [[FJSBridgeParser sharedParser] parseBridgeFileAtPath:bridgeXML];
+        [[FJSSymbolManager sharedManager] parseBridgeFileAtPath:bridgeXML];
     }
 }
 
@@ -326,7 +326,7 @@ static bool FJS_hasProperty(JSContextRef ctx, JSObjectRef object, JSStringRef pr
     
     FJSRuntime *runtime = [FJSRuntime runtimeInContext:ctx];
     FJSValue *objectWrapper = [FJSValue valueForJSObject:object inRuntime:runtime];
-    FJSSymbol *sym = [FJSBridgeParser symbolForName:propertyName inObject:[objectWrapper instance]];
+    FJSSymbol *sym = [FJSSymbolManager symbolForName:propertyName inObject:[objectWrapper instance]];
     
     if (sym) {
         return YES;
@@ -358,7 +358,7 @@ JSValueRef FJS_getGlobalProperty(JSContextRef ctx, JSObjectRef object, JSStringR
     }
     
     FJSValue *objectWrapper = [FJSValue valueForJSObject:object inRuntime:runtime];
-    FJSSymbol *sym = [FJSBridgeParser symbolForName:propertyName inObject:[objectWrapper instance]];
+    FJSSymbol *sym = [FJSSymbolManager symbolForName:propertyName inObject:[objectWrapper instance]];
     
     
     if (sym) {

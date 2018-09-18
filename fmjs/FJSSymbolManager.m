@@ -6,12 +6,12 @@
 //  Copyright © 2018 Flying Meat Inc. All rights reserved.
 //
 
-#import "FJSBridgeParser.h"
+#import "FJSSymbolManager.h"
 #import "FJS.h"
 
 @import ObjectiveC;
 
-@interface FJSBridgeParser ()
+@interface FJSSymbolManager ()
 
 @property (strong) FJSSymbol *currentFunction;
 @property (strong) FJSSymbol *currentClass;
@@ -19,11 +19,11 @@
 
 @end
 
-@implementation FJSBridgeParser
+@implementation FJSSymbolManager
 
-+ (instancetype)sharedParser {
++ (instancetype)sharedManager {
     
-    static FJSBridgeParser *bp = nil;
+    static FJSSymbolManager *bp = nil;
     static dispatch_once_t onceToken;
     dispatch_once(&onceToken, ^{
         bp = [[self alloc] init];
@@ -54,7 +54,7 @@
         
         if (object == [object class]) {
             NSString *className = NSStringFromClass(object);
-            FJSSymbol *classSymbol = [[[self sharedParser] symbols] objectForKey:className];
+            FJSSymbol *classSymbol = [[[self sharedManager] symbols] objectForKey:className];
             FMAssert(classSymbol);
             sym = [classSymbol classMethodNamed:name];
         }
@@ -62,7 +62,7 @@
             
             #pragma message "FIXME: hahaha, gotta check superclasses too duh"
             NSString *className = NSStringFromClass([object class]);
-            FJSSymbol *instanceSymbol = [[[self sharedParser] symbols] objectForKey:className];
+            FJSSymbol *instanceSymbol = [[[self sharedManager] symbols] objectForKey:className];
             FMAssert(instanceSymbol);
             sym = [instanceSymbol instanceMethodNamed:name];
         }
@@ -71,7 +71,7 @@
     }
     
     
-    sym = [[[self sharedParser] symbols] objectForKey:name];
+    sym = [[[self sharedManager] symbols] objectForKey:name];
     
     if (!sym) {
         
@@ -82,7 +82,7 @@
             [sym setSymbolType:@"class"];
             [sym setName:name];
             
-            [[[self sharedParser] symbols] setObject:sym forKey:name];
+            [[[self sharedManager] symbols] setObject:sym forKey:name];
         }
         
     }

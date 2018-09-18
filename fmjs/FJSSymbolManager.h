@@ -12,11 +12,11 @@ NS_ASSUME_NONNULL_BEGIN
 
 @class FJSSymbol;
 
-@interface FJSBridgeParser : NSObject <NSXMLParserDelegate>
+@interface FJSSymbolManager : NSObject <NSXMLParserDelegate>
 
 @property (strong) NSMutableDictionary *symbols;
 
-+ (instancetype)sharedParser;
++ (instancetype)sharedManager;
 
 - (void)parseBridgeFileAtPath:(NSString*)bridgePath;
 

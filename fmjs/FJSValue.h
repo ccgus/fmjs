@@ -9,7 +9,7 @@
 #import <Foundation/Foundation.h>
 #import <JavaScriptCore/JavaScriptCore.h>
 #import <ffi/ffi.h>
-#import "FJSBridgeParser.h"
+#import "FJSSymbolManager.h"
 #import "FJSRuntime.h"
 
 NS_ASSUME_NONNULL_BEGIN

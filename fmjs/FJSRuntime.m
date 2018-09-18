@@ -34,7 +34,7 @@ static FJSRuntime *FJSCurrentCOScriptLite;
 static void FJS_initialize(JSContextRef ctx, JSObjectRef object);
 static void FJS_finalize(JSObjectRef object);
 JSValueRef FJS_getGlobalProperty(JSContextRef ctx, JSObjectRef object, JSStringRef propertyNameJS, JSValueRef *exception);
-//static bool FJS_hasProperty(JSContextRef ctx, JSObjectRef object, JSStringRef propertyName);
+static bool FJS_hasProperty(JSContextRef ctx, JSObjectRef object, JSStringRef propertyName);
 static JSValueRef FJS_callAsFunction(JSContextRef ctx, JSObjectRef functionJS, JSObjectRef thisObject, size_t argumentCount, const JSValueRef arguments[], JSValueRef *exception);
 
 @implementation FJSRuntime
@@ -99,7 +99,7 @@ static JSValueRef FJS_callAsFunction(JSContextRef ctx, JSObjectRef functionJS, J
     COSGlobalClassDefinition.getProperty        = FJS_getGlobalProperty;
     COSGlobalClassDefinition.initialize         = FJS_initialize;
     COSGlobalClassDefinition.finalize           = FJS_finalize;
-    //COSGlobalClassDefinition.hasProperty      = FJS_hasProperty; // If we don't have this, getProperty gets called twice.
+    COSGlobalClassDefinition.hasProperty        = FJS_hasProperty; // If we don't have this, getProperty gets called twice.
     COSGlobalClassDefinition.callAsFunction     = FJS_callAsFunction;
     
     _globalClass                                = JSClassCreate(&COSGlobalClassDefinition);
@@ -314,15 +314,40 @@ static void FJS_initialize(JSContextRef ctx, JSObjectRef object) {
 
 }
 
+static bool FJS_hasProperty(JSContextRef ctx, JSObjectRef object, JSStringRef propertyNameJS) {
+    NSString *propertyName = (NSString *)CFBridgingRelease(JSStringCopyCFString(kCFAllocatorDefault, propertyNameJS));
+    if ([propertyName isEqualToString:FJSRuntimeLookupKey]) {
+        return nil;
+    }
+    
+    debug(@"FJS_hasProperty: '%@'?", propertyName);
+    
+    FJSRuntime *runtime = [FJSRuntime runtimeInContext:ctx];
+    FJSValue *objectWrapper = [FJSValue wrapperForJSObject:object runtime:runtime];
+    FJSSymbol *sym = [FJSBridgeParser symbolForName:propertyName inObject:[objectWrapper instance]];
+    
+    if (sym) {
+        return YES;
+    }
+    
+    debug(@"No property for %@", propertyName);
+    
+    return NO;
+}
+
+
 JSValueRef FJS_getGlobalProperty(JSContextRef ctx, JSObjectRef object, JSStringRef propertyNameJS, JSValueRef *exception) {
     NSString *propertyName = (NSString *)CFBridgingRelease(JSStringCopyCFString(kCFAllocatorDefault, propertyNameJS));
     if ([propertyName isEqualToString:FJSRuntimeLookupKey]) {
         return nil;
     }
     
+    //BOOL isGlobalLookup = object == JSContextGetGlobalObject(ctx);
+    //debug(@"isGlobalLookup: %d (%@)", isGlobalLookup, propertyName);
+    
     FJSRuntime *runtime = [FJSRuntime runtimeInContext:ctx];
     
-    //debug(@"propertyName: '%@' (%p)", propertyName, object);
+    debug(@"Getting property: '%@' (%p)", propertyName, object);
     
     if ([propertyName isEqualToString:@"toString"] || [propertyName isEqualToString:@"Symbol.toStringTag"]/* || [propertyName isEqualToString:@"Symbol.toPrimitive"]*/) {
         FJSValue *w = [FJSValue wrapperForJSObject:object runtime:runtime];
@@ -331,17 +356,8 @@ JSValueRef FJS_getGlobalProperty(JSContextRef ctx, JSObjectRef object, JSStringR
     }
     
     FJSValue *objectWrapper = [FJSValue wrapperForJSObject:object runtime:runtime];
-    FJSSymbol *symArgument = [objectWrapper symbol];
+    FJSSymbol *sym = [FJSBridgeParser symbolForName:propertyName inObject:[objectWrapper instance]];
     
-//    debug(@"objectWrapper: '%@' (%p) %p %d", objectWrapper, object, JSContextGetGlobalObject(ctx), JSValueGetType(ctx, object));
-//    debug(@"propertyName: '%@'", propertyName);
-//    debug(@"symArgument: '%@'", symArgument);
-    
-    FJSSymbol *sym = [FJSBridgeParser symbolForName:propertyName];
-    if (symArgument) {
-        // Oh- we're probably calling something like NSFoo.new(). We should check and see if the symbol is a (class)method or property or whatever.
-        sym = [symArgument classMethodNamed:propertyName];
-    }
     
     if (sym) {
         
@@ -453,12 +469,6 @@ JSValueRef FJS_getGlobalProperty(JSContextRef ctx, JSObjectRef object, JSStringR
     return nil;
 }
 
-//static bool FJS_hasProperty(JSContextRef ctx, JSObjectRef object, JSStringRef propertyNameJS) {
-//    NSString *propertyName = (NSString *)CFBridgingRelease(JSStringCopyCFString(NULL, propertyNameJS));
-//    debug(@"propertyName: '%@'", propertyName);
-//    debug(@"%s:%d", __FUNCTION__, __LINE__);
-//    return NO;
-//}
 
 static JSValueRef FJS_callAsFunction(JSContextRef ctx, JSObjectRef functionJS, JSObjectRef thisObject, size_t argumentCount, const JSValueRef arguments[], JSValueRef *exception) {
     

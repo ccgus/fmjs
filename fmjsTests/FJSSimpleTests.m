@@ -15,6 +15,7 @@
 
 int FJSSimpleTestsInitHappend;
 int FJSSimpleTestsDeallocHappend;
+int FJSSimpleTestsMethodCalled;
 
 
 @interface AllocInitDeallocTest : NSObject
@@ -28,7 +29,13 @@ int FJSSimpleTestsDeallocHappend;
     if (self) {
         FJSSimpleTestsInitHappend++;
     }
+    
     return self;
+}
+
+- (void)testMethod {
+    FJSSimpleTestsMethodCalled++;
+    debug(@"%s:%d", __FUNCTION__, __LINE__);
 }
 
 - (void)dealloc {
@@ -55,22 +62,26 @@ int FJSSimpleTestsDeallocHappend;
 - (void)testInitAndDealoc {
     FJSSimpleTestsInitHappend = 0;
     FJSSimpleTestsDeallocHappend = 0;
+    FJSSimpleTestsMethodCalled = 0;
 
-    int count = 100;
+    int count = 10;
     
     
     @autoreleasepool {
         
-        [[NSRunLoop mainRunLoop] performBlock:^{
-            
-            FJSRuntime *runtime = [[FJSRuntime alloc] init];
-            
-            for (int i = 0; i < count; i++) {
-                [runtime evaluateScript:@"c = AllocInitDeallocTest.new();"];
-            }
-            
-            [runtime shutdown];
-        }];
+        FJSRuntime *runtime = [[FJSRuntime alloc] init];
+        
+        for (int i = 0; i < count; i++) {
+            [runtime evaluateScript:@"AllocInitDeallocTest.new().testMethod();"];
+        }
+        
+        [runtime shutdown];
+        
+        debug(@"done? %d/%d", FJSSimpleTestsInitHappend, FJSSimpleTestsMethodCalled);
+        
+        XCTAssert(FJSSimpleTestsMethodCalled == count);
+        XCTAssert(FJSSimpleTestsInitHappend == count);
+    
         
     }
     
@@ -81,16 +92,13 @@ int FJSSimpleTestsDeallocHappend;
     
     debug(@"%f seconds later…", [NSDate timeIntervalSinceReferenceDate] - startTime);
     
+    XCTAssert(FJSSimpleTestsMethodCalled == count);
     XCTAssert(FJSSimpleTestsInitHappend == count);
     XCTAssert(FJSSimpleTestsDeallocHappend == count);
 }
 
 
-- (void)testX {
-    
-}
-
-- (void)testExample {
+- (void)xtestExample {
     
     FJSRuntime *runtime = [FJSRuntime new];
     

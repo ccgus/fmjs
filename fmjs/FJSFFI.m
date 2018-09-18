@@ -85,9 +85,10 @@
             
             debug(@"getReturnValue: %ld", CFGetRetainCount(object));
             returnFValue = [FJSValue wrapperWithInstance:object runtime:_runtime];
+            
             debug(@"out of function call at CFGetRetainCount((__bridge CFTypeRef)(object)): %ld", CFGetRetainCount(object));
             
-            if ([methodName isEqualToString:@"new"] || [methodName isEqualToString:@"init"] || [methodName hasPrefix:@"create"]) {
+            if ([functionSymbol returnsRetained]) {
                 // We're already +2 on the object now. Time to bring it back down with CFRelease
                 CFRelease(object);
                 

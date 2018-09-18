@@ -9,6 +9,8 @@
 #import "FJSBridgeParser.h"
 #import "FJS.h"
 
+@import ObjectiveC;
+
 @interface FJSBridgeParser ()
 
 @property (strong) FJSSymbol *currentFunction;
@@ -41,19 +43,45 @@
 }
 
 + (FJSSymbol*)symbolForName:(NSString*)name {
-    FJSSymbol *sym = [[[self sharedParser] symbols] objectForKey:name];
+    
+    return [self symbolForName:name inObject:nil];
+}
+
++ (FJSSymbol*)symbolForName:(NSString*)name inObject:(nullable id)object {
+    FJSSymbol *sym = nil;
+    
+    if (object) {
+        
+        if (object == [object class]) {
+            NSString *className = NSStringFromClass(object);
+            FJSSymbol *classSymbol = [[[self sharedParser] symbols] objectForKey:className];
+            FMAssert(classSymbol);
+            sym = [classSymbol classMethodNamed:name];
+        }
+        else {
+            NSString *className = NSStringFromClass([object class]);
+            FJSSymbol *instanceSymbol = [[[self sharedParser] symbols] objectForKey:className];
+            FMAssert(instanceSymbol);
+            sym = [instanceSymbol instanceMethodNamed:name];
+        }
+        
+        return sym;
+    }
+    
+    
+    sym = [[[self sharedParser] symbols] objectForKey:name];
     
     if (!sym) {
         
         Class objCClass = NSClassFromString(name);
+        
         if (objCClass) {
-            
             sym = [[FJSSymbol alloc] init];
             [sym setSymbolType:@"class"];
             [sym setName:name];
             
             [[[self sharedParser] symbols] setObject:sym forKey:name];
-         }
+        }
         
     }
     
@@ -278,7 +306,79 @@
     return [NSString stringWithFormat:@"<%@: %p %@ %@>", NSStringFromClass([self class]), self, _name, _runtimeType];
 }
 
+- (FJSSymbol*)methodNamed:(NSString*)name isClass:(BOOL)isClassMethod {
+    
+    assert([[self symbolType] isEqualToString:@"class"]);
+    
+    for (FJSSymbol *sym in isClassMethod ? _classMethods : _instanceMethods) {
+        if ([[sym name] isEqualToString:name]) {
+            return sym;
+        }
+    }
+    
+    // OK, it wasn't part of the bridge xml file. Let's look it up in the runtime.
+    
+    
+    Class c = NSClassFromString([self name]);
+    assert(c); // We have to exist, right?
+    
+    SEL selector = NSSelectorFromString(name);
+    
+    Method method = isClassMethod ? class_getClassMethod(c, selector) : class_getInstanceMethod(c, selector);
+    
+    
+    if (method) {
+        
+        FJSSymbol *methodSymbol = [FJSSymbol new];
+        [methodSymbol setName:name];
+        [methodSymbol setSymbolType:@"method"];
+        
+        NSMethodSignature *methodSignature = isClassMethod ? [c methodSignatureForSelector:selector] : [c instanceMethodSignatureForSelector:selector];
+        assert(methodSignature);
+        
+        if ([methodSignature methodReturnType]) {
+            FJSSymbol *returnValue = [FJSSymbol new];
+            [returnValue setRuntimeType:[NSString stringWithFormat:@"%s", [methodSignature methodReturnType]]];
+            [methodSymbol setReturnValue:returnValue];
+        }
+        
+        
+        for (NSUInteger idx = 2; idx < [methodSignature numberOfArguments]; idx++) {
+            
+            FJSSymbol *argument = [FJSSymbol new];
+            [argument setRuntimeType:[NSString stringWithFormat:@"%s", [methodSignature methodReturnType]]];
+            [[methodSymbol arguments] addObject:argument];
+        }
+        
+        
+        [(isClassMethod ? [self classMethods] : [self instanceMethods]) addObject:methodSymbol];
+        
+        assert([NSThread isMainThread]); // need to put things in a queue if we're doing this in a background thread.
+        
+        return methodSymbol;
+    }
+    
+    
+    
+    
+    return nil;
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+}
+
 - (FJSSymbol*)classMethodNamed:(NSString*)name {
+    
+    return [self methodNamed:name isClass:YES];
     
     assert([[self symbolType] isEqualToString:@"class"]);
     
@@ -334,13 +434,70 @@
 }
 
 - (FJSSymbol*)instanceMethodNamed:(NSString*)name {
+    
+    return [self methodNamed:name isClass:NO];
+    
     for (FJSSymbol *sym in _instanceMethods) {
         if ([[sym name] isEqualToString:name]) {
             return sym;
         }
     }
     
+    
+    Class c = NSClassFromString([self name]);
+    assert(c); // We have to exist, right?
+    
+    SEL selector = NSSelectorFromString(name);
+    
+    Method instanceMethod = class_getInstanceMethod(c, selector);
+    
+    
+    if (instanceMethod) {
+        
+        FJSSymbol *instanceMethodSymbol = [FJSSymbol new];
+        [instanceMethodSymbol setName:name];
+        [instanceMethodSymbol setSymbolType:@"method"];
+        
+        NSMethodSignature *methodSignature = [c instanceMethodSignatureForSelector:selector];
+        assert(methodSignature);
+        
+        if ([methodSignature methodReturnType]) {
+            FJSSymbol *returnValue = [FJSSymbol new];
+            [returnValue setRuntimeType:[NSString stringWithFormat:@"%s", [methodSignature methodReturnType]]];
+            [instanceMethodSymbol setReturnValue:returnValue];
+        }
+        
+        
+        for (NSUInteger idx = 2; idx < [methodSignature numberOfArguments]; idx++) {
+            
+            FJSSymbol *argument = [FJSSymbol new];
+            [argument setRuntimeType:[NSString stringWithFormat:@"%s", [methodSignature methodReturnType]]];
+            [[instanceMethodSymbol arguments] addObject:argument];
+        }
+        
+        
+        [[self instanceMethods] addObject:instanceMethodSymbol];
+        
+        //assert([NSThread isMainThread]); // need to put things in a queue if we're doing this in a background thread.
+        
+        return instanceMethodSymbol;
+    }
+    
+    
     return nil;
+}
+
+- (BOOL)returnsRetained {
+    
+    if ([_symbolType isEqualToString:@"method"]) {
+        return ([_name isEqualToString:@"new"] || [_name isEqualToString:@"init"] || [_name hasPrefix:@"create"]);
+    }
+    
+    NSLog(@"Programming error: asking if returnsRetained on a symbol of type: %@", _symbolType);
+    FMAssert(NO);
+    
+    return NO;
+    
 }
 
 @end

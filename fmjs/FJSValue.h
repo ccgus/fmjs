@@ -44,11 +44,11 @@ typedef struct {
 @property (assign) FJSObjCValue cValue;
 
 
-+ (instancetype)wrapperForJSObject:(nullable JSObjectRef)jso runtime:(FJSRuntime*)runtime;
-+ (instancetype)wrapperWithSymbol:(FJSSymbol*)sym runtime:(FJSRuntime*)runtime;
-+ (instancetype)wrapperWithInstance:(CFTypeRef)instance runtime:(FJSRuntime*)runtime;
-+ (instancetype)wrapperWithWeakInstance:(id)instance runtime:(FJSRuntime*)runtime;
-+ (instancetype)wrapperWithClass:(Class)c runtime:(FJSRuntime*)runtime;
++ (instancetype)valueForJSObject:(nullable JSObjectRef)jso inRuntime:(FJSRuntime*)runtime;
++ (instancetype)valueWithSymbol:(FJSSymbol*)sym inRuntime:(FJSRuntime*)runtime;
++ (instancetype)valueWithInstance:(CFTypeRef)instance inRuntime:(FJSRuntime*)runtime;
++ (instancetype)valueWithWeakInstance:(id)instance inRuntime:(FJSRuntime*)runtime;
++ (instancetype)valueWithClass:(Class)c inRuntime:(FJSRuntime*)runtime;
 
 - (BOOL)isClass;
 - (BOOL)isInstance;

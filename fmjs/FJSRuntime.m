@@ -106,7 +106,7 @@ static JSValueRef FJS_callAsFunction(JSContextRef ctx, JSObjectRef functionJS, J
     
     _jsContext = JSGlobalContextCreate(_globalClass);
     
-    FJSValue *value = [FJSValue wrapperWithWeakInstance:self runtime:self];
+    FJSValue *value = [FJSValue valueWithWeakInstance:self inRuntime:self];
     
     JSValueRef jsValue = [value JSValue];
     
@@ -178,7 +178,7 @@ static JSValueRef FJS_callAsFunction(JSContextRef ctx, JSObjectRef functionJS, J
         return nil;
     }
     
-    FJSValue *w = [FJSValue wrapperWithInstance:(__bridge CFTypeRef _Nonnull)(object) runtime:self];
+    FJSValue *w = [FJSValue valueWithInstance:(__bridge CFTypeRef _Nonnull)(object) inRuntime:self];
     
     JSValueRef jsValue = [self newJSValueForWrapper:w];
     
@@ -325,7 +325,7 @@ static bool FJS_hasProperty(JSContextRef ctx, JSObjectRef object, JSStringRef pr
     debug(@"FJS_hasProperty: '%@'?", propertyName);
     
     FJSRuntime *runtime = [FJSRuntime runtimeInContext:ctx];
-    FJSValue *objectWrapper = [FJSValue wrapperForJSObject:object runtime:runtime];
+    FJSValue *objectWrapper = [FJSValue valueForJSObject:object inRuntime:runtime];
     FJSSymbol *sym = [FJSBridgeParser symbolForName:propertyName inObject:[objectWrapper instance]];
     
     if (sym) {
@@ -352,12 +352,12 @@ JSValueRef FJS_getGlobalProperty(JSContextRef ctx, JSObjectRef object, JSStringR
     debug(@"Getting property: '%@' (%p)", propertyName, object);
     
     if ([propertyName isEqualToString:@"toString"] || [propertyName isEqualToString:@"Symbol.toStringTag"]/* || [propertyName isEqualToString:@"Symbol.toPrimitive"]*/) {
-        FJSValue *w = [FJSValue wrapperForJSObject:object runtime:runtime];
+        FJSValue *w = [FJSValue valueForJSObject:object inRuntime:runtime];
         
         return [w toJSString];
     }
     
-    FJSValue *objectWrapper = [FJSValue wrapperForJSObject:object runtime:runtime];
+    FJSValue *objectWrapper = [FJSValue valueForJSObject:object inRuntime:runtime];
     FJSSymbol *sym = [FJSBridgeParser symbolForName:propertyName inObject:[objectWrapper instance]];
     
     
@@ -365,7 +365,7 @@ JSValueRef FJS_getGlobalProperty(JSContextRef ctx, JSObjectRef object, JSStringR
         
         if ([[sym symbolType] isEqualToString:@"function"] || [[sym symbolType] isEqualToString:@"method"]) {
             
-            FJSValue *value = [FJSValue wrapperWithSymbol:sym runtime:runtime];
+            FJSValue *value = [FJSValue valueWithSymbol:sym inRuntime:runtime];
             
             JSValueRef r = [runtime newJSValueForWrapper:value];
             
@@ -378,7 +378,7 @@ JSValueRef FJS_getGlobalProperty(JSContextRef ctx, JSObjectRef object, JSStringR
             Class class = NSClassFromString(propertyName);
             assert(class);
             
-            FJSValue *w = [FJSValue wrapperWithSymbol:sym runtime:runtime];
+            FJSValue *w = [FJSValue valueWithSymbol:sym inRuntime:runtime];
             
             
             [w setClass:class];
@@ -399,7 +399,7 @@ JSValueRef FJS_getGlobalProperty(JSContextRef ctx, JSObjectRef object, JSStringR
             assert([[sym runtimeType] hasPrefix:@"@"]);
             
             id o = (__bridge id)(*(void**)dlsymbol);
-            FJSValue *w = [FJSValue wrapperWithInstance:(__bridge CFTypeRef _Nonnull)(o) runtime:runtime];
+            FJSValue *w = [FJSValue valueWithInstance:(__bridge CFTypeRef _Nonnull)(o) inRuntime:runtime];
             
             JSObjectRef r = JSObjectMake(ctx, [runtime globalClass], (__bridge void *)(w));
             
@@ -476,15 +476,15 @@ static JSValueRef FJS_callAsFunction(JSContextRef ctx, JSObjectRef functionJS, J
     
     FJSRuntime *runtime = [FJSRuntime runtimeInContext:ctx];
     
-    FJSValue *objectToCall = [FJSValue wrapperForJSObject:thisObject runtime:runtime];
-    FJSValue *functionToCall = [FJSValue wrapperForJSObject:functionJS runtime:runtime];
+    FJSValue *objectToCall = [FJSValue valueForJSObject:thisObject inRuntime:runtime];
+    FJSValue *functionToCall = [FJSValue valueForJSObject:functionJS inRuntime:runtime];
     
     debug(@"Calling function '%@'", [[functionToCall symbol] name]);
     
     NSMutableArray *args = [NSMutableArray arrayWithCapacity:argumentCount];
     for (size_t idx = 0; idx < argumentCount; idx++) {
         JSValueRef jsArg = arguments[idx];
-        FJSValue *arg = [FJSValue wrapperForJSObject:(JSObjectRef)jsArg runtime:runtime];
+        FJSValue *arg = [FJSValue valueForJSObject:(JSObjectRef)jsArg inRuntime:runtime];
         assert(arg);
         [args addObject:arg];
     }

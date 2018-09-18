@@ -55,7 +55,7 @@
     
 }
 
-+ (instancetype)wrapperForJSObject:(nullable JSObjectRef)jso runtime:(FJSRuntime*)runtime {
++ (instancetype)valueForJSObject:(nullable JSObjectRef)jso inRuntime:(FJSRuntime*)runtime {
     FMAssert(runtime);
     if (!jso) {
         return nil;
@@ -76,7 +76,7 @@
     return native;
 }
 
-+ (instancetype)wrapperWithSymbol:(FJSSymbol*)sym runtime:(FJSRuntime*)runtime {
++ (instancetype)valueWithSymbol:(FJSSymbol*)sym inRuntime:(FJSRuntime*)runtime {
     FMAssert(runtime);
     FJSValue *cw = [[self alloc] init];
     [cw setSymbol:sym];
@@ -89,7 +89,7 @@
     return cw;
 }
 
-+ (instancetype)wrapperWithClass:(Class)c runtime:(FJSRuntime*)runtime {
++ (instancetype)valueWithClass:(Class)c inRuntime:(FJSRuntime*)runtime {
     FMAssert(runtime);
     FJSValue *cw = [[self alloc] init];
     [cw setClass:c];
@@ -98,7 +98,7 @@
     return cw;
 }
 
-+ (instancetype)wrapperWithInstance:(CFTypeRef)instance runtime:(FJSRuntime*)runtime {
++ (instancetype)valueWithInstance:(CFTypeRef)instance inRuntime:(FJSRuntime*)runtime {
     FMAssert(runtime);
     FJSValue *cw = [[self alloc] init];
     [cw setInstance:instance];
@@ -107,7 +107,7 @@
     return cw;
 }
 
-+ (instancetype)wrapperWithWeakInstance:(id)instance runtime:(FJSRuntime*)runtime {
++ (instancetype)valueWithWeakInstance:(id)instance inRuntime:(FJSRuntime*)runtime {
     FMAssert(runtime);
     FJSValue *cw = [[self alloc] init];
     [cw setWeakInstance:instance];

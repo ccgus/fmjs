@@ -76,7 +76,7 @@
         JSValueRef returnValue = NULL;
         if (FJSCharEquals(returnType, @encode(void))) {
             returnValue = JSValueMakeUndefined([_runtime contextRef]);
-            returnFValue = [FJSValue wrapperForJSObject:(JSObjectRef)returnValue runtime:_runtime];
+            returnFValue = [FJSValue valueForJSObject:(JSObjectRef)returnValue inRuntime:_runtime];
         }
         // id
         else if (FJSCharEquals(returnType, @encode(id)) || FJSCharEquals(returnType, @encode(Class))) {
@@ -84,7 +84,7 @@
             [invocation getReturnValue:&object];
             
             debug(@"getReturnValue: %ld", CFGetRetainCount(object));
-            returnFValue = [FJSValue wrapperWithInstance:object runtime:_runtime];
+            returnFValue = [FJSValue valueWithInstance:object inRuntime:_runtime];
             
             debug(@"out of function call at CFGetRetainCount((__bridge CFTypeRef)(object)): %ld", CFGetRetainCount(object));
             
@@ -131,7 +131,7 @@
     assert(callAddress);
     FMAssert(_runtime);
     
-    FJSValue *returnValue = [functionSymbol returnValue] ? [FJSValue wrapperWithSymbol:[functionSymbol returnValue] runtime:_runtime] : nil;
+    FJSValue *returnValue = [functionSymbol returnValue] ? [FJSValue valueWithSymbol:[functionSymbol returnValue] inRuntime:_runtime] : nil;
     
     // Prepare ffi
     ffi_cif cif;

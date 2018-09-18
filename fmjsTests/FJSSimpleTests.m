@@ -7,7 +7,7 @@
 //
 
 #import <XCTest/XCTest.h>
-#import "FJS.h"
+#import <FMJS/FJS.h>
 #import "FJSTestStuff.h"
 @interface FJSSimpleTests : XCTestCase
 
@@ -97,6 +97,19 @@ int FJSSimpleTestsMethodCalled;
     XCTAssert(FJSSimpleTestsDeallocHappend == count);
 }
 
+- (void)testCIExample {
+    
+    NSString *code = @"\
+    var url = NSURL.fileURLWithPath_('/Library/Desktop Pictures/Yosemite.jpg');\n\
+    var img = CIImage.imageWithContentsOfURL_(url)\n\
+    var f = CIFilter.filterWithName_('CIColorInvert');\n\
+    f.setValue_forKey_(img, kCIInputImageKey);\n\
+    var r = f.outputImage();\n\
+    CIContext.new().writeTIFFRepresentationOfImage_toURL_format_colorSpace_options_error_(hahahanotyet);\n";
+    
+    FJSRuntime *runtime = [FJSRuntime new];
+    [runtime evaluateScript:code];
+}
 
 - (void)xtestExample {
     

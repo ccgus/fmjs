@@ -60,9 +60,18 @@
         }
         else {
             
-            #pragma message "FIXME: hahaha, gotta check superclasses too duh"
-            NSString *className = NSStringFromClass([object class]);
+#pragma message "FIXME: This isn't going to fly for getting bridge specific info out of a subclass / superclass relationship."
+#pragma message "FIXME: make a more generalized solution, that'll also work with Class objects"
+            Class currentClass = [object class];
+            NSString *className = NSStringFromClass(currentClass);
             FJSSymbol *instanceSymbol = [[[self sharedManager] symbols] objectForKey:className];
+            while (!instanceSymbol && [currentClass superclass]) {
+                currentClass = [currentClass superclass];
+                className = NSStringFromClass(currentClass);
+                instanceSymbol = [[[self sharedManager] symbols] objectForKey:className];
+            }
+            
+            
             FMAssert(instanceSymbol);
             sym = [instanceSymbol instanceMethodNamed:name];
         }

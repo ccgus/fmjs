@@ -9,31 +9,6 @@
 #import "AppDelegate.h"
 #import <FMJS/FJS.h>
 
-static int AppDelegateTestDeallocs;
-
-@interface AppDelegateTest : NSObject
-
-@end
-
-@implementation AppDelegateTest
-
-- (instancetype)init
-{
-    self = [super init];
-    if (self) {
-        
-    }
-    return self;
-}
-
-- (void)dealloc {
-    AppDelegateTestDeallocs++;
-    NSLog(@"Gone! (%d)", AppDelegateTestDeallocs);
-}
-
-@end
-
-
 @interface AppDelegate ()
 
 @property (weak) IBOutlet NSWindow *window;
@@ -45,25 +20,6 @@ static int AppDelegateTestDeallocs;
 - (void)applicationDidFinishLaunching:(NSNotification *)aNotification {
     // Insert code here to initialize your application
     
-    int count = 100;
-    
-    
-    
-    @autoreleasepool {
-        FJSRuntime *runtime = [[FJSRuntime alloc] init];
-
-        for (int i = 0; i < count; i++) {
-            [runtime evaluateScript:@"c = AppDelegateTest.new();"];
-        }
-
-        debug(@"[NSRunLoop mainRunLoop: '%@'", [NSRunLoop mainRunLoop]);
-        
-        [runtime shutdown];
-    }
-    
-    debug(@"We have more to do?");
-    debug(@"Maybe. Just need a breakpoint here.");
-    FMAssert(count == AppDelegateTestDeallocs);
     
 }
 
@@ -72,6 +28,24 @@ static int AppDelegateTestDeallocs;
     // Insert code here to tear down your application
 }
 
+- (IBAction)runScriptAction:(id)sender {
+    
+    NSOpenPanel *open = [NSOpenPanel openPanel];
+    [open setAllowedFileTypes:@[(id)kUTTypeJavaScript]];
+    [open beginWithCompletionHandler:^(NSModalResponse result) {
+        
+        if (result) {
+            
+            FJSRuntime *rt = [FJSRuntime new];
+            
+            NSString *s = [NSString stringWithContentsOfURL:[open URL] encoding:NSUTF8StringEncoding error:nil];
+            [rt evaluateScript:s withSourceURL:[open URL]];
+            
+            
+        }
+    }];
+    
+}
 
 @end
 

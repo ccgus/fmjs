@@ -59,6 +59,8 @@
             sym = [classSymbol classMethodNamed:name];
         }
         else {
+            
+            #pragma message "FIXME: hahaha, gotta check superclasses too duh"
             NSString *className = NSStringFromClass([object class]);
             FJSSymbol *instanceSymbol = [[[self sharedParser] symbols] objectForKey:className];
             FMAssert(instanceSymbol);
@@ -308,6 +310,8 @@
 
 - (FJSSymbol*)methodNamed:(NSString*)name isClass:(BOOL)isClassMethod {
     
+    name = [name stringByReplacingOccurrencesOfString:@"_" withString:@":"];
+    
     assert([[self symbolType] isEqualToString:@"class"]);
     
     for (FJSSymbol *sym in isClassMethod ? _classMethods : _instanceMethods) {
@@ -377,7 +381,7 @@
 #pragma message "FIXME: Look up the actual +1 rules. Isn't it create anywhere in the name?"
 
     if ([_symbolType isEqualToString:@"method"]) {
-        return ([_name isEqualToString:@"new"] || [_name isEqualToString:@"init"] || [_name hasPrefix:@"create"]);
+        return ([_name isEqualToString:@"new"] || [_name isEqualToString:@"init"] || [_name isEqualToString:@"copy"] || [_name isEqualToString:@"mutableCopy"] || [_name hasPrefix:@"create"]);
     }
     
     NSLog(@"Programming error: asking if returnsRetained on a symbol of type: %@", _symbolType);

@@ -69,6 +69,25 @@
         
     // TODO: set arguments.
         
+        NSInteger currentArgIndex = 0;
+        for (FJSValue *v in _args) {
+            NSInteger objcIndex = currentArgIndex + 2;
+            
+            if ([v isJSNative]) {
+                [v pushJSValueToNativeType:@"@"];
+            }
+            
+            __unsafe_unretained id obj = [v instance];
+            
+            
+            [invocation setArgument:&obj atIndex:objcIndex];
+            currentArgIndex++;
+        }
+        
+        
+        
+        
+        
         // Invoke
         [invocation invoke];
         
@@ -80,30 +99,24 @@
         }
         // id
         else if (FJSCharEquals(returnType, @encode(id)) || FJSCharEquals(returnType, @encode(Class))) {
+            
+            // Using CFTypeRef with libffi is a great way to workaround ARC getting in the way of things.
             CFTypeRef object = nil;
             [invocation getReturnValue:&object];
             
-            debug(@"getReturnValue: %ld", CFGetRetainCount(object));
             returnFValue = [FJSValue valueWithInstance:object inRuntime:_runtime];
-            
-            debug(@"out of function call at CFGetRetainCount((__bridge CFTypeRef)(object)): %ld", CFGetRetainCount(object));
             
             if ([functionSymbol returnsRetained]) {
                 // We're already +2 on the object now. Time to bring it back down with CFRelease
                 CFRelease(object);
-                
-                debug(@"%@ is down to: %ld", object, CFGetRetainCount(object));
-                debug(@"returnFValue: %@", returnFValue);
             }
-            
-            
         }
         
         debug(@"returnFValue: '%@'", [returnFValue instance]);
         
     }
     @catch (NSException *e) {
-        
+        debug(@"e: '%@'", e);
         assert(NO);
         return NULL;
     }

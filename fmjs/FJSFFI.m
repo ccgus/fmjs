@@ -46,14 +46,18 @@
         
         SEL selector = NSSelectorFromString(methodName);
         
+        if (selector == @selector(imageWithContentsOfURL:)) {
+            debug(@"Breaking");
+        }
+        
         id object = [_caller instance];
         
         NSMethodSignature *methodSignature = [object methodSignatureForSelector:selector];
         NSInvocation *invocation = [NSInvocation invocationWithMethodSignature:methodSignature];
         
+        [invocation retainArguments];
         [invocation setTarget:object];
         [invocation setSelector:selector];
-        
         
         NSUInteger methodArgumentCount = [methodSignature numberOfArguments] - 2;
         if (methodArgumentCount != [_args count]) {

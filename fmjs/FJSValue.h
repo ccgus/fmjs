@@ -75,6 +75,7 @@ typedef struct {
 - (ffi_type*)FFIType;
 - (ffi_type*)FFITypeWithHint:(nullable NSString*)typeEncoding;
 
+- (id)toObject;
 
 @end
 

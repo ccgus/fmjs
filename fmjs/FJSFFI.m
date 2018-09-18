@@ -67,8 +67,6 @@
 //            return NULL;
         }
         
-    // TODO: set arguments.
-        
         NSInteger currentArgIndex = 0;
         for (FJSValue *v in _args) {
             NSInteger objcIndex = currentArgIndex + 2;

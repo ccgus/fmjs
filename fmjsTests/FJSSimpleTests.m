@@ -105,7 +105,8 @@ int FJSSimpleTestsMethodCalled;
     var f = CIFilter.filterWithName_('CIColorInvert');\n\
     f.setValue_forKey_(img, kCIInputImageKey);\n\
     var r = f.outputImage();\n\
-    CIContext.new().writeTIFFRepresentationOfImage_toURL_format_colorSpace_options_error_(hahahanotyet);\n";
+    var tiff = r.TIFFRepresentation_();\n\
+    tiff.writeToFile_atomically_('/tmp/foo.tiff', true);\n";
     
     FJSRuntime *runtime = [FJSRuntime new];
     [runtime evaluateScript:code];

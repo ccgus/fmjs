@@ -30,8 +30,7 @@
 
 @implementation FJSValue
 
-- (instancetype)init
-{
+- (instancetype)init {
     self = [super init];
     if (self) {
         
@@ -277,6 +276,10 @@
     return [self FFITypeWithHint:nil];
 }
 
+- (NSString*)description {
+    return [NSString stringWithFormat:@"%@ - %@ (%@ native)", [super description], [self toObject], _isJSNative ? @"js" : @"c"];
+}
+
 - (ffi_type*)FFITypeWithHint:(nullable NSString*)typeEncoding {
     
     if (_symbol) {
@@ -308,6 +311,21 @@
     JSValueRef value = JSValueMakeString([_runtime contextRef], string);
     JSStringRelease(string);
     return value;
+}
+
+- (id)toObject {
+    
+    if (_isJSNative) {
+        return [FJSValue nativeObjectFromJSValue:_nativeJSObj ofType:[NSString stringWithFormat:@"%c", _cValue.type] inJSContext:[_runtime contextRef]];
+    }
+    
+    if ([self isInstance]) {
+        return [self instance];
+    }
+    
+    debug(@"Haven't implemented toObject for %c yet", _cValue.type);
+    
+    return nil;
 }
 
 - (BOOL)pushJSValueToNativeType:(NSString*)type {

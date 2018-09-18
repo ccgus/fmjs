@@ -211,6 +211,8 @@ static JSValueRef FJS_callAsFunction(JSContextRef ctx, JSObjectRef functionJS, J
         JSStringRef jsScriptPath = (sourceURL != nil ? JSStringCreateWithUTF8CString([[sourceURL path] UTF8String]) : NULL);
         JSValueRef exception = NULL;
         
+#pragma message "FIXME: Return a FJSValue here?"
+
         JSValueRef result = JSEvaluateScript([self contextRef], jsString, NULL, jsScriptPath, 1, &exception);
         
         if (jsString != NULL) {

@@ -363,132 +363,19 @@
     
     return nil;
     
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
 }
 
 - (FJSSymbol*)classMethodNamed:(NSString*)name {
-    
     return [self methodNamed:name isClass:YES];
-    
-    assert([[self symbolType] isEqualToString:@"class"]);
-    
-    for (FJSSymbol *sym in _classMethods) {
-        if ([[sym name] isEqualToString:name]) {
-            return sym;
-        }
-    }
-    
-    // HRM.
-    
-    Class c = NSClassFromString([self name]);
-    assert(c); // We have to exist, right?
-    
-    SEL selector = NSSelectorFromString(name);
-    
-    if ([c respondsToSelector:selector]) {
-        
-        NSMethodSignature *methodSignature = [c methodSignatureForSelector:selector];
-        assert(methodSignature);
-        
-        FJSSymbol *classMethodSymol = [FJSSymbol new];
-        [classMethodSymol setName:name];
-        [classMethodSymol setSymbolType:@"method"];
-        [classMethodSymol setIsClassMethod:YES];
-        
-        if ([methodSignature methodReturnType]) {
-            FJSSymbol *returnValue = [FJSSymbol new];
-            [returnValue setRuntimeType:[NSString stringWithFormat:@"%s", [methodSignature methodReturnType]]];
-            [classMethodSymol setReturnValue:returnValue];
-        }
-        
-        
-        for (NSUInteger idx = 2; idx < [methodSignature numberOfArguments]; idx++) {
-            
-            FJSSymbol *argument = [FJSSymbol new];
-            [argument setRuntimeType:[NSString stringWithFormat:@"%s", [methodSignature methodReturnType]]];
-            [[classMethodSymol arguments] addObject:argument];
-        }
-        
-        [[self classMethods] addObject:classMethodSymol];
-        
-        //assert([NSThread isMainThread]); // need to put things in a queue if we're doing this in a background thread.
-        
-        return classMethodSymol;
-    }
-    
-    
-    
-    
-    
-    return nil;
 }
 
 - (FJSSymbol*)instanceMethodNamed:(NSString*)name {
-    
     return [self methodNamed:name isClass:NO];
-    
-    for (FJSSymbol *sym in _instanceMethods) {
-        if ([[sym name] isEqualToString:name]) {
-            return sym;
-        }
-    }
-    
-    
-    Class c = NSClassFromString([self name]);
-    assert(c); // We have to exist, right?
-    
-    SEL selector = NSSelectorFromString(name);
-    
-    Method instanceMethod = class_getInstanceMethod(c, selector);
-    
-    
-    if (instanceMethod) {
-        
-        FJSSymbol *instanceMethodSymbol = [FJSSymbol new];
-        [instanceMethodSymbol setName:name];
-        [instanceMethodSymbol setSymbolType:@"method"];
-        
-        NSMethodSignature *methodSignature = [c instanceMethodSignatureForSelector:selector];
-        assert(methodSignature);
-        
-        if ([methodSignature methodReturnType]) {
-            FJSSymbol *returnValue = [FJSSymbol new];
-            [returnValue setRuntimeType:[NSString stringWithFormat:@"%s", [methodSignature methodReturnType]]];
-            [instanceMethodSymbol setReturnValue:returnValue];
-        }
-        
-        
-        for (NSUInteger idx = 2; idx < [methodSignature numberOfArguments]; idx++) {
-            
-            FJSSymbol *argument = [FJSSymbol new];
-            [argument setRuntimeType:[NSString stringWithFormat:@"%s", [methodSignature methodReturnType]]];
-            [[instanceMethodSymbol arguments] addObject:argument];
-        }
-        
-        
-        [[self instanceMethods] addObject:instanceMethodSymbol];
-        
-        //assert([NSThread isMainThread]); // need to put things in a queue if we're doing this in a background thread.
-        
-        return instanceMethodSymbol;
-    }
-    
-    
-    return nil;
 }
 
 - (BOOL)returnsRetained {
-    
+#pragma message "FIXME: Look up the actual +1 rules. Isn't it create anywhere in the name?"
+
     if ([_symbolType isEqualToString:@"method"]) {
         return ([_name isEqualToString:@"new"] || [_name isEqualToString:@"init"] || [_name hasPrefix:@"create"]);
     }

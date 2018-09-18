@@ -35,7 +35,6 @@ int FJSSimpleTestsMethodCalled;
 
 - (void)testMethod {
     FJSSimpleTestsMethodCalled++;
-    debug(@"%s:%d", __FUNCTION__, __LINE__);
 }
 
 - (void)dealloc {
@@ -72,7 +71,7 @@ int FJSSimpleTestsMethodCalled;
         FJSRuntime *runtime = [[FJSRuntime alloc] init];
         
         for (int i = 0; i < count; i++) {
-            [runtime evaluateScript:@"AllocInitDeallocTest.new().testMethod();"];
+            [runtime evaluateScript:@"var c = AllocInitDeallocTest.new(); c.testMethod(); c = null;"];
         }
         
         [runtime shutdown];
@@ -85,6 +84,7 @@ int FJSSimpleTestsMethodCalled;
         
     }
     
+    // I've seen this take over 70 seconds in the past. I'm sure there's something we can do to nudge things along, I just don't know what those are.
     NSTimeInterval startTime = [NSDate timeIntervalSinceReferenceDate];
     while (FJSSimpleTestsDeallocHappend != count)  {
         [[NSRunLoop mainRunLoop] runMode:NSDefaultRunLoopMode beforeDate:[NSDate dateWithTimeIntervalSinceNow:.1]];

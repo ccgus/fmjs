@@ -326,7 +326,7 @@ static bool FJS_hasProperty(JSContextRef ctx, JSObjectRef object, JSStringRef pr
     
     FJSRuntime *runtime   = [FJSRuntime runtimeInContext:ctx];
     FJSValue *objectValue = [FJSValue valueForJSObject:object inRuntime:runtime];
-    FJSSymbol *symbol     = [FJSSymbolManager symbolForName:propertyName inObject:[objectValue instance]];
+    FJSSymbol *symbol     = [FJSSymbol symbolForName:propertyName inObject:[objectValue instance]];
     
     if (symbol) {
         return YES;
@@ -358,7 +358,7 @@ JSValueRef FJS_getGlobalProperty(JSContextRef ctx, JSObjectRef object, JSStringR
     }
     
     FJSValue *objectWrapper = [FJSValue valueForJSObject:object inRuntime:runtime];
-    FJSSymbol *sym = [FJSSymbolManager symbolForName:propertyName inObject:[objectWrapper instance]];
+    FJSSymbol *sym = [FJSSymbol symbolForName:propertyName inObject:[objectWrapper instance]];
     
     
     if (sym) {

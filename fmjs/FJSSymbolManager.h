@@ -20,9 +20,6 @@ NS_ASSUME_NONNULL_BEGIN
 
 - (void)parseBridgeFileAtPath:(NSString*)bridgePath;
 
-+ (FJSSymbol*)symbolForName:(NSString*)name;
-+ (FJSSymbol*)symbolForName:(NSString*)name inObject:(nullable id)object;
-
 @end
 
 
@@ -48,6 +45,8 @@ NS_ASSUME_NONNULL_BEGIN
 
 - (FJSSymbol*)classMethodNamed:(NSString*)name;
 - (FJSSymbol*)instanceMethodNamed:(NSString*)name;
++ (FJSSymbol*)symbolForName:(NSString*)name;
++ (FJSSymbol*)symbolForName:(NSString*)name inObject:(nullable id)object;
 
 - (BOOL)returnsRetained;
 

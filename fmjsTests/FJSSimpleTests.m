@@ -64,16 +64,16 @@ int FJSSimpleTestsMethodCalled;
     // Make sure bridge stuff is loaded first.
     [FJSRuntime new];
     
-    XCTAssert([FJSSymbolManager symbolForName:@"CIColorInvert" inObject:nil] != nil); // CIColorInvert isn't public, but it's a subclass of CIFilter that we get handed sometimes.
-    XCTAssert([FJSSymbolManager symbolForName:@"NSString" inObject:nil] != nil);
-    XCTAssert([FJSSymbolManager symbolForName:@"NSMutableString" inObject:nil] != nil);
+    XCTAssert([FJSSymbol symbolForName:@"CIColorInvert" inObject:nil] != nil); // CIColorInvert isn't public, but it's a subclass of CIFilter that we get handed sometimes.
+    XCTAssert([FJSSymbol symbolForName:@"NSString" inObject:nil] != nil);
+    XCTAssert([FJSSymbol symbolForName:@"NSMutableString" inObject:nil] != nil);
     
-    XCTAssert([FJSSymbolManager symbolForName:@"filterWithName:" inObject:NSClassFromString(@"CIColorInvert")] != nil); // This isn't! (at least in Foundation.bridgesupport)
+    XCTAssert([FJSSymbol symbolForName:@"filterWithName:" inObject:NSClassFromString(@"CIColorInvert")] != nil); // This isn't! (at least in Foundation.bridgesupport)
     
     // stringWithCString:length: is defined in NSString.
-    XCTAssert([FJSSymbolManager symbolForName:@"stringWithCString:length:" inObject:[NSString class]] != nil); // This is in bridge support on 10.14
-    XCTAssert([FJSSymbolManager symbolForName:@"stringWithCString:length:" inObject:[NSMutableString class]] != nil); // This is in bridge support on 10.14
-    XCTAssert([FJSSymbolManager symbolForName:@"string" inObject:[NSMutableString class]] != nil); // This isn't! (at least in Foundation.bridgesupport)
+    XCTAssert([FJSSymbol symbolForName:@"stringWithCString:length:" inObject:[NSString class]] != nil); // This is in bridge support on 10.14
+    XCTAssert([FJSSymbol symbolForName:@"stringWithCString:length:" inObject:[NSMutableString class]] != nil); // This is in bridge support on 10.14
+    XCTAssert([FJSSymbol symbolForName:@"string" inObject:[NSMutableString class]] != nil); // This isn't! (at least in Foundation.bridgesupport)
 
     
 }
@@ -128,7 +128,8 @@ int FJSSimpleTestsMethodCalled;
     f.setValue_forKey_(img, kCIInputImageKey);\n\
     var r = f.outputImage();\n\
     var tiff = r.TIFFRepresentation();\n\
-    tiff.writeToFile_atomically_('/tmp/foo.tiff', true);\n";
+    tiff.writeToFile_atomically_('/tmp/foo.tiff', true);\n\
+    NSWorkspace.sharedWorkspace().openFile_('/tmp/foo.tiff')";
     
     FJSRuntime *runtime = [FJSRuntime new];
     [runtime evaluateScript:code];

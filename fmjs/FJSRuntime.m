@@ -200,7 +200,9 @@ static JSValueRef FJS_callAsFunction(JSContextRef ctx, JSObjectRef functionJS, J
     JSGarbageCollect(_jsContext);
 }
 
-- (id)evaluateScript:(NSString *)script withSourceURL:(nullable NSURL *)sourceURL {
+- (FJSValue*)evaluateScript:(NSString *)script withSourceURL:(nullable NSURL *)sourceURL {
+    
+    FJSValue *returnValue = nil;
     
     [self pushAsCurrentFJS];
     
@@ -211,8 +213,6 @@ static JSValueRef FJS_callAsFunction(JSContextRef ctx, JSObjectRef functionJS, J
         JSStringRef jsScriptPath = (sourceURL != nil ? JSStringCreateWithUTF8CString([[sourceURL path] UTF8String]) : NULL);
         JSValueRef exception = NULL;
         
-#pragma message "FIXME: Return a FJSValue here?"
-
         JSValueRef result = JSEvaluateScript([self contextRef], jsString, NULL, jsScriptPath, 1, &exception);
         
         if (jsString != NULL) {
@@ -221,6 +221,8 @@ static JSValueRef FJS_callAsFunction(JSContextRef ctx, JSObjectRef functionJS, J
         if (jsScriptPath != NULL) {
             JSStringRelease(jsScriptPath);
         }
+        
+        returnValue = [FJSValue valueForJSObject:(JSObjectRef)result inRuntime:self];
         
     }
     @catch (NSException *exception) {
@@ -232,10 +234,10 @@ static JSValueRef FJS_callAsFunction(JSContextRef ctx, JSObjectRef functionJS, J
     
     [self popAsCurrentFJS];
     
-    return nil;
+    return returnValue;
 }
 
-- (id)evaluateScript:(NSString*)script {
+- (FJSValue*)evaluateScript:(NSString*)script {
     
     return [self evaluateScript:script withSourceURL:nil];
 }

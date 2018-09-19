@@ -14,9 +14,11 @@ FOUNDATION_EXPORT double FMJSVersionNumber;
 //! Project version string for FMJS.
 FOUNDATION_EXPORT const unsigned char FMJSVersionString[];
 
-// In this header, you should import all the public headers of your framework using statements like #import <fmjs/PublicHeader.h>
-
 #define debug NSLog
 #define FMAssert assert
 
 #import <FMJS/FJSRuntime.h>
+#import <FMJS/FJSValue.h>
+// TODO, figure out why FJSSymbolManager, and only FJSSymbolManager needs to have a lowercase fmjs there.
+//#import <FMJS/FJSSymbolManager.h>
+#import <fmjs/FJSSymbolManager.h>

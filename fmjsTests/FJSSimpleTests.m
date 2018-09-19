@@ -8,8 +8,6 @@
 
 #import <XCTest/XCTest.h>
 #import <FMJS/FJS.h>
-#import <FMJS/FJSSymbolManager.h>
-#import "FJSTestStuff.h"
 @interface FJSSimpleTests : XCTestCase
 
 @end
@@ -18,13 +16,13 @@ int FJSSimpleTestsInitHappend;
 int FJSSimpleTestsDeallocHappend;
 int FJSSimpleTestsMethodCalled;
 int FJSRandomTestMethodCalled;
+BOOL FJSTestStuffTestPassed;
 
-
-@interface AllocInitDeallocTest : NSObject
-
+@interface FJSTestClass : NSObject
+@property (assign) int passedInt;
 @end
 
-@implementation AllocInitDeallocTest
+@implementation FJSTestClass
 
 - (instancetype)init {
     self = [super init];
@@ -42,8 +40,21 @@ int FJSRandomTestMethodCalled;
 - (void)passArgument:(int)i {
     if (i == 42) {
         FJSRandomTestMethodCalled++;
+        _passedInt = i;
     }
 }
+
+- (void)passMyself:(FJSTestClass*)inception {
+    if (inception == self) {
+        FJSRandomTestMethodCalled++;
+    }
+}
+
+
+- (void)passAndPrintString:(NSString*)foo {
+    printf("%s\n", [[foo description] UTF8String]);
+}
+
 
 - (void)dealloc {
     FJSSimpleTestsDeallocHappend++;
@@ -60,6 +71,12 @@ int FJSRandomTestMethodCalled;
 
 - (void)setUp {
     // Put setup code here. This method is called before the invocation of each test method in the class.
+    
+    NSString *FMJSBridgeSupportPath = [[NSBundle bundleForClass:[self class]] pathForResource:@"FJSTests" ofType:@"bridgesupport"];
+    FMAssert(FMJSBridgeSupportPath);
+    
+    [[FJSSymbolManager sharedManager] parseBridgeFileAtPath:FMJSBridgeSupportPath];
+    
 }
 
 - (void)tearDown {
@@ -71,11 +88,26 @@ int FJSRandomTestMethodCalled;
     
     FJSRuntime *runtime = [[FJSRuntime alloc] init];
     
-    [runtime evaluateScript:@"var c = AllocInitDeallocTest.new(); c.passArgument_(42);"];
-    
-    [runtime shutdown];
+    [runtime evaluateScript:@"var c = FJSTestClass.new(); c.passArgument_(42);"];
     
     XCTAssert(FJSRandomTestMethodCalled == 1);
+    FJSRandomTestMethodCalled = 0;
+    
+    [runtime evaluateScript:@"c.passMyself_(c);"];
+    
+    XCTAssert(FJSRandomTestMethodCalled == 1);
+    
+    FJSValue *value = [runtime evaluateScript:@"c;"];
+    
+    FJSTestClass *testClass = [value instance];
+    XCTAssert(testClass);
+    XCTAssert([testClass isKindOfClass:[FJSTestClass class]]);
+    XCTAssert([testClass passedInt] == 42);
+    
+    // ES6 Support!
+    [runtime evaluateScript:@"var n = 'Gus'; c.passAndPrintString_(`Hello ${n}!`);"];
+    
+    [runtime shutdown];
     
 }
 
@@ -111,7 +143,7 @@ int FJSRandomTestMethodCalled;
         FJSRuntime *runtime = [[FJSRuntime alloc] init];
         
         for (int i = 0; i < count; i++) {
-            [runtime evaluateScript:@"var c = AllocInitDeallocTest.new(); c.testMethod(); c = null;"];
+            [runtime evaluateScript:@"var c = FJSTestClass.new(); c.testMethod(); c = null;"];
         }
         
         [runtime shutdown];
@@ -267,19 +299,7 @@ int FJSRandomTestMethodCalled;
     [runtime evaluateScript:@"FJSMethodPleasePassNSNumber3(3);"];
     assert(FJSTestStuffTestPassed);
     
-    
-    
-    
-    //[cos evaluateScript:@"print(NSHomeDirectoryForUser('kirstin'));"];
-    
-    //[cos evaluateScript:@"s = NSUUID.allocWithZone(null).init(); print(s);"];
-    
-    //[cos evaluateScript:@"print(NSUserName())"];
-    //[cos evaluateScript:@"print(NSFullUserName())"];
-    //[cos evaluateScript:@"var s = COScriptLite.testClassMethod();"];
-    //[cos evaluateScript:@"s = null;"];
-    
-    [runtime garbageCollect];
+    [runtime shutdown];
     
     printf("All done\n");
     
@@ -293,3 +313,149 @@ int FJSRandomTestMethodCalled;
 }
 
 @end
+
+
+
+
+void FJSMethodNoArgsNoReturn(void) {
+    debug(@"%s:%d", __FUNCTION__, __LINE__);
+}
+
+
+void FJSSingleArgument(id obj) {
+    debug(@"%s:%d", __FUNCTION__, __LINE__);
+    FJSTestStuffTestPassed = YES;
+}
+
+id FJSMethodNoArgsIDReturn(void) {
+    debug(@"%s:%d", __FUNCTION__, __LINE__);
+    FJSTestStuffTestPassed = YES;
+    return @"FJSMethodNoArgsIDReturn Method Return Value";
+}
+
+
+NSString * FJSMethodStringArgStringReturn(NSString *s) {
+    FJSTestStuffTestPassed = YES;
+    return [NSString stringWithFormat:@"!!%@!!", s];
+}
+
+NSString * FJSMethodStringSringArgStringReturn(NSString *a, NSString *b) {
+    FJSTestStuffTestPassed = YES;
+    return [NSString stringWithFormat:@"++!!%@.%@!!", a, b];
+}
+
+void FJSMethodPleasePassNSNumber3(NSNumber *n) {
+    FJSTestStuffTestPassed = [n isKindOfClass:[NSNumber class]] && [n integerValue] == 3;
+}
+
+
+void FJSMethodPleasePassSignedShortNumber3(short n) {
+    FJSTestStuffTestPassed = n == 3;
+}
+
+void FJSMethodPleasePassUnsignedShortNumber3(unsigned short n) {
+    FJSTestStuffTestPassed = n == 3;
+}
+
+void FJSMethodPleasePassSignedIntNumber3(int n) {
+    FJSTestStuffTestPassed = n == 3;
+}
+
+void FJSMethodPleasePassUnsignedIntNumber3(uint n) {
+    FJSTestStuffTestPassed = n == 3;
+}
+
+void FJSMethodPleasePassSignedLongNumber3(long n) {
+    FJSTestStuffTestPassed = n == 3;
+}
+
+void FJSMethodPleasePassUnsignedLongNumber3(unsigned long n) {
+    FJSTestStuffTestPassed = n == 3;
+}
+
+void FJSMethodPleasePassSignedLongLongNumber3(long long n) {
+    FJSTestStuffTestPassed = n == 3;
+}
+
+void FJSMethodPleasePassUnsignedLongLongNumber3(unsigned long long n) {
+    FJSTestStuffTestPassed = n == 3;
+}
+
+void FJSMethodPleasePassCCharM(char c) {
+    FJSTestStuffTestPassed = c == 'm';
+}
+
+void FJSMethodPleasePassFloat123(float f) {
+    FJSTestStuffTestPassed = fabsf(f - 123.0f) <= 0.000001;
+}
+
+void FJSMethodPleasePassDouble123(double d) {
+    FJSTestStuffTestPassed = fabs(d - 123.0)  <= 0.000001;
+}
+
+void FJSMethodPleasePassDataUsingEncodingAllowLossyConversionSelector(SEL selector) {
+    FJSTestStuffTestPassed = @selector(dataUsingEncoding:allowLossyConversion:) == selector;
+}
+
+void FJSMethodPleasePassUnsignedCCharM(unsigned char c) {
+    FJSTestStuffTestPassed = c == 'm';
+}
+
+void FJSMethodPleasePassPositiveBOOL(BOOL b) {
+    FJSTestStuffTestPassed = b;
+}
+
+void FJSMethodPleasePassNegativeBOOL(BOOL b) {
+    FJSTestStuffTestPassed = !b;
+}
+
+
+BOOL FJSMethodNegateBOOL(BOOL b) {
+    return !b;
+}
+
+
+void FJSMethodPleasePassNSStringClass(Class c) {
+    FJSTestStuffTestPassed = c == [NSString class];
+}
+
+void FJSMethodPleasePassDataUsingEncodingAllowLossyConversionSelectorAndCharM(SEL selector, char c) {
+    FJSTestStuffTestPassed = @selector(dataUsingEncoding:allowLossyConversion:) == selector && c == 'm';
+}
+
+NSDictionary * FJSMethodReturnNSDictionary(void) {
+    return @{@"theKey": @(42)};
+}
+
+void FJSMethodCheckNSDictionary(NSDictionary *d) {
+    NSNumber *n = [d objectForKey:@"theKey"];
+    FJSTestStuffTestPassed = [n isKindOfClass:[NSNumber class]] && [n integerValue] == 42;
+}
+
+char FJSTestAddSignedChar(char c) {
+    return c + 1;
+}
+
+
+unsigned char FJSTestAddUnsignedChar(char c) {
+    return c + 1;
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

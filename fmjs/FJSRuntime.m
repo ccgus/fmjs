@@ -294,7 +294,7 @@ static JSValueRef FJS_callAsFunction(JSContextRef ctx, JSObjectRef functionJS, J
 
 static void FJS_initialize(JSContextRef ctx, JSObjectRef object) {
     
-    debug(@"initialize: %p", object);
+    // debug(@"initialize: %p", object);
     
     //debug(@"FJS_initialize: %@", [FJSJSWrapper wrapperForJSObject:object cos:[COScriptLite currentCOScriptLite]]);
     
@@ -324,11 +324,11 @@ static bool FJS_hasProperty(JSContextRef ctx, JSObjectRef object, JSStringRef pr
     
     debug(@"FJS_hasProperty: '%@'?", propertyName);
     
-    FJSRuntime *runtime = [FJSRuntime runtimeInContext:ctx];
-    FJSValue *objectWrapper = [FJSValue valueForJSObject:object inRuntime:runtime];
-    FJSSymbol *sym = [FJSSymbolManager symbolForName:propertyName inObject:[objectWrapper instance]];
+    FJSRuntime *runtime   = [FJSRuntime runtimeInContext:ctx];
+    FJSValue *objectValue = [FJSValue valueForJSObject:object inRuntime:runtime];
+    FJSSymbol *symbol     = [FJSSymbolManager symbolForName:propertyName inObject:[objectValue instance]];
     
-    if (sym) {
+    if (symbol) {
         return YES;
     }
     

@@ -11,6 +11,10 @@
 
 @import ObjectiveC;
 
+@interface FJSSymbol (Private)
+- (FJSSymbol*)methodNamed:(NSString*)name isClass:(BOOL)isClassMethod;
+@end
+
 @interface FJSSymbolManager ()
 
 @property (strong) FJSSymbol *currentFunction;
@@ -42,62 +46,110 @@
     return self;
 }
 
+#pragma message "FIXME: Can we move these to FJSSymbol?"
 + (FJSSymbol*)symbolForName:(NSString*)name {
-    
     return [self symbolForName:name inObject:nil];
 }
 
 + (FJSSymbol*)symbolForName:(NSString*)name inObject:(nullable id)object {
-    FJSSymbol *sym = nil;
     
-    if (object) {
+    if (!object) {
+        // This is just a simple lookup.
         
-        if (object == [object class]) {
-            NSString *className = NSStringFromClass(object);
-            FJSSymbol *classSymbol = [[[self sharedManager] symbols] objectForKey:className];
-            FMAssert(classSymbol);
-            sym = [classSymbol classMethodNamed:name];
-        }
-        else {
+        FJSSymbol *sym = [[[self sharedManager] symbols] objectForKey:name];
+        
+        if (!sym) {
+            // Maybe we're looking for a class that's not in bridge support?
+            // Let's check the objc runtime. Or should we look at superclasses?
             
-#pragma message "FIXME: This isn't going to fly for getting bridge specific info out of a subclass / superclass relationship."
-#pragma message "FIXME: make a more generalized solution, that'll also work with Class objects"
-            Class currentClass = [object class];
-            NSString *className = NSStringFromClass(currentClass);
-            FJSSymbol *instanceSymbol = [[[self sharedManager] symbols] objectForKey:className];
-            while (!instanceSymbol && [currentClass superclass]) {
-                currentClass = [currentClass superclass];
-                className = NSStringFromClass(currentClass);
-                instanceSymbol = [[[self sharedManager] symbols] objectForKey:className];
+            Class objCClass = NSClassFromString(name);
+            if (objCClass) {
+                debug(@"%@ class found in runtime", name);
+                sym = [[FJSSymbol alloc] init];
+                [sym setSymbolType:@"class"];
+                [sym setName:name];
+                
+                [[[self sharedManager] symbols] setObject:sym forKey:name];
             }
-            
-            
-            FMAssert(instanceSymbol);
-            sym = [instanceSymbol instanceMethodNamed:name];
         }
         
         return sym;
     }
     
+    return [self methodSymbolNamed:name inClass:[object class] isClassMethod:(object == [object class])];
     
-    sym = [[[self sharedManager] symbols] objectForKey:name];
-    
-    if (!sym) {
-        
-        Class objCClass = NSClassFromString(name);
-        
-        if (objCClass) {
-            sym = [[FJSSymbol alloc] init];
-            [sym setSymbolType:@"class"];
-            [sym setName:name];
-            
-            [[[self sharedManager] symbols] setObject:sym forKey:name];
-        }
-        
-    }
-    
-    return sym;
 }
+
++ (FJSSymbol*)methodSymbolNamed:(NSString*)name inClass:(Class)class isClassMethod:(BOOL)isClassMethod {
+    
+    FMAssert(name);
+    FMAssert(class);
+    
+    
+    
+    
+    Class currentClass = class;
+    NSString *className = NSStringFromClass(currentClass);
+    // Let's find our class symbol first.
+    FJSSymbol *classSymbol = [self symbolForName:NSStringFromClass(class) inObject:nil];
+    
+    FJSSymbol *methodSymbol = [classSymbol methodNamed:name isClass:isClassMethod];
+    
+    return methodSymbol;
+    
+    /*
+    // Some things like CIFilter.filterWithName_('CIColorInvert') will return a different class than CIFilter- it'll return a class named CIColorInvert
+    // But of course that's not in the bridge xml file. So we'll keep on checking superclasses till we get one that's defined.
+    while (!instanceSymbol && [currentClass superclass]) {
+        debug(@"Can't find class %@ in bridgesupport. Going to try its superclass %@", className, NSStringFromClass([currentClass superclass]));
+        currentClass = [currentClass superclass];
+        className = NSStringFromClass(currentClass);
+        instanceSymbol = [[[self sharedManager] symbols] objectForKey:className];
+    }
+
+    if (![currentClass superclass] && !instanceSymbol) {
+        debug(@"Can't find any bridge info on %@ or its superclasses", NSStringFromClass(class));
+    }*/
+    
+    // First, we'll look up
+    
+#pragma message "FIXME: This isn't going to fly for getting bridge specific info out of a subclass / superclass relationship."
+
+//    Class currentClass = class;
+//    NSString *className = NSStringFromClass(currentClass);
+//
+    // Some things like CIFilter.filterWithName_('CIColorInvert') will return a different class than CIFilter- it'll return a class named CIColorInvert
+    // But of course that's not in the bridge xml file. So we'll keep on checking superclasses till we get one that's defined.
+
+//    FJSSymbol *instanceSymbol = [[[self sharedManager] symbols] objectForKey:className];
+//    while (!instanceSymbol && [currentClass superclass]) {
+//        currentClass = [currentClass superclass];
+//        className = NSStringFromClass(currentClass);
+//        instanceSymbol = [[[self sharedManager] symbols] objectForKey:className];
+//    }
+//
+//
+//        FMAssert(instanceSymbol);
+//        sym = [instanceSymbol methodNamed:name isClass:isClassObject];
+//
+//
+//        return sym;
+//
+//
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    return nil;
+}
+
 
 - (void)parseBridgeFileAtPath:(NSString*)bridgePath {
     
@@ -317,25 +369,42 @@
     return [NSString stringWithFormat:@"<%@: %p %@ %@>", NSStringFromClass([self class]), self, _name, _runtimeType];
 }
 
-- (FJSSymbol*)methodNamed:(NSString*)name isClass:(BOOL)isClassMethod {
+- (FJSSymbol*)methodNamed:(NSString*)methodName isClass:(BOOL)isClassMethod {
     
-    name = [name stringByReplacingOccurrencesOfString:@"_" withString:@":"];
+    methodName = [methodName stringByReplacingOccurrencesOfString:@"_" withString:@":"];
     
     assert([[self symbolType] isEqualToString:@"class"]);
     
     for (FJSSymbol *sym in isClassMethod ? _classMethods : _instanceMethods) {
-        if ([[sym name] isEqualToString:name]) {
+        if ([[sym name] isEqualToString:methodName]) {
             return sym;
         }
     }
     
+    // Let's look in bridge support for superclass instances of this method.
+    // OK, let's check the superclass for a method.
+    Class superClass = [NSClassFromString(_name) superclass];
+    while (superClass) {
+        NSString *superClassName = NSStringFromClass(superClass);
+        FJSSymbol *superClassSymbol = [FJSSymbolManager symbolForName:superClassName];
+        if (superClassSymbol) {
+            FJSSymbol *methodSymbol = [superClassSymbol methodNamed:methodName isClass:isClassMethod];
+            if (methodSymbol) {
+                debug(@"Found %@ in %@ (from %@)", methodName, superClassName, _name);
+                return methodSymbol;
+            }
+        }
+        
+        superClass = [superClass superclass];
+    }
+    
+    
+    
     // OK, it wasn't part of the bridge xml file. Let's look it up in the runtime.
-    
-    
     Class c = NSClassFromString([self name]);
     assert(c); // We have to exist, right?
     
-    SEL selector = NSSelectorFromString(name);
+    SEL selector = NSSelectorFromString(methodName);
     
     Method method = isClassMethod ? class_getClassMethod(c, selector) : class_getInstanceMethod(c, selector);
     
@@ -343,7 +412,7 @@
     if (method) {
         
         FJSSymbol *methodSymbol = [FJSSymbol new];
-        [methodSymbol setName:name];
+        [methodSymbol setName:methodName];
         [methodSymbol setSymbolType:@"method"];
         
         NSMethodSignature *methodSignature = isClassMethod ? [c methodSignatureForSelector:selector] : [c instanceMethodSignatureForSelector:selector];

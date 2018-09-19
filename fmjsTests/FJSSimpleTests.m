@@ -8,6 +8,7 @@
 
 #import <XCTest/XCTest.h>
 #import <FMJS/FJS.h>
+#import <FMJS/FJSSymbolManager.h>
 #import "FJSTestStuff.h"
 @interface FJSSimpleTests : XCTestCase
 
@@ -58,6 +59,25 @@ int FJSSimpleTestsMethodCalled;
     // Put teardown code here. This method is called after the invocation of each test method in the class.
 }
 
+- (void)testSymbolLookup {
+    
+    // Make sure bridge stuff is loaded first.
+    [FJSRuntime new];
+    
+    XCTAssert([FJSSymbolManager symbolForName:@"CIColorInvert" inObject:nil] != nil); // CIColorInvert isn't public, but it's a subclass of CIFilter that we get handed sometimes.
+    XCTAssert([FJSSymbolManager symbolForName:@"NSString" inObject:nil] != nil);
+    XCTAssert([FJSSymbolManager symbolForName:@"NSMutableString" inObject:nil] != nil);
+    
+    XCTAssert([FJSSymbolManager symbolForName:@"filterWithName:" inObject:NSClassFromString(@"CIColorInvert")] != nil); // This isn't! (at least in Foundation.bridgesupport)
+    
+    // stringWithCString:length: is defined in NSString.
+    XCTAssert([FJSSymbolManager symbolForName:@"stringWithCString:length:" inObject:[NSString class]] != nil); // This is in bridge support on 10.14
+    XCTAssert([FJSSymbolManager symbolForName:@"stringWithCString:length:" inObject:[NSMutableString class]] != nil); // This is in bridge support on 10.14
+    XCTAssert([FJSSymbolManager symbolForName:@"string" inObject:[NSMutableString class]] != nil); // This isn't! (at least in Foundation.bridgesupport)
+
+    
+}
+
 - (void)testInitAndDealoc {
     FJSSimpleTestsInitHappend = 0;
     FJSSimpleTestsDeallocHappend = 0;
@@ -98,6 +118,8 @@ int FJSSimpleTestsMethodCalled;
 }
 
 - (void)testCIExample {
+    
+    // Note- when guard malloc is turned on in 10.14, the Apple JPEG decoders trip it up. Hurray.
     
     NSString *code = @"\
     var url = NSURL.fileURLWithPath_('/Library/Desktop Pictures/Yosemite.jpg');\n\

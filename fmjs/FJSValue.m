@@ -115,7 +115,7 @@
     cw->_cValue.type = _C_ID;
     
     [cw setRuntime:runtime];
-    debug(@"weak value: %p", cw);
+    //debug(@"weak value: %p", cw);
     
     return cw;
 }
@@ -144,7 +144,7 @@
 - (void)setInstance:(CFTypeRef)o {
     FMAssert(!_weakInstance);
     FMAssert(!_cValue.value.pointerValue);
-    debug(@"FJSValue retaining %@ currently at %ld", o, CFGetRetainCount(o));
+    //debug(@"FJSValue retaining %@ currently at %ld", o, CFGetRetainCount(o));
     
     CFRetain(o);
     _cValue.type = _C_ID;

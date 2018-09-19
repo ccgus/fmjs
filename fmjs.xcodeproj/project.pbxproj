@@ -19,7 +19,7 @@
 		CC4C3C8D21504638005CA4A6 /* JavaScriptCore.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = CC4C3C89215045E0005CA4A6 /* JavaScriptCore.framework */; };
 		CCB18568214D7B3000346D2F /* FJS.bridgesupport in Resources */ = {isa = PBXBuildFile; fileRef = CCB1855A214D7B3000346D2F /* FJS.bridgesupport */; };
 		CCB18569214D7B3000346D2F /* FJS.h in Headers */ = {isa = PBXBuildFile; fileRef = CCB1855B214D7B3000346D2F /* FJS.h */; settings = {ATTRIBUTES = (Public, ); }; };
-		CCB1856A214D7B3000346D2F /* FJSSymbolManager.h in Headers */ = {isa = PBXBuildFile; fileRef = CCB1855C214D7B3000346D2F /* FJSSymbolManager.h */; };
+		CCB1856A214D7B3000346D2F /* FJSSymbolManager.h in Headers */ = {isa = PBXBuildFile; fileRef = CCB1855C214D7B3000346D2F /* FJSSymbolManager.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		CCB1856B214D7B3000346D2F /* FJSSymbolManager.m in Sources */ = {isa = PBXBuildFile; fileRef = CCB1855D214D7B3000346D2F /* FJSSymbolManager.m */; };
 		CCB1856C214D7B3000346D2F /* FJSFFI.h in Headers */ = {isa = PBXBuildFile; fileRef = CCB1855E214D7B3000346D2F /* FJSFFI.h */; };
 		CCB1856D214D7B3000346D2F /* FJSFFI.m in Sources */ = {isa = PBXBuildFile; fileRef = CCB1855F214D7B3000346D2F /* FJSFFI.m */; };
@@ -187,11 +187,11 @@
 			files = (
 				CCB18569214D7B3000346D2F /* FJS.h in Headers */,
 				CCB1856E214D7B3000346D2F /* FJSRuntime.h in Headers */,
+				CCB1856A214D7B3000346D2F /* FJSSymbolManager.h in Headers */,
 				CCB18574214D7B3000346D2F /* FJSValue.h in Headers */,
 				CCB18572214D7B3000346D2F /* FJSUtil.h in Headers */,
 				CCB18570214D7B3000346D2F /* FJSTestStuff.h in Headers */,
 				CCB1856C214D7B3000346D2F /* FJSFFI.h in Headers */,
-				CCB1856A214D7B3000346D2F /* FJSSymbolManager.h in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

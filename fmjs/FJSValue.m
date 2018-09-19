@@ -71,7 +71,7 @@
     [native setNativeJSObj:jso];
     [native setIsJSNative:YES];
     [native setRuntime:runtime];
-    
+    [native setJsValueType:JSValueGetType([runtime contextRef], jso)];
     return native;
 }
 
@@ -316,6 +316,36 @@
 - (id)toObject {
     
     if (_isJSNative) {
+        
+        if (!_cValue.type) {
+            FMAssert(_jsValueType);
+            FMAssert(_nativeJSObj);
+            
+            switch (_jsValueType) {
+                case kJSTypeUndefined:
+                case kJSTypeNull:
+                    _cValue.type = _C_UNDEF;
+                    break;
+                    
+                case kJSTypeBoolean:
+                    _cValue.type = _C_BOOL;
+                    break;
+                    
+                case kJSTypeNumber:
+                    _cValue.type = _C_DBL;
+                    break;
+                    
+                case kJSTypeString:
+                case kJSTypeObject:
+                    _cValue.type = _C_ID;
+                    break;
+                    
+                default:
+                    FMAssert(NO);
+                    break;
+            }
+        }
+        
         return [FJSValue nativeObjectFromJSValue:_nativeJSObj ofType:[NSString stringWithFormat:@"%c", _cValue.type] inJSContext:[_runtime contextRef]];
     }
     
@@ -439,6 +469,7 @@
 + (id)nativeObjectFromJSValue:(JSValueRef)jsValue ofType:(NSString*)typeEncoding inJSContext:(JSContextRef)context {
     
     if ([typeEncoding isEqualToString:@"@"]) {
+        
         if (JSValueIsString(context, jsValue)) {
             JSStringRef resultStringJS = JSValueToStringCopy(context, jsValue, NULL);
             id o = (NSString *)CFBridgingRelease(JSStringCopyCFString(kCFAllocatorDefault, resultStringJS));
@@ -456,6 +487,19 @@
             bool v = JSValueToBoolean(context, jsValue);
             return @(v);
         }
+        
+        
+        if (JSValueIsObject(context, jsValue)) {
+            
+            JSStringRef resultStringJS = JSValueToStringCopy(context, jsValue, NULL);
+            id o = (NSString *)CFBridgingRelease(JSStringCopyCFString(kCFAllocatorDefault, resultStringJS));
+            JSStringRelease(resultStringJS);
+            return [NSString stringWithFormat:@"%@ (native js object)", o];
+        }
+        
+        JSType type = JSValueGetType(context, jsValue);
+        debug(@"What am I supposed to do with %d?", type);
+        
         
     }
     
@@ -533,6 +577,8 @@
         
         return nil;
     }
+    
+    debug(@"Not sure what to do with type encoding '%@'", typeEncoding);
     
     assert(NO);
     

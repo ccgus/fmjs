@@ -42,6 +42,7 @@ typedef struct {
 @property (assign) BOOL isJSNative;
 @property (strong) FJSSymbol *symbol;
 @property (assign) FJSObjCValue cValue;
+@property (assign) JSType jsValueType;
 
 
 + (instancetype)valueForJSObject:(nullable JSObjectRef)jso inRuntime:(FJSRuntime*)runtime;

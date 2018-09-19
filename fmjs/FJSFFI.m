@@ -61,6 +61,7 @@
         
         NSUInteger methodArgumentCount = [methodSignature numberOfArguments] - 2;
         if (methodArgumentCount != [_args count]) {
+            debug(@"_args: %@", _args);
             NSString *reason = [NSString stringWithFormat:@"ObjC method %@ requires %lu %@, but JavaScript passed %zd %@", NSStringFromSelector(selector), methodArgumentCount, (methodArgumentCount == 1 ? @"argument" : @"arguments"), [_args count], ([_args count] == 1 ? @"argument" : @"arguments")];
             debug(@"reason: '%@'", reason);
             assert(NO);
@@ -72,7 +73,7 @@
         }
         
         if (methodArgumentCount != [[functionSymbol arguments] count]) {
-            // We don't have an bridge info for the arguments?
+            // We don't have any bridge info for the arguments?
             FMAssert(NO);
         }
         

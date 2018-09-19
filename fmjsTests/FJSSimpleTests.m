@@ -107,6 +107,9 @@ BOOL FJSTestStuffTestPassed;
     // ES6 Support!
     [runtime evaluateScript:@"var n = 'Gus'; c.passAndPrintString_(`Hello ${n}!`);"];
     
+    // This however, will not work. We get two arguments that are trying to be passed to passAndPrintString: The first is a js object, the second is the value of n
+    // [runtime evaluateScript:@"c.passAndPrintString_`Hello again, ${n}!`;"];
+    
     [runtime shutdown];
     
 }

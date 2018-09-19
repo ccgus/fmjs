@@ -32,3 +32,7 @@ If runtime information is available, we'll try and do the right conversions. If 
 Q: Why is the framework called FMJS, but the class prefixes FJS?  
 A: I hate four letter prefixes, and having it "FJS" always makes me think it stands for "F'n JavaScript".
 
+
+### Random Todos:
+
+ * Stop using NSString for the encodings in the symbols. Try c strings, will ya?

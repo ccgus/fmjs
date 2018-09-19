@@ -71,18 +71,24 @@
 //            return NULL;
         }
         
+        if (methodArgumentCount != [[functionSymbol arguments] count]) {
+            // We don't have an bridge info for the arguments?
+            FMAssert(NO);
+        }
+        
         NSInteger currentArgIndex = 0;
         for (FJSValue *v in _args) {
             NSInteger objcIndex = currentArgIndex + 2;
             
+            FJSSymbol *argSymbol = [[functionSymbol arguments] objectAtIndex:currentArgIndex];
+            FMAssert([argSymbol runtimeType]);
+            
             if ([v isJSNative]) {
-                [v pushJSValueToNativeType:@"@"];
+                [v pushJSValueToNativeType:[argSymbol runtimeType]];
             }
             
-            __unsafe_unretained id obj = [v instance];
-            
-            
-            [invocation setArgument:&obj atIndex:objcIndex];
+            void *arg = [v cValue].value.pointerValue;
+            [invocation setArgument:&arg atIndex:objcIndex];
             currentArgIndex++;
         }
         

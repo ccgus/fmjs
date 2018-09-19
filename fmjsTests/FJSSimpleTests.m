@@ -17,6 +17,7 @@
 int FJSSimpleTestsInitHappend;
 int FJSSimpleTestsDeallocHappend;
 int FJSSimpleTestsMethodCalled;
+int FJSRandomTestMethodCalled;
 
 
 @interface AllocInitDeallocTest : NSObject
@@ -38,6 +39,12 @@ int FJSSimpleTestsMethodCalled;
     FJSSimpleTestsMethodCalled++;
 }
 
+- (void)passArgument:(int)i {
+    if (i == 42) {
+        FJSRandomTestMethodCalled++;
+    }
+}
+
 - (void)dealloc {
     FJSSimpleTestsDeallocHappend++;
     NSLog(@"Gone! (%d)", FJSSimpleTestsDeallocHappend);
@@ -57,6 +64,19 @@ int FJSSimpleTestsMethodCalled;
 
 - (void)tearDown {
     // Put teardown code here. This method is called after the invocation of each test method in the class.
+}
+
+- (void)testObjcMethods {
+    FJSRandomTestMethodCalled = 0;
+    
+    FJSRuntime *runtime = [[FJSRuntime alloc] init];
+    
+    [runtime evaluateScript:@"var c = AllocInitDeallocTest.new(); c.passArgument_(42);"];
+    
+    [runtime shutdown];
+    
+    XCTAssert(FJSRandomTestMethodCalled == 1);
+    
 }
 
 - (void)testSymbolLookup {

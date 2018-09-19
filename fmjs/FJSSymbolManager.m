@@ -300,6 +300,8 @@
     Class c = NSClassFromString([self name]);
     assert(c); // We have to exist, right?
     
+    debug(@"Looking %@ up in the runtime, since it's not in bridge.xml", methodName);
+    
     SEL selector = NSSelectorFromString(methodName);
     
     Method method = isClassMethod ? class_getClassMethod(c, selector) : class_getInstanceMethod(c, selector);
@@ -323,8 +325,12 @@
         
         for (NSUInteger idx = 2; idx < [methodSignature numberOfArguments]; idx++) {
             
+            if (![methodSymbol arguments]) {
+                [methodSymbol setArguments:[NSMutableArray array]];
+            }
+            
             FJSSymbol *argument = [FJSSymbol new];
-            [argument setRuntimeType:[NSString stringWithFormat:@"%s", [methodSignature methodReturnType]]];
+            [argument setRuntimeType:[NSString stringWithFormat:@"%s", [methodSignature getArgumentTypeAtIndex:idx]]];
             [[methodSymbol arguments] addObject:argument];
         }
         
@@ -387,7 +393,6 @@
     FMAssert(name);
     FMAssert(class);
     
-    Class currentClass = class;
     // Let's find our class symbol first.
     FJSSymbol *classSymbol = [self symbolForName:NSStringFromClass(class) inObject:nil];
     

@@ -408,6 +408,12 @@
         return YES;
     }
     
+    if ([type isEqualToString:@"v"]) {
+        _cValue.type = _C_VOID;
+        _cValue.value.pointerValue = nil;
+        return YES;
+    }
+    
     
     if ([type isEqualToString:@":"]) {
         

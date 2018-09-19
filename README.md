@@ -1,10 +1,10 @@
-# fmjs
-A JavaScript to C/Cocoa bridge
+# FMJS
+An incomplete and experimental JavaScript to C/Cocoa bridge
 
-A playground for some Cocoa JS things I want to try. I borrow liberally from the Mocha project: [https://github.com/logancollins/Mocha](https://github.com/logancollins/Mocha)
+Code borrowed liberally from the Mocha project: [https://github.com/logancollins/Mocha](https://github.com/logancollins/Mocha)
 
 
-# Conversions (not all implemented yet)
+# Planned Conversions (not all implemented yet)
 
 ### Bridging from C to JavaScript:
 * To JS String: NSString + subclasses, selectors, char pointers (_C_CHARPTR)  
@@ -12,7 +12,7 @@ A playground for some Cocoa JS things I want to try. I borrow liberally from the
 * To JS Number: char, short, int, long, long long, float, double  
 * To JS Object: NSObject, Class, 
 
-Not handled (yet?): Blocks, structs, pointers
+Not handled (yet?): Blocks, structs, out pointers
 
 ### JavaScript to C:
 
@@ -25,3 +25,10 @@ If runtime information is available, we'll try and do the right conversions. If 
 * From JS Null: nil
 * From JS Function: Not handled
 * From JS Undefined: Not handled
+
+
+### Notes
+
+Q: Why is the framework called FMJS, but the class prefixes FJS?  
+A: I hate four letter prefixes, and having it "FJS" always makes me think it stands for "F'n JavaScript".
+

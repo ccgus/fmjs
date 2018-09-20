@@ -8,7 +8,7 @@
 
 #import "FJS.h"
 #import "FJSFFI.h"
-#import "FJSValue.h"
+#import "FJSPrivate.h"
 #import "FJSRuntime.h"
 #import "FJSUtil.h"
 #import <objc/runtime.h>

@@ -39,37 +39,14 @@ typedef struct {
 
 @interface FJSValue : NSObject
 
+// FIXME: These need to be private
 @property (assign) BOOL isJSNative;
 @property (strong) FJSSymbol *symbol;
 @property (assign) FJSObjCValue cValue;
 @property (assign) JSType jsValueType;
 
 
-+ (instancetype)valueForJSObject:(nullable JSObjectRef)jso inRuntime:(FJSRuntime*)runtime;
-+ (instancetype)valueWithSymbol:(FJSSymbol*)sym inRuntime:(FJSRuntime*)runtime;
-+ (instancetype)valueWithInstance:(CFTypeRef)instance inRuntime:(FJSRuntime*)runtime;
-+ (instancetype)valueWithWeakInstance:(id)instance inRuntime:(FJSRuntime*)runtime;
-+ (instancetype)valueWithClass:(Class)c inRuntime:(FJSRuntime*)runtime;
-+ (instancetype)valueWithCValue:(FJSObjCValue)cvalue inRuntime:(FJSRuntime*)runtime;
-
-- (BOOL)isClass;
-- (BOOL)isInstance;
-
-- (BOOL)isSymbol;
-- (BOOL)isFunction;
-- (BOOL)isInstanceMethod;
-- (BOOL)isClassMethod;
-
-- (BOOL)hasClassMethodNamed:(NSString*)m;
-
-- (nullable JSValueRef)JSValue;
-- (nullable JSValueRef)toJSString;
-
-- (id)instance;
-- (Class)rtClass;
-- (void)setClass:(Class)c;
-- (void)retainReturnValue;
-
+- (id)toObject;
 - (float)toFloat;
 - (double)toDouble;
 - (long)toLong;
@@ -82,7 +59,6 @@ typedef struct {
 - (ffi_type*)FFIType;
 - (ffi_type*)FFITypeWithHint:(nullable NSString*)typeEncoding;
 
-- (id)toObject;
 
 @end
 

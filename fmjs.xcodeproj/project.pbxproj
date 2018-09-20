@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		CC1A28152154245F003B72BF /* FJSPrivate.h in Headers */ = {isa = PBXBuildFile; fileRef = CC1A28142154245F003B72BF /* FJSPrivate.h */; };
 		CC2F20AD214D7A3700F38D03 /* FMJS.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = CC2F20A3214D7A3700F38D03 /* FMJS.framework */; };
 		CC2F20B2214D7A3700F38D03 /* FJSSimpleTests.m in Sources */ = {isa = PBXBuildFile; fileRef = CC2F20B1214D7A3700F38D03 /* FJSSimpleTests.m */; };
 		CC4C3C7A2150193F005CA4A6 /* AppDelegate.m in Sources */ = {isa = PBXBuildFile; fileRef = CC4C3C792150193F005CA4A6 /* AppDelegate.m */; };
@@ -44,6 +45,7 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
+		CC1A28142154245F003B72BF /* FJSPrivate.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = FJSPrivate.h; sourceTree = "<group>"; };
 		CC2F20A3214D7A3700F38D03 /* FMJS.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = FMJS.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		CC2F20A7214D7A3700F38D03 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		CC2F20AC214D7A3700F38D03 /* fmjsTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; name = fmjsTests.xctest; path = FMJSTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -131,6 +133,7 @@
 			children = (
 				CCB1855A214D7B3000346D2F /* FJS.bridgesupport */,
 				CCB1855B214D7B3000346D2F /* FJS.h */,
+				CC1A28142154245F003B72BF /* FJSPrivate.h */,
 				CCB1855C214D7B3000346D2F /* FJSSymbolManager.h */,
 				CCB1855D214D7B3000346D2F /* FJSSymbolManager.m */,
 				CCB1855E214D7B3000346D2F /* FJSFFI.h */,
@@ -189,6 +192,7 @@
 				CCB1856E214D7B3000346D2F /* FJSRuntime.h in Headers */,
 				CCB1856A214D7B3000346D2F /* FJSSymbolManager.h in Headers */,
 				CCB18574214D7B3000346D2F /* FJSValue.h in Headers */,
+				CC1A28152154245F003B72BF /* FJSPrivate.h in Headers */,
 				CCB18572214D7B3000346D2F /* FJSUtil.h in Headers */,
 				CCB1856C214D7B3000346D2F /* FJSFFI.h in Headers */,
 			);

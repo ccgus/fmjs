@@ -629,7 +629,7 @@
     return [self toDouble];
 }
 
-- (void*)voidPointer {
+- (void*)pointer {
     FMAssert(_cValue.type);
     return _cValue.value.pointerValue;
 }

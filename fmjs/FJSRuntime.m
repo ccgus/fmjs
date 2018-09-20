@@ -11,9 +11,9 @@
 
 #import "FJS.h"
 #import "FJSRuntime.h"
-#import "FJSValue.h"
-#import "FJSSymbolManager.h"
-#import "FJSFFI.h"
+#import "FJSPrivate.h"
+
+
 #import <objc/runtime.h>
 #import <dlfcn.h>
 

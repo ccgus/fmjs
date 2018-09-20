@@ -115,7 +115,6 @@ BOOL FJSTestStuffTestPassed;
     
     XCTAssert(FJSRandomTestMethodCalled == 1);
     
-    
     FJSRandomTestMethodCalled = 0;
     [runtime evaluateScript:@"c.passLong_(42);"];
     XCTAssert(FJSRandomTestMethodCalled == 1);

@@ -49,6 +49,7 @@
 		CC2F20AC214D7A3700F38D03 /* fmjsTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; name = fmjsTests.xctest; path = FMJSTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		CC2F20B1214D7A3700F38D03 /* FJSSimpleTests.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = FJSSimpleTests.m; sourceTree = "<group>"; };
 		CC2F20B3214D7A3700F38D03 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		CC32D33221540B66000BDA47 /* README.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = README.md; sourceTree = "<group>"; };
 		CC4C3C762150193F005CA4A6 /* FJSTestApp.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = FJSTestApp.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		CC4C3C782150193F005CA4A6 /* AppDelegate.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = AppDelegate.h; sourceTree = "<group>"; };
 		CC4C3C792150193F005CA4A6 /* AppDelegate.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = AppDelegate.m; sourceTree = "<group>"; };
@@ -106,6 +107,7 @@
 		CC2F2099214D7A3700F38D03 = {
 			isa = PBXGroup;
 			children = (
+				CC32D33221540B66000BDA47 /* README.md */,
 				CC2F20A5214D7A3700F38D03 /* fmjs */,
 				CC2F20B0214D7A3700F38D03 /* fmjsTests */,
 				CC4C3C772150193F005CA4A6 /* FJSTestApp */,

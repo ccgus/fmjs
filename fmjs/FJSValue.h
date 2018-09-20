@@ -50,6 +50,7 @@ typedef struct {
 + (instancetype)valueWithInstance:(CFTypeRef)instance inRuntime:(FJSRuntime*)runtime;
 + (instancetype)valueWithWeakInstance:(id)instance inRuntime:(FJSRuntime*)runtime;
 + (instancetype)valueWithClass:(Class)c inRuntime:(FJSRuntime*)runtime;
++ (instancetype)valueWithCValue:(FJSObjCValue)cvalue inRuntime:(FJSRuntime*)runtime;
 
 - (BOOL)isClass;
 - (BOOL)isInstance;
@@ -69,7 +70,11 @@ typedef struct {
 - (void)setClass:(Class)c;
 - (void)retainReturnValue;
 
+- (float)toFloat;
 - (double)toDouble;
+- (long)toLong;
+- (long long)toLongLong;
+- (void*)pointer NS_RETURNS_INNER_POINTER;
 
 - (void*)objectStorage;
 - (BOOL)pushJSValueToNativeType:(NSString*)type;

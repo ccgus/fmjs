@@ -93,10 +93,6 @@
             currentArgIndex++;
         }
         
-        
-        
-        
-        
         // Invoke
         [invocation invoke];
         
@@ -119,20 +115,19 @@
                 // We're already +2 on the object now. Time to bring it back down with CFRelease
                 CFRelease(object);
             }
+            debug(@"returnFValue: '%@'", [returnFValue instance]);
         }
-        else if (FJSCharEquals(returnType, @encode(double))) {
-            #pragma message "FIXME: Can't we just throw the return value onto the cvalue, and pull out the type later?"
-            double d;
-            [invocation getReturnValue:&d];
-            returnValue = JSValueMakeNumber([_runtime contextRef], d);
-            returnFValue = [FJSValue valueForJSObject:(JSObjectRef)returnValue inRuntime:_runtime];\
-        }
-        else {
+        else  {
+            #pragma message "FIXME: This obviously isn't going to work for structs and other things that we need to malloc memory on the stack for."
+            FJSObjCValue cval;
+            cval.type = returnType[0];
+            FMAssert(cval.type);
+            [invocation getReturnValue:&(cval.value.pointerValue)];
             
+            returnFValue = [FJSValue valueWithCValue:cval inRuntime:_runtime];
             
-            debug(@"Not handling return value :(");
         }
-        debug(@"returnFValue: '%@'", [returnFValue instance]);
+        
         
     }
     @catch (NSException *e) {

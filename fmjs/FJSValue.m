@@ -120,6 +120,17 @@
     return cw;
 }
 
++ (instancetype)valueWithCValue:(FJSObjCValue)cvalue inRuntime:(FJSRuntime*)runtime {
+    FMAssert(runtime);
+    FJSValue *cw = [[self alloc] init];
+    [cw setCValue:cvalue];
+    
+    [cw setRuntime:runtime];
+    //debug(@"weak value: %p", cw);
+    
+    return cw;
+}
+
 - (BOOL)isClass {
     return _cValue.type == _C_CLASS;
 }
@@ -129,6 +140,12 @@
 }
 
 - (id)instance {
+    
+#ifdef DEBUG
+    if (_weakInstance || _cValue.value.pointerValue) {
+        FMAssert([self isInstance] || [self isClass]);
+    }
+#endif
     
     if (_weakInstance) {
         return _weakInstance;
@@ -587,9 +604,34 @@
 
 - (double)toDouble {
     
-    double d = [[FJSValue nativeObjectFromJSValue:_nativeJSObj ofType:@"d" inJSContext:[_runtime contextRef]] doubleValue];
-    debug(@"d: %f", d);
-    return d;
+    if (_isJSNative) {
+        return [[FJSValue nativeObjectFromJSValue:_nativeJSObj ofType:@"d" inJSContext:[_runtime contextRef]] doubleValue];
+    }
+    
+    FMAssert(_cValue.type);
+    return _cValue.value.doubleValue;
+}
+
+- (long long)toLongLong {
+    if (_isJSNative) {
+        return [[FJSValue nativeObjectFromJSValue:_nativeJSObj ofType:@"q" inJSContext:[_runtime contextRef]] longLongValue];
+    }
+    
+    FMAssert(_cValue.type);
+    return _cValue.value.longLongValue;
+}
+
+- (long)toLong {
+    return [self toLongLong];
+}
+
+- (float)toFloat {
+    return [self toDouble];
+}
+
+- (void*)voidPointer {
+    FMAssert(_cValue.type);
+    return _cValue.value.pointerValue;
 }
 
 + (JSValueRef)nativeObjectToJSValue:(id)o inJSContext:(JSContextRef)context {

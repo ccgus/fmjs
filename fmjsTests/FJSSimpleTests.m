@@ -23,7 +23,6 @@ FOUNDATION_STATIC_INLINE BOOL FJSEqualFloats(CGFloat a, CGFloat b) {
 int FJSSimpleTestsInitHappend;
 int FJSSimpleTestsDeallocHappend;
 int FJSSimpleTestsMethodCalled;
-BOOL FJSTestStuffTestPassed;
 
 @interface FJSTestClass : NSObject
 @property (assign) int passedInt;
@@ -214,117 +213,64 @@ BOOL FJSTestStuffTestPassed;
     [runtime evaluateScript:code];
 }
 
-- (void)xtestExample {
+- (void)testExample {
     
     FJSRuntime *runtime = [FJSRuntime new];
     
+    XCTAssert([[runtime evaluateScript:@"FJSMethodPleasePassCCharM(FJSTestAddSignedChar('l'));"] toBOOL]);
     
+    XCTAssert([[runtime evaluateScript:@"FJSMethodPleasePassUnsignedCCharM(FJSTestAddUnsignedChar('l'));"] toBOOL]);
     
-    FJSTestStuffTestPassed = NO;
-    [runtime evaluateScript:@"FJSMethodPleasePassCCharM(FJSTestAddSignedChar('l'));"];
-    assert(FJSTestStuffTestPassed);
+    [runtime evaluateScript:@"print(FJSMethodStringStringArgStringReturn('Hello', 'World'))"];
     
-    FJSTestStuffTestPassed = NO;
-    [runtime evaluateScript:@"FJSMethodPleasePassUnsignedCCharM(FJSTestAddUnsignedChar('l'));"];
-    assert(FJSTestStuffTestPassed);
+    XCTAssert([[[runtime evaluateScript:@"FJSMethodStringStringArgStringReturn('Hello', 'World');"] toObject] isEqualToString:@"Hello.World"]);;
     
+    XCTAssert([[runtime evaluateScript:@"FJSMethodPleasePassNegativeBOOL(FJSMethodNegateBOOL(true));"] toBOOL]);
     
-    FJSTestStuffTestPassed = NO;
-    [runtime evaluateScript:@"print(FJSMethodStringSringArgStringReturn('Hello', 'World'))"];
-    assert(FJSTestStuffTestPassed);
+    XCTAssert([[runtime evaluateScript:@"FJSMethodPleasePassPositiveBOOL(FJSMethodNegateBOOL(false));"] toBOOL]);
     
-    FJSTestStuffTestPassed = NO;
-    [runtime evaluateScript:@"FJSMethodPleasePassNegativeBOOL(FJSMethodNegateBOOL(true));"];
-    assert(FJSTestStuffTestPassed);
+    XCTAssert([[runtime evaluateScript:@"FJSMethodPleasePassNSStringClass(NSString.class());"] toBOOL]);
     
-    FJSTestStuffTestPassed = NO;
-    [runtime evaluateScript:@"FJSMethodPleasePassPositiveBOOL(FJSMethodNegateBOOL(false));"];
-    assert(FJSTestStuffTestPassed);
+    XCTAssert([[runtime evaluateScript:@"FJSMethodPleasePassNegativeBOOL(false);"] toBOOL]);
     
-    FJSTestStuffTestPassed = NO;
-    [runtime evaluateScript:@"FJSMethodPleasePassNSStringClass(NSString.class());"];
-    assert(FJSTestStuffTestPassed);
+    XCTAssert([[runtime evaluateScript:@"FJSMethodPleasePassPositiveBOOL(true);"] toBOOL]);
     
+    XCTAssert([[runtime evaluateScript:@"FJSMethodPleasePassFloat123(123);"] toBOOL]);
     
-    FJSTestStuffTestPassed = NO;
-    [runtime evaluateScript:@"FJSMethodPleasePassNegativeBOOL(false);"];
-    assert(FJSTestStuffTestPassed);
+    XCTAssert([[runtime evaluateScript:@"FJSMethodPleasePassDouble123(123);"] toBOOL]);
     
-    FJSTestStuffTestPassed = NO;
-    [runtime evaluateScript:@"FJSMethodPleasePassPositiveBOOL(true);"];
-    assert(FJSTestStuffTestPassed);
+    XCTAssert([[runtime evaluateScript:@"FJSMethodPleasePassDataUsingEncodingAllowLossyConversionSelectorAndCharM('dataUsingEncoding:allowLossyConversion:', 'm');"] toBOOL]);
     
+    XCTAssert([[runtime evaluateScript:@"FJSMethodPleasePassDataUsingEncodingAllowLossyConversionSelector('dataUsingEncoding:allowLossyConversion:');"] toBOOL]);
     
-    FJSTestStuffTestPassed = NO;
-    [runtime evaluateScript:@"FJSMethodPleasePassFloat123(123);"];
-    assert(FJSTestStuffTestPassed);
+    XCTAssert([[runtime evaluateScript:@"FJSMethodPleasePassSignedLongNumber3(3);"] toBOOL]);
     
-    FJSTestStuffTestPassed = NO;
-    [runtime evaluateScript:@"FJSMethodPleasePassDouble123(123);"];
-    assert(FJSTestStuffTestPassed);
+    XCTAssert([[runtime evaluateScript:@"FJSMethodPleasePassUnsignedLongNumber3(3);"] toBOOL]);
     
-    FJSTestStuffTestPassed = NO;
-    [runtime evaluateScript:@"FJSMethodPleasePassDataUsingEncodingAllowLossyConversionSelectorAndCharM('dataUsingEncoding:allowLossyConversion:', 'm');"];
-    assert(FJSTestStuffTestPassed);
+    XCTAssert([[runtime evaluateScript:@"FJSMethodPleasePassSignedLongLongNumber3(3);"] toBOOL]);
     
-    FJSTestStuffTestPassed = NO;
-    [runtime evaluateScript:@"FJSMethodPleasePassDataUsingEncodingAllowLossyConversionSelector('dataUsingEncoding:allowLossyConversion:');"];
-    assert(FJSTestStuffTestPassed);
+    XCTAssert([[runtime evaluateScript:@"FJSMethodPleasePassUnsignedLongLongNumber3(3);"] toBOOL]);
     
-    FJSTestStuffTestPassed = NO;
-    [runtime evaluateScript:@"FJSMethodPleasePassSignedLongNumber3(3);"];
-    assert(FJSTestStuffTestPassed);
+    XCTAssert([[runtime evaluateScript:@"FJSMethodPleasePassSignedShortNumber3(3);"] toBOOL]);
     
-    FJSTestStuffTestPassed = NO;
-    [runtime evaluateScript:@"FJSMethodPleasePassUnsignedLongNumber3(3);"];
-    assert(FJSTestStuffTestPassed);
+    XCTAssert([[runtime evaluateScript:@"FJSMethodPleasePassUnsignedShortNumber3(3);"] toBOOL]);
     
-    FJSTestStuffTestPassed = NO;
-    [runtime evaluateScript:@"FJSMethodPleasePassSignedLongLongNumber3(3);"];
-    assert(FJSTestStuffTestPassed);
+    XCTAssert([[runtime evaluateScript:@"FJSMethodPleasePassCCharM('m');"] toBOOL]);
     
-    FJSTestStuffTestPassed = NO;
-    [runtime evaluateScript:@"FJSMethodPleasePassUnsignedLongLongNumber3(3);"];
-    assert(FJSTestStuffTestPassed);
+    XCTAssert([[runtime evaluateScript:@"FJSMethodPleasePassUnsignedCCharM('m');"] toBOOL]);
     
+    XCTAssert([[runtime evaluateScript:@"FJSMethodPleasePassSignedIntNumber3(3);"] toBOOL]);
     
-    FJSTestStuffTestPassed = NO;
-    [runtime evaluateScript:@"FJSMethodPleasePassSignedShortNumber3(3);"];
-    assert(FJSTestStuffTestPassed);
+    XCTAssert([[runtime evaluateScript:@"FJSMethodPleasePassUnsignedIntNumber3(3);"] toBOOL]);
     
-    FJSTestStuffTestPassed = NO;
-    [runtime evaluateScript:@"FJSMethodPleasePassUnsignedShortNumber3(3);"];
-    assert(FJSTestStuffTestPassed);
-    
-    FJSTestStuffTestPassed = NO;
-    [runtime evaluateScript:@"FJSMethodPleasePassCCharM('m');"];
-    assert(FJSTestStuffTestPassed);
-    
-    FJSTestStuffTestPassed = NO;
-    [runtime evaluateScript:@"FJSMethodPleasePassUnsignedCCharM('m');"];
-    assert(FJSTestStuffTestPassed);
-    
-    FJSTestStuffTestPassed = NO;
-    [runtime evaluateScript:@"FJSMethodPleasePassSignedIntNumber3(3);"];
-    assert(FJSTestStuffTestPassed);
-    
-    FJSTestStuffTestPassed = NO;
-    [runtime evaluateScript:@"FJSMethodPleasePassUnsignedIntNumber3(3);"];
-    assert(FJSTestStuffTestPassed);
-    
-    [runtime evaluateScript:@"var c = FJSTestStuff.new(); FJSAssertObject(c); FJSAssert(c != null);"];
+    [runtime evaluateScript:@"var c = FJSSimpleTests.new(); FJSAssertObject(c); FJSAssert(c != null);"];
     
     [runtime evaluateScript:@"print('Hello?');"];
     [runtime evaluateScript:@"print(FJSMethodReturnNSDictionary());"];
     
-    FJSTestStuffTestPassed = NO;
-    [runtime evaluateScript:@"FJSMethodCheckNSDictionary(FJSMethodReturnNSDictionary());"];
-    assert(FJSTestStuffTestPassed);
+    XCTAssert([[runtime evaluateScript:@"FJSMethodCheckNSDictionary(FJSMethodReturnNSDictionary());"] toBOOL]);
     
-    
-    FJSTestStuffTestPassed = NO;
-    [runtime evaluateScript:@"FJSMethodPleasePassNSNumber3(3);"];
-    assert(FJSTestStuffTestPassed);
+    XCTAssert([[runtime evaluateScript:@"FJSMethodPleasePassNSNumber3(3);"] toBOOL]);
     
     [runtime shutdown];
     
@@ -342,98 +288,77 @@ BOOL FJSTestStuffTestPassed;
 @end
 
 
-
-
-void FJSMethodNoArgsNoReturn(void) {
-    debug(@"%s:%d", __FUNCTION__, __LINE__);
-}
-
-
-void FJSSingleArgument(id obj) {
-    debug(@"%s:%d", __FUNCTION__, __LINE__);
-    FJSTestStuffTestPassed = YES;
-}
-
-id FJSMethodNoArgsIDReturn(void) {
-    debug(@"%s:%d", __FUNCTION__, __LINE__);
-    FJSTestStuffTestPassed = YES;
-    return @"FJSMethodNoArgsIDReturn Method Return Value";
-}
-
-
 NSString * FJSMethodStringArgStringReturn(NSString *s) {
-    FJSTestStuffTestPassed = YES;
     return [NSString stringWithFormat:@"!!%@!!", s];
 }
 
-NSString * FJSMethodStringSringArgStringReturn(NSString *a, NSString *b) {
-    FJSTestStuffTestPassed = YES;
-    return [NSString stringWithFormat:@"++!!%@.%@!!", a, b];
+NSString * FJSMethodStringStringArgStringReturn(NSString *a, NSString *b) {
+    return [NSString stringWithFormat:@"%@.%@", a, b];
 }
 
-void FJSMethodPleasePassNSNumber3(NSNumber *n) {
-    FJSTestStuffTestPassed = [n isKindOfClass:[NSNumber class]] && [n integerValue] == 3;
+BOOL FJSMethodPleasePassNSNumber3(NSNumber *n) {
+    return [n isKindOfClass:[NSNumber class]] && [n integerValue] == 3;
 }
 
 
-void FJSMethodPleasePassSignedShortNumber3(short n) {
-    FJSTestStuffTestPassed = n == 3;
+BOOL FJSMethodPleasePassSignedShortNumber3(short n) {
+    return n == 3;
 }
 
-void FJSMethodPleasePassUnsignedShortNumber3(unsigned short n) {
-    FJSTestStuffTestPassed = n == 3;
+BOOL FJSMethodPleasePassUnsignedShortNumber3(unsigned short n) {
+    return n == 3;
 }
 
-void FJSMethodPleasePassSignedIntNumber3(int n) {
-    FJSTestStuffTestPassed = n == 3;
+BOOL FJSMethodPleasePassSignedIntNumber3(int n) {
+    return n == 3;
 }
 
-void FJSMethodPleasePassUnsignedIntNumber3(uint n) {
-    FJSTestStuffTestPassed = n == 3;
+BOOL FJSMethodPleasePassUnsignedIntNumber3(uint n) {
+    return n == 3;
 }
 
-void FJSMethodPleasePassSignedLongNumber3(long n) {
-    FJSTestStuffTestPassed = n == 3;
+BOOL FJSMethodPleasePassSignedLongNumber3(long n) {
+    return n == 3;
 }
 
-void FJSMethodPleasePassUnsignedLongNumber3(unsigned long n) {
-    FJSTestStuffTestPassed = n == 3;
+BOOL FJSMethodPleasePassUnsignedLongNumber3(unsigned long n) {
+    return n == 3;
 }
 
-void FJSMethodPleasePassSignedLongLongNumber3(long long n) {
-    FJSTestStuffTestPassed = n == 3;
+BOOL FJSMethodPleasePassSignedLongLongNumber3(long long n) {
+    return n == 3;
 }
 
-void FJSMethodPleasePassUnsignedLongLongNumber3(unsigned long long n) {
-    FJSTestStuffTestPassed = n == 3;
+BOOL FJSMethodPleasePassUnsignedLongLongNumber3(unsigned long long n) {
+    return n == 3;
 }
 
-void FJSMethodPleasePassCCharM(char c) {
-    FJSTestStuffTestPassed = c == 'm';
+BOOL FJSMethodPleasePassCCharM(char c) {
+    return c == 'm';
 }
 
-void FJSMethodPleasePassFloat123(float f) {
-    FJSTestStuffTestPassed = fabsf(f - 123.0f) <= 0.000001;
+BOOL FJSMethodPleasePassFloat123(float f) {
+    return FJSEqualFloats(f, 123.0f);
 }
 
-void FJSMethodPleasePassDouble123(double d) {
-    FJSTestStuffTestPassed = fabs(d - 123.0)  <= 0.000001;
+BOOL FJSMethodPleasePassDouble123(double d) {
+    return FJSEqualFloats(d, 123.0);
 }
 
-void FJSMethodPleasePassDataUsingEncodingAllowLossyConversionSelector(SEL selector) {
-    FJSTestStuffTestPassed = @selector(dataUsingEncoding:allowLossyConversion:) == selector;
+BOOL FJSMethodPleasePassDataUsingEncodingAllowLossyConversionSelector(SEL selector) {
+    return @selector(dataUsingEncoding:allowLossyConversion:) == selector;
 }
 
-void FJSMethodPleasePassUnsignedCCharM(unsigned char c) {
-    FJSTestStuffTestPassed = c == 'm';
+BOOL FJSMethodPleasePassUnsignedCCharM(unsigned char c) {
+    return c == 'm';
 }
 
-void FJSMethodPleasePassPositiveBOOL(BOOL b) {
-    FJSTestStuffTestPassed = b;
+BOOL FJSMethodPleasePassPositiveBOOL(BOOL b) {
+    return b;
 }
 
-void FJSMethodPleasePassNegativeBOOL(BOOL b) {
-    FJSTestStuffTestPassed = !b;
+BOOL FJSMethodPleasePassNegativeBOOL(BOOL b) {
+    return !b;
 }
 
 
@@ -442,21 +367,21 @@ BOOL FJSMethodNegateBOOL(BOOL b) {
 }
 
 
-void FJSMethodPleasePassNSStringClass(Class c) {
-    FJSTestStuffTestPassed = c == [NSString class];
+BOOL FJSMethodPleasePassNSStringClass(Class c) {
+    return c == [NSString class];
 }
 
-void FJSMethodPleasePassDataUsingEncodingAllowLossyConversionSelectorAndCharM(SEL selector, char c) {
-    FJSTestStuffTestPassed = @selector(dataUsingEncoding:allowLossyConversion:) == selector && c == 'm';
+BOOL FJSMethodPleasePassDataUsingEncodingAllowLossyConversionSelectorAndCharM(SEL selector, char c) {
+    return @selector(dataUsingEncoding:allowLossyConversion:) == selector && c == 'm';
 }
 
 NSDictionary * FJSMethodReturnNSDictionary(void) {
     return @{@"theKey": @(42)};
 }
 
-void FJSMethodCheckNSDictionary(NSDictionary *d) {
+BOOL FJSMethodCheckNSDictionary(NSDictionary *d) {
     NSNumber *n = [d objectForKey:@"theKey"];
-    FJSTestStuffTestPassed = [n isKindOfClass:[NSNumber class]] && [n integerValue] == 42;
+    return [n isKindOfClass:[NSNumber class]] && [n integerValue] == 42;
 }
 
 char FJSTestAddSignedChar(char c) {

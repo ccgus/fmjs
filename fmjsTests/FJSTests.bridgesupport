@@ -23,67 +23,72 @@
         <arg type='@'/>
     </function>
     
-    
-    <function name='FJSMethodNoArgsNoReturn'/>
-    
-    
-    <function name='FJSSingleArgument'>
-        <arg type='@'/>
-    </function>
-    
     <function name='FJSMethodPleasePassNSNumber3'>
         <arg type='@'/>
+        <retval type='B'/>
     </function>
     
     <function name='FJSMethodPleasePassSignedIntNumber3'>
         <arg type='i'/>
+        <retval type='B'/>
     </function>
     
     <function name='FJSMethodPleasePassUnsignedIntNumber3'>
         <arg type='I'/>
+        <retval type='B'/>
     </function>
     
     
     <function name='FJSMethodPleasePassSignedLongNumber3'>
         <arg type='l'/>
+        <retval type='B'/>
     </function>
     
     <function name='FJSMethodPleasePassUnsignedLongNumber3'>
         <arg type='L'/>
+        <retval type='B'/>
     </function>
     
     <function name='FJSMethodPleasePassSignedLongLongNumber3'>
         <arg type='q'/>
+        <retval type='B'/>
     </function>
     
     <function name='FJSMethodPleasePassUnsignedLongLongNumber3'>
         <arg type='Q'/>
+        <retval type='B'/>
     </function>
     
     
     <function name='FJSMethodPleasePassDataUsingEncodingAllowLossyConversionSelector'>
         <arg type=':'/>
+        <retval type='B'/>
     </function>
     
     <function name='FJSMethodPleasePassDataUsingEncodingAllowLossyConversionSelectorAndCharM'>
         <arg type=':'/>
         <arg type='c'/>
+        <retval type='B'/>
     </function>
     
     <function name='FJSMethodPleasePassFloat123'>
         <arg type='f'/>
+        <retval type='B'/>
     </function>
     
     <function name='FJSMethodPleasePassDouble123'>
         <arg type='d'/>
+        <retval type='B'/>
     </function>
     
     <function name='FJSMethodPleasePassPositiveBOOL'>
         <arg type='B'/>
+        <retval type='B'/>
     </function>
     
     <function name='FJSMethodPleasePassNegativeBOOL'>
         <arg type='B'/>
+        <retval type='B'/>
     </function>
     
     <function name='FJSMethodNegateBOOL'>
@@ -93,22 +98,27 @@
     
     <function name='FJSMethodPleasePassNSStringClass'>
         <arg type='#'/>
+        <retval type='B'/>
     </function>
     
     <function name='FJSMethodPleasePassSignedShortNumber3'>
         <arg type='s'/>
+        <retval type='B'/>
     </function>
     
     <function name='FJSMethodPleasePassUnsignedShortNumber3'>
         <arg type='S'/>
+        <retval type='B'/>
     </function>
     
     <function name='FJSMethodPleasePassCCharM'>
         <arg type='c'/>
+        <retval type='B'/>
     </function>
     
     <function name='FJSMethodPleasePassUnsignedCCharM'>
         <arg type='C'/>
+        <retval type='B'/>
     </function>
     
     <function name='FJSTestAddSignedChar'>
@@ -122,17 +132,13 @@
     </function>
     
     
-    
-    <function name='FJSMethodNoArgsIDReturn'>
-        <retval type='@'/>
-    </function>
-    
     <function name='FJSMethodReturnNSDictionary'>
         <retval type='@'/>
     </function>
     
     <function name='FJSMethodCheckNSDictionary'>
         <arg type='@'/>
+        <retval type='B'/>
     </function>
     
     <function name='FJSMethodStringArgStringReturn'>
@@ -140,7 +146,7 @@
         <retval type='@'/>
     </function>
     
-    <function name='FJSMethodStringSringArgStringReturn'>
+    <function name='FJSMethodStringStringArgStringReturn'>
         <arg type='@'/>
         <arg type='@'/>
         <retval type='@'/>

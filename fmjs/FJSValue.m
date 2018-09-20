@@ -334,27 +334,29 @@
     
     if (_isJSNative) {
         
-        if (!_cValue.type) {
+        char type = _cValue.type;
+        
+        if (!type) {
             FMAssert(_jsValueType);
             FMAssert(_nativeJSObj);
             
             switch (_jsValueType) {
                 case kJSTypeUndefined:
                 case kJSTypeNull:
-                    _cValue.type = _C_UNDEF;
+                    type = _C_UNDEF;
                     break;
                     
                 case kJSTypeBoolean:
-                    _cValue.type = _C_BOOL;
+                    type = _C_BOOL;
                     break;
                     
                 case kJSTypeNumber:
-                    _cValue.type = _C_DBL;
+                    type = _C_DBL;
                     break;
                     
                 case kJSTypeString:
                 case kJSTypeObject:
-                    _cValue.type = _C_ID;
+                    type = _C_ID;
                     break;
                     
                 default:
@@ -363,7 +365,7 @@
             }
         }
         
-        return [FJSValue nativeObjectFromJSValue:_nativeJSObj ofType:[NSString stringWithFormat:@"%c", _cValue.type] inJSContext:[_runtime contextRef]];
+        return [FJSValue nativeObjectFromJSValue:_nativeJSObj ofType:[NSString stringWithFormat:@"%c", type] inJSContext:[_runtime contextRef]];
     }
     
     if ([self isInstance]) {

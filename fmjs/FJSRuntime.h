@@ -1,6 +1,6 @@
 //
 //  FJSRuntime.h
-//  yd
+//  fmjs
 //
 //  Created by August Mueller on 8/20/18.
 //  Copyright © 2018 Flying Meat Inc. All rights reserved.
@@ -14,13 +14,7 @@
 
 NS_ASSUME_NONNULL_BEGIN
 
-@protocol COScriptLiteJavaScriptMethods <JSExport>
-
-+ (void)testClassMethod;
-
-@end
-
-@interface FJSRuntime : NSObject <COScriptLiteJavaScriptMethods>
+@interface FJSRuntime : NSObject
 
 - (FJSValue*)evaluateScript:(NSString*)str;
 - (FJSValue*)evaluateScript:(NSString *)script withSourceURL:(nullable NSURL *)sourceURL;

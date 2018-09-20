@@ -7,5 +7,8 @@
 //
 
 #import <Foundation/Foundation.h>
+@import JavaScriptCore;
 
 BOOL FJSCharEquals(const char *__s1, const char *__s2);
+
+JSValueRef FJSNativeObjectToJSValue(id o, JSContextRef context);

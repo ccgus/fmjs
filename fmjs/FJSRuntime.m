@@ -276,10 +276,6 @@ static JSValueRef FJS_callAsFunction(JSContextRef ctx, JSObjectRef functionJS, J
     }
 }
 
-+ (void)testClassMethod {
-    debug(@"%s:%d", __FUNCTION__, __LINE__);
-}
-
 - (JSValueRef)newJSValueForWrapper:(FJSValue*)value {
     
     // This should only be called for non-js objects.
@@ -424,52 +420,7 @@ JSValueRef FJS_getGlobalProperty(JSContextRef ctx, JSObjectRef object, JSStringR
             debug(@"classMethod: '%@'", classMethod);
             
         }
-        
-        
-        
-        
-        
-        
-        
     }
-    
-    
-    
-    
-//    Class objCClass = NSClassFromString(propertyName);
-//    if (objCClass && ![propertyName isEqualToString:@"Object"] && ![propertyName isEqualToString:@"Function"]) {
-//
-//        FJSJSWrapper *w = [FJSJSWrapper wrapperWithClass:objCClass];
-//
-//        JSObjectRef r = JSObjectMake(ctx, FJSGlobalClass, (__bridge void *)(runtime));
-//
-//        JSObjectSetPrivate(r, (__bridge void *)(w));
-//
-//        CFRetain((__bridge void *)w);
-//
-//        return r;
-//    }
-//
-//    if (existingWrap && [existingWrap isClass] && [existingWrap hasClassMethodNamed:propertyName]) {
-//        debug(@"class lookup of something…");
-//
-//
-//        FJSJSWrapper *w = [existingWrap wrapperForClassMethodNamed:propertyName];
-//
-//        JSObjectRef r = JSObjectMake(ctx, FJSGlobalClass, (__bridge void *)(runtime));
-//
-//        JSObjectSetPrivate(r, (__bridge void *)(w));
-//
-//        CFRetain((__bridge void *)w);
-//
-//        return r;
-//    }
-//
-//
-//
-//    if ([propertyName isEqualToString:@"testClassMethod"]) {
-//        debug(@"jfkldsajfklds %p", object);
-//    }
     
     return nil;
 }

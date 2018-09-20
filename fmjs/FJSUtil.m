@@ -17,6 +17,125 @@ BOOL FJSCharEquals(const char *__s1, const char *__s2) {
 }
 
 
+id FJSNativeObjectFromJSValue(JSValueRef jsValue, NSString *typeEncoding, JSContextRef context) {
+    
+    if ([typeEncoding isEqualToString:@"@"]) {
+        
+        if (JSValueIsString(context, jsValue)) {
+            JSStringRef resultStringJS = JSValueToStringCopy(context, jsValue, NULL);
+            id o = (NSString *)CFBridgingRelease(JSStringCopyCFString(kCFAllocatorDefault, resultStringJS));
+            JSStringRelease(resultStringJS);
+            return o;
+        }
+        
+        
+        if (JSValueIsNumber(context, jsValue)) {
+            double v = JSValueToNumber(context, jsValue, NULL);
+            return @(v);
+        }
+        
+        if (JSValueIsBoolean(context, jsValue)) {
+            bool v = JSValueToBoolean(context, jsValue);
+            return @(v);
+        }
+        
+        
+        if (JSValueIsObject(context, jsValue)) {
+            
+            JSStringRef resultStringJS = JSValueToStringCopy(context, jsValue, NULL);
+            id o = (NSString *)CFBridgingRelease(JSStringCopyCFString(kCFAllocatorDefault, resultStringJS));
+            JSStringRelease(resultStringJS);
+            return [NSString stringWithFormat:@"%@ (native js object)", o];
+        }
+        
+        JSType type = JSValueGetType(context, jsValue);
+        debug(@"What am I supposed to do with %d?", type);
+        
+        
+    }
+    
+    
+    
+    if ([typeEncoding isEqualToString:@"B"]) {
+        bool v = JSValueToBoolean(context, jsValue);
+        return @(v);
+    }
+    
+    if ([typeEncoding isEqualToString:@"s"]) {
+        short v = JSValueToNumber(context, jsValue, NULL);
+        return @(v);
+    }
+    
+    if ([typeEncoding isEqualToString:@"S"]) {
+        unsigned short v = JSValueToNumber(context, jsValue, NULL);
+        return @(v);
+    }
+    
+    if ([typeEncoding isEqualToString:@"i"]) {
+        int v = JSValueToNumber(context, jsValue, NULL);
+        return @(v);
+    }
+    
+    if ([typeEncoding isEqualToString:@"I"]) {
+        uint v = JSValueToNumber(context, jsValue, NULL);
+        return @(v);
+    }
+    
+    
+    if ([typeEncoding isEqualToString:@"l"]) {
+        long v = JSValueToNumber(context, jsValue, NULL);
+        return @(v);
+    }
+    
+    if ([typeEncoding isEqualToString:@"L"]) {
+        unsigned long v = JSValueToNumber(context, jsValue, NULL);
+        return @(v);
+    }
+    
+    
+    if ([typeEncoding isEqualToString:@"q"]) {
+        long long v = JSValueToNumber(context, jsValue, NULL);
+        return @(v);
+    }
+    
+    if ([typeEncoding isEqualToString:@"Q"]) {
+        unsigned long long v = JSValueToNumber(context, jsValue, NULL);
+        return @(v);
+    }
+    
+    if ([typeEncoding isEqualToString:@"f"]) {
+        float v = JSValueToNumber(context, jsValue, NULL);
+        return @(v);
+    }
+    
+    if ([typeEncoding isEqualToString:@"d"]) {
+        double v = JSValueToNumber(context, jsValue, NULL);
+        return @(v);
+    }
+    
+    if ([typeEncoding isEqualToString:@"c"] || [typeEncoding isEqualToString:@"C"]) { // _C_CHR, _C_UCHR
+        
+        id f = FJSNativeObjectFromJSValue(jsValue, @"@", context);
+        if ([f isKindOfClass:[NSString class]] && [f length]) {
+            char c = [f UTF8String][0];
+            NSNumber *n = @(c);
+            FMAssert(FJSCharEquals([n objCType], @encode(char)));
+            return n;
+        }
+        else if ([f isKindOfClass:[NSNumber class]]) {
+            return f;
+        }
+        
+        return nil;
+    }
+    
+    debug(@"Not sure what to do with type encoding '%@'", typeEncoding);
+    
+    //assert(NO);
+    
+    return nil;
+}
+
 JSValueRef FJSNativeObjectToJSValue(id o, JSContextRef context) {
     
     if ([o isKindOfClass:[NSString class]]) {

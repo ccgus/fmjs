@@ -370,7 +370,12 @@
         return [self instance];
     }
     
-    debug(@"Haven't implemented toObject for %c yet", _cValue.type);
+    if (_cValue.value.pointerValue) {
+        debug(@"Haven't implemented toObject for %c yet", _cValue.type);
+        return nil;
+    }
+    
+    FMAssert(_symbol); // Why else would we be here?
     
     return nil;
 }
@@ -597,7 +602,7 @@
     
     debug(@"Not sure what to do with type encoding '%@'", typeEncoding);
     
-    assert(NO);
+    //assert(NO);
     
     return nil;
 }

@@ -126,7 +126,7 @@ BOOL FJSTestStuffTestPassed;
     
     FJSValue *value = [runtime evaluateScript:@"c;"];
     
-    FJSTestClass *testClass = [value instance];
+    FJSTestClass *testClass = [value toObject];
     XCTAssert(testClass);
     XCTAssert([testClass isKindOfClass:[FJSTestClass class]]);
     XCTAssert([testClass passedInt] == 42);
@@ -177,9 +177,13 @@ BOOL FJSTestStuffTestPassed;
             [runtime evaluateScript:@"var c = FJSTestClass.new(); c.testMethod();"];
         }
         
-        testClass = [[runtime evaluateScript:@"c;"] instance];
+        testClass = [[runtime evaluateScript:@"c;"] toObject];
         
         XCTAssert(testClass);
+        
+        [runtime evaluateScript:@"c = null;"];
+        
+        XCTAssert(![[runtime evaluateScript:@"c;"] toObject]);
         
         [runtime shutdown];
         
@@ -192,9 +196,10 @@ BOOL FJSTestStuffTestPassed;
     }
     
     // I've seen this take over 70 seconds in the past. I'm sure there's something we can do to nudge things along, I just don't know what those are.
+    // OH, and here's more drama. This test never completes on my MacBook (10.14). We get to 9 of 10 things being dealloc'd. What's up with that? OH HEY HEY - are __weak var strong on this MB? If I call testClass = nil; before the runloop stuff, then I get the right dealloc count- but only on this particular machine. /me invokes level 24 @mikeash
     NSTimeInterval startTime = [NSDate timeIntervalSinceReferenceDate];
     while (FJSSimpleTestsDeallocHappend != count)  {
-        debug(@"%f seconds later…", [NSDate timeIntervalSinceReferenceDate] - startTime);
+        debug(@"%f seconds later… %d of %ld dealloced.", [NSDate timeIntervalSinceReferenceDate] - startTime, FJSSimpleTestsDeallocHappend, count);
         [[NSRunLoop mainRunLoop] runMode:NSDefaultRunLoopMode beforeDate:[NSDate dateWithTimeIntervalSinceNow:1]];
     }
     

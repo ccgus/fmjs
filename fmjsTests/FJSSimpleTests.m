@@ -46,11 +46,11 @@ BOOL FJSTestStuffTestPassed;
 
 - (BOOL)passArgument:(int)i {
     _passedInt = i;
-    return (i == 42)
+    return (i == 42);
 }
 
 - (BOOL)passMyself:(FJSTestClass*)inception {
-    return (inception == self)
+    return (inception == self);
 }
 
 
@@ -182,6 +182,7 @@ BOOL FJSTestStuffTestPassed;
         
         if (FJSSimpleTestsDeallocHappend == (count - 1)) {
             // The __weak ivar release isn't happening. Try compiling with -O
+            XCTAssert(NO, @"The release of __weak testClass didn't happy- try compiling with -O");
             testClass = nil;
         }
     }

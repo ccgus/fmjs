@@ -12,6 +12,14 @@
 
 @end
 
+FOUNDATION_STATIC_INLINE BOOL FJSEqualFloats(CGFloat a, CGFloat b) {
+#if __LP64__
+    return fabs(a - b)  <= FLT_EPSILON;
+#else
+    return fabsf(a - b) <= FLT_EPSILON;
+#endif
+}
+
 int FJSSimpleTestsInitHappend;
 int FJSSimpleTestsDeallocHappend;
 int FJSSimpleTestsMethodCalled;
@@ -55,6 +63,16 @@ BOOL FJSTestStuffTestPassed;
     printf("%s\n", [[foo description] UTF8String]);
 }
 
+- (void)passLong:(long)l {
+    if (l == 42) {
+        FJSRandomTestMethodCalled++;
+    }
+}
+
+
+- (double)addDouble:(double)d float:(float)f {
+    return d + f;
+}
 
 - (void)dealloc {
     FJSSimpleTestsDeallocHappend++;
@@ -96,6 +114,16 @@ BOOL FJSTestStuffTestPassed;
     [runtime evaluateScript:@"c.passMyself_(c);"];
     
     XCTAssert(FJSRandomTestMethodCalled == 1);
+    
+    
+    FJSRandomTestMethodCalled = 0;
+    [runtime evaluateScript:@"c.passLong_(42);"];
+    XCTAssert(FJSRandomTestMethodCalled == 1);
+    
+    FJSValue *df = [runtime evaluateScript:@"c.addDouble_float_(120, 4.5);"];
+    
+    XCTAssert(df);
+    XCTAssert(FJSEqualFloats([df toDouble], 124.5));
     
     FJSValue *value = [runtime evaluateScript:@"c;"];
     

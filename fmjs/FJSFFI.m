@@ -120,7 +120,18 @@
                 CFRelease(object);
             }
         }
-        
+        else if (FJSCharEquals(returnType, @encode(double))) {
+            #pragma message "FIXME: Can't we just throw the return value onto the cvalue, and pull out the type later?"
+            double d;
+            [invocation getReturnValue:&d];
+            returnValue = JSValueMakeNumber([_runtime contextRef], d);
+            returnFValue = [FJSValue valueForJSObject:(JSObjectRef)returnValue inRuntime:_runtime];\
+        }
+        else {
+            
+            
+            debug(@"Not handling return value :(");
+        }
         debug(@"returnFValue: '%@'", [returnFValue instance]);
         
     }

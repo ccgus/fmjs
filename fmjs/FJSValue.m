@@ -585,6 +585,13 @@
     return nil;
 }
 
+- (double)toDouble {
+    
+    double d = [[FJSValue nativeObjectFromJSValue:_nativeJSObj ofType:@"d" inJSContext:[_runtime contextRef]] doubleValue];
+    debug(@"d: %f", d);
+    return d;
+}
+
 + (JSValueRef)nativeObjectToJSValue:(id)o inJSContext:(JSContextRef)context {
     
     if ([o isKindOfClass:[NSString class]]) {

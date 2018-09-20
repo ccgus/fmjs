@@ -177,29 +177,26 @@ BOOL FJSTestStuffTestPassed;
             [runtime evaluateScript:@"var c = FJSTestClass.new(); c.testMethod();"];
         }
         
-        testClass = [[runtime evaluateScript:@"c;"] toObject];
-        
-        XCTAssert(testClass);
-        
-        [runtime evaluateScript:@"c = null;"];
-        
-        XCTAssert(![[runtime evaluateScript:@"c;"] toObject]);
-        
-        [runtime shutdown];
-        
-        debug(@"done? %d/%d", FJSSimpleTestsInitHappend, FJSSimpleTestsMethodCalled);
+        // Limit the scope of the weak assignment of testClass down a bit, so the test passes on a MacBook
+        // I'm not sure why different hardware behaves differently here (iMac vs. MacBook)
+        {
+            testClass = [[runtime evaluateScript:@"c;"] toObject];
+            XCTAssert(testClass);
+            
+            [runtime evaluateScript:@"c = null;"];
+            XCTAssert(![[runtime evaluateScript:@"c;"] toObject]);
+            
+            [runtime shutdown];
+        }
         
         XCTAssert(FJSSimpleTestsMethodCalled == count);
         XCTAssert(FJSSimpleTestsInitHappend == count);
-    
-        
     }
     
     // I've seen this take over 70 seconds in the past. I'm sure there's something we can do to nudge things along, I just don't know what those are.
-    // OH, and here's more drama. This test never completes on my MacBook (10.14). We get to 9 of 10 things being dealloc'd. What's up with that? OH HEY HEY - are __weak var strong on this MB? If I call testClass = nil; before the runloop stuff, then I get the right dealloc count- but only on this particular machine. /me invokes level 24 @mikeash
     NSTimeInterval startTime = [NSDate timeIntervalSinceReferenceDate];
     while (FJSSimpleTestsDeallocHappend != count)  {
-        debug(@"%f seconds later… %d of %ld dealloced.", [NSDate timeIntervalSinceReferenceDate] - startTime, FJSSimpleTestsDeallocHappend, count);
+        debug(@"%f seconds later… %d of %d dealloced.", [NSDate timeIntervalSinceReferenceDate] - startTime, FJSSimpleTestsDeallocHappend, count);
         [[NSRunLoop mainRunLoop] runMode:NSDefaultRunLoopMode beforeDate:[NSDate dateWithTimeIntervalSinceNow:1]];
     }
     
@@ -213,6 +210,8 @@ BOOL FJSTestStuffTestPassed;
 - (void)testCIExample {
     
     // Note- when guard malloc is turned on in 10.14, the Apple JPEG decoders trip it up. Hurray.
+    
+    #pragma message "FIXME: Throw in a imageByApplyingTransform for the CIImage stuff."
     
     NSString *code = @"\
     var url = NSURL.fileURLWithPath_('/Library/Desktop Pictures/Yosemite.jpg');\n\

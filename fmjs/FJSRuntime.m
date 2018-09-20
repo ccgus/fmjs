@@ -73,6 +73,7 @@ static JSValueRef FJS_callAsFunction(JSContextRef ctx, JSObjectRef functionJS, J
         
         [self loadFrameworkAtPath:@"/System/Library/Frameworks/Foundation.framework"];
         [self loadFrameworkAtPath:@"/System/Library/Frameworks/AppKit.framework"];
+        [self loadFrameworkAtPath:@"/System/Library/Frameworks/CoreGraphics.framework"];
         [self loadFrameworkAtPath:@"/System/Library/Frameworks/CoreImage.framework"];
         
         [self setupJS];

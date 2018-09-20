@@ -607,6 +607,20 @@
     return nil;
 }
 
+- (BOOL)toBOOL {
+    
+    if (_isJSNative) {
+        
+        if (JSValueIsBoolean([_runtime contextRef], _nativeJSObj)) {
+            return JSValueToBoolean([_runtime contextRef], _nativeJSObj);
+        }
+        
+        return [[FJSValue nativeObjectFromJSValue:_nativeJSObj ofType:@"B" inJSContext:[_runtime contextRef]] boolValue];
+    }
+    
+    return _cValue.value.boolValue;
+}
+
 - (double)toDouble {
     
     if (_isJSNative) {

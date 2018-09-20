@@ -23,7 +23,6 @@ FOUNDATION_STATIC_INLINE BOOL FJSEqualFloats(CGFloat a, CGFloat b) {
 int FJSSimpleTestsInitHappend;
 int FJSSimpleTestsDeallocHappend;
 int FJSSimpleTestsMethodCalled;
-int FJSRandomTestMethodCalled;
 BOOL FJSTestStuffTestPassed;
 
 @interface FJSTestClass : NSObject
@@ -45,17 +44,13 @@ BOOL FJSTestStuffTestPassed;
     FJSSimpleTestsMethodCalled++;
 }
 
-- (void)passArgument:(int)i {
-    if (i == 42) {
-        FJSRandomTestMethodCalled++;
-        _passedInt = i;
-    }
+- (BOOL)passArgument:(int)i {
+    _passedInt = i;
+    return (i == 42)
 }
 
-- (void)passMyself:(FJSTestClass*)inception {
-    if (inception == self) {
-        FJSRandomTestMethodCalled++;
-    }
+- (BOOL)passMyself:(FJSTestClass*)inception {
+    return (inception == self)
 }
 
 
@@ -63,10 +58,8 @@ BOOL FJSTestStuffTestPassed;
     printf("%s\n", [[foo description] UTF8String]);
 }
 
-- (void)passLong:(long)l {
-    if (l == 42) {
-        FJSRandomTestMethodCalled++;
-    }
+- (long)passAndReturnLongPlusOne:(long)l {
+    return l + 1;
 }
 
 
@@ -102,22 +95,14 @@ BOOL FJSTestStuffTestPassed;
 }
 
 - (void)testObjcMethods {
-    FJSRandomTestMethodCalled = 0;
     
     FJSRuntime *runtime = [[FJSRuntime alloc] init];
     
-    [runtime evaluateScript:@"var c = FJSTestClass.new(); c.passArgument_(42);"];
+    XCTAssert([[runtime evaluateScript:@"var c = FJSTestClass.new(); c.passArgument_(42);"] toBOOL]);
     
-    XCTAssert(FJSRandomTestMethodCalled == 1);
-    FJSRandomTestMethodCalled = 0;
+    XCTAssert([[runtime evaluateScript:@"c.passMyself_(c);"] toBOOL]);
     
-    [runtime evaluateScript:@"c.passMyself_(c);"];
-    
-    XCTAssert(FJSRandomTestMethodCalled == 1);
-    
-    FJSRandomTestMethodCalled = 0;
-    [runtime evaluateScript:@"c.passLong_(42);"];
-    XCTAssert(FJSRandomTestMethodCalled == 1);
+    XCTAssert([[runtime evaluateScript:@"c.passAndReturnLongPlusOne_(42);"] toLongLong] == 43);
     
     FJSValue *df = [runtime evaluateScript:@"c.addDouble_float_(120, 4.5);"];
     
@@ -190,11 +175,15 @@ BOOL FJSTestStuffTestPassed;
     }
     
     // I've seen this take over 70 seconds in the past. I'm sure there's something we can do to nudge things along, I just don't know what those are.
-    // Also, if you get stuck here, make sure you're compiling with -O
     NSTimeInterval startTime = [NSDate timeIntervalSinceReferenceDate];
     while (FJSSimpleTestsDeallocHappend != count)  {
         debug(@"%f seconds later… %d of %d dealloced.", [NSDate timeIntervalSinceReferenceDate] - startTime, FJSSimpleTestsDeallocHappend, count);
         [[NSRunLoop mainRunLoop] runMode:NSDefaultRunLoopMode beforeDate:[NSDate dateWithTimeIntervalSinceNow:1]];
+        
+        if (FJSSimpleTestsDeallocHappend == (count - 1)) {
+            // The __weak ivar release isn't happening. Try compiling with -O
+            testClass = nil;
+        }
     }
     
     

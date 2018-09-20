@@ -47,6 +47,7 @@ typedef struct {
 
 
 - (id)toObject;
+- (BOOL)toBOOL;
 - (float)toFloat;
 - (double)toDouble;
 - (long)toLong;

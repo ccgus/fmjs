@@ -179,9 +179,9 @@ int FJSSimpleTestsMethodCalled;
         debug(@"%f seconds later… %d of %d dealloced.", [NSDate timeIntervalSinceReferenceDate] - startTime, FJSSimpleTestsDeallocHappend, count);
         [[NSRunLoop mainRunLoop] runMode:NSDefaultRunLoopMode beforeDate:[NSDate dateWithTimeIntervalSinceNow:1]];
         
-        if (FJSSimpleTestsDeallocHappend == (count - 1)) {
+        if (FJSSimpleTestsDeallocHappend == (count - 1) && testClass) {
             // The __weak ivar release isn't happening. Try compiling with -O
-            XCTAssert(NO, @"The release of __weak testClass didn't happy- try compiling with -O");
+            XCTAssert(NO, @"The release of __weak testClass didn't happen- try compiling with -O");
             testClass = nil;
         }
     }

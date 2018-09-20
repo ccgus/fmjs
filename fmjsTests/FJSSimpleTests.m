@@ -167,7 +167,7 @@ BOOL FJSTestStuffTestPassed;
 
     int count = 10;
     
-    __weak FJSTestClass *testClass;
+    __weak __attribute__((objc_precise_lifetime)) FJSTestClass *testClass;
     
     @autoreleasepool {
         
@@ -177,23 +177,20 @@ BOOL FJSTestStuffTestPassed;
             [runtime evaluateScript:@"var c = FJSTestClass.new(); c.testMethod();"];
         }
         
-        // Limit the scope of the weak assignment of testClass down a bit, so the test passes on a MacBook
-        // I'm not sure why different hardware behaves differently here (iMac vs. MacBook)
-        {
-            testClass = [[runtime evaluateScript:@"c;"] toObject];
-            XCTAssert(testClass);
-            
-            [runtime evaluateScript:@"c = null;"];
-            XCTAssert(![[runtime evaluateScript:@"c;"] toObject]);
-            
-            [runtime shutdown];
-        }
+        testClass = [[runtime evaluateScript:@"c;"] toObject];
+        XCTAssert(testClass);
+        
+        [runtime evaluateScript:@"c = null;"];
+        XCTAssert(![[runtime evaluateScript:@"c;"] toObject]);
+        
+        [runtime shutdown];
         
         XCTAssert(FJSSimpleTestsMethodCalled == count);
         XCTAssert(FJSSimpleTestsInitHappend == count);
     }
     
     // I've seen this take over 70 seconds in the past. I'm sure there's something we can do to nudge things along, I just don't know what those are.
+    // Also, if you get stuck here, make sure you're compiling with -O
     NSTimeInterval startTime = [NSDate timeIntervalSinceReferenceDate];
     while (FJSSimpleTestsDeallocHappend != count)  {
         debug(@"%f seconds later… %d of %d dealloced.", [NSDate timeIntervalSinceReferenceDate] - startTime, FJSSimpleTestsDeallocHappend, count);

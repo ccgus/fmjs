@@ -48,7 +48,7 @@
 		CC1A28142154245F003B72BF /* FJSPrivate.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = FJSPrivate.h; sourceTree = "<group>"; };
 		CC2F20A3214D7A3700F38D03 /* FMJS.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = FMJS.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		CC2F20A7214D7A3700F38D03 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
-		CC2F20AC214D7A3700F38D03 /* fmjsTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; name = fmjsTests.xctest; path = FMJSTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		CC2F20AC214D7A3700F38D03 /* FMJSTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = FMJSTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		CC2F20B1214D7A3700F38D03 /* FJSSimpleTests.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = FJSSimpleTests.m; sourceTree = "<group>"; };
 		CC2F20B3214D7A3700F38D03 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		CC32D33221540B66000BDA47 /* README.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = README.md; sourceTree = "<group>"; };
@@ -122,7 +122,7 @@
 			isa = PBXGroup;
 			children = (
 				CC2F20A3214D7A3700F38D03 /* FMJS.framework */,
-				CC2F20AC214D7A3700F38D03 /* fmjsTests.xctest */,
+				CC2F20AC214D7A3700F38D03 /* FMJSTests.xctest */,
 				CC4C3C762150193F005CA4A6 /* FJSTestApp.app */,
 			);
 			name = Products;
@@ -234,7 +234,7 @@
 			);
 			name = FMJSTests;
 			productName = FMJSTests;
-			productReference = CC2F20AC214D7A3700F38D03 /* fmjsTests.xctest */;
+			productReference = CC2F20AC214D7A3700F38D03 /* FMJSTests.xctest */;
 			productType = "com.apple.product-type.bundle.unit-test";
 		};
 		CC4C3C752150193F005CA4A6 /* FJSTestApp */ = {
@@ -416,7 +416,7 @@
 				GCC_C_LANGUAGE_STANDARD = gnu11;
 				GCC_DYNAMIC_NO_PIC = NO;
 				GCC_NO_COMMON_BLOCKS = YES;
-				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_OPTIMIZATION_LEVEL = 1;
 				GCC_PREPROCESSOR_DEFINITIONS = (
 					"DEBUG=1",
 					"$(inherited)",
@@ -477,6 +477,7 @@
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
 				GCC_C_LANGUAGE_STANDARD = gnu11;
 				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_OPTIMIZATION_LEVEL = fast;
 				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
 				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
 				GCC_WARN_UNDECLARED_SELECTOR = YES;

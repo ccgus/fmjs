@@ -140,14 +140,19 @@ BOOL FJSTestStuffTestPassed;
 
     int count = 10;
     
+    __weak FJSTestClass *testClass;
     
     @autoreleasepool {
         
         FJSRuntime *runtime = [[FJSRuntime alloc] init];
         
         for (int i = 0; i < count; i++) {
-            [runtime evaluateScript:@"var c = FJSTestClass.new(); c.testMethod(); c = null;"];
+            [runtime evaluateScript:@"var c = FJSTestClass.new(); c.testMethod();"];
         }
+        
+        testClass = [[runtime evaluateScript:@"c;"] instance];
+        
+        XCTAssert(testClass);
         
         [runtime shutdown];
         
@@ -162,11 +167,12 @@ BOOL FJSTestStuffTestPassed;
     // I've seen this take over 70 seconds in the past. I'm sure there's something we can do to nudge things along, I just don't know what those are.
     NSTimeInterval startTime = [NSDate timeIntervalSinceReferenceDate];
     while (FJSSimpleTestsDeallocHappend != count)  {
-        [[NSRunLoop mainRunLoop] runMode:NSDefaultRunLoopMode beforeDate:[NSDate dateWithTimeIntervalSinceNow:.1]];
+        debug(@"%f seconds later…", [NSDate timeIntervalSinceReferenceDate] - startTime);
+        [[NSRunLoop mainRunLoop] runMode:NSDefaultRunLoopMode beforeDate:[NSDate dateWithTimeIntervalSinceNow:1]];
     }
     
-    debug(@"%f seconds later…", [NSDate timeIntervalSinceReferenceDate] - startTime);
     
+    XCTAssert(!testClass);
     XCTAssert(FJSSimpleTestsMethodCalled == count);
     XCTAssert(FJSSimpleTestsInitHappend == count);
     XCTAssert(FJSSimpleTestsDeallocHappend == count);

@@ -264,7 +264,7 @@ static JSValueRef FJS_callAsFunction(JSContextRef ctx, JSObjectRef functionJS, J
     
     NSString *bridgeDylib = [path stringByAppendingPathComponent:[NSString stringWithFormat:@"Resources/BridgeSupport/%@.dylib", frameworkName]];
     if ([[NSFileManager defaultManager] fileExistsAtPath:bridgeDylib]) {
-        address = dlopen([libPath UTF8String], RTLD_LAZY);
+        address = dlopen([bridgeDylib UTF8String], RTLD_LAZY);
         if (!address) {
             NSLog(@"ERROR: Could not load BridgeSupport dylib: %@, %@", frameworkName, bridgeDylib);
         }

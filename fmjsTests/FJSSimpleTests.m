@@ -207,7 +207,7 @@ int FJSSimpleTestsMethodCalled;
     var r = f.outputImage();\n\
     var tiff = r.TIFFRepresentation();\n\
     tiff.writeToFile_atomically_('/tmp/foo.tiff', true);\n\
-    NSWorkspace.sharedWorkspace().openFile_('/tmp/foo.tiff')";
+    NSWorkspace.sharedWorkspace().openFile_('/tmp/foo.tiff');";
     
     FJSRuntime *runtime = [FJSRuntime new];
     [runtime evaluateScript:code];

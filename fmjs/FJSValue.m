@@ -41,7 +41,14 @@
 - (void)dealloc {
     
     if ([self isInstance] && _cValue.value.pointerValue) {
-        debug(@"FJSValue dealloc releasing %@", _cValue.value.pointerValue);
+        
+        
+        id obj = (__bridge id)(_cValue.value.pointerValue);
+        if ([obj isKindOfClass:[NSData class]]) {
+            obj = [NSString stringWithFormat:@"%@ of %ld bytes", NSStringFromClass([obj class]), [(NSData*)obj length]];
+        }
+        
+        debug(@"FJSValue dealloc releasing %@", obj);
         CFRelease(_cValue.value.pointerValue);
     }
     

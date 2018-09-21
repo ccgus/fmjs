@@ -15,6 +15,7 @@
         <customObject id="-3" userLabel="Application" customClass="NSObject"/>
         <customObject id="Voe-Tx-rLC" customClass="AppDelegate">
             <connections>
+                <outlet property="textView" destination="j8z-mu-cUg" id="gjc-P1-cy5"/>
                 <outlet property="window" destination="QvC-M9-y7g" id="gIp-Ho-8D9"/>
             </connections>
         </customObject>
@@ -683,15 +684,15 @@
         <window title="FJSTestApp" allowsToolTipsWhenApplicationIsInactive="NO" autorecalculatesKeyViewLoop="NO" releasedWhenClosed="NO" animationBehavior="default" id="QvC-M9-y7g">
             <windowStyleMask key="styleMask" titled="YES" closable="YES" miniaturizable="YES" resizable="YES"/>
             <windowPositionMask key="initialPositionMask" leftStrut="YES" rightStrut="YES" topStrut="YES" bottomStrut="YES"/>
-            <rect key="contentRect" x="335" y="390" width="480" height="360"/>
+            <rect key="contentRect" x="335" y="390" width="646" height="518"/>
             <rect key="screenRect" x="0.0" y="0.0" width="2560" height="1417"/>
             <view key="contentView" wantsLayer="YES" id="EiT-Mj-1SZ">
-                <rect key="frame" x="0.0" y="0.0" width="480" height="360"/>
+                <rect key="frame" x="0.0" y="0.0" width="646" height="518"/>
                 <autoresizingMask key="autoresizingMask"/>
                 <subviews>
                     <textField horizontalHuggingPriority="251" verticalHuggingPriority="750" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="MOZ-cX-hP1">
-                        <rect key="frame" x="18" y="253" width="407" height="87"/>
-                        <autoresizingMask key="autoresizingMask"/>
+                        <rect key="frame" x="18" y="411" width="610" height="87"/>
+                        <autoresizingMask key="autoresizingMask" widthSizable="YES" flexibleMinY="YES"/>
                         <textFieldCell key="cell" lineBreakMode="clipping" id="fo7-pX-fvA">
                             <font key="font" usesAppearanceFont="YES"/>
                             <string key="title">The purpose of this test app is to debug some NSRunLoop things.
@@ -701,9 +702,60 @@ Check out the test target on how to use FMJS's api calls in an app.</string>
                             <color key="backgroundColor" name="textBackgroundColor" catalog="System" colorSpace="catalog"/>
                         </textFieldCell>
                     </textField>
+                    <scrollView fixedFrame="YES" borderType="none" horizontalLineScroll="10" horizontalPageScroll="10" verticalLineScroll="10" verticalPageScroll="10" hasHorizontalScroller="NO" translatesAutoresizingMaskIntoConstraints="NO" id="V9N-rz-m8S">
+                        <rect key="frame" x="20" y="56" width="606" height="347"/>
+                        <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
+                        <clipView key="contentView" ambiguous="YES" drawsBackground="NO" copiesOnScroll="NO" id="ag3-yL-hqk">
+                            <rect key="frame" x="0.0" y="0.0" width="606" height="347"/>
+                            <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
+                            <subviews>
+                                <textView ambiguous="YES" importsGraphics="NO" richText="NO" verticallyResizable="YES" allowsUndo="YES" spellingCorrection="YES" smartInsertDelete="YES" id="j8z-mu-cUg">
+                                    <rect key="frame" x="0.0" y="0.0" width="606" height="347"/>
+                                    <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
+                                    <color key="backgroundColor" white="1" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
+                                    <size key="minSize" width="606" height="347"/>
+                                    <size key="maxSize" width="861" height="10000000"/>
+                                    <attributedString key="textStorage">
+                                        <fragment>
+                                            <string key="content">// THIS TEST IS NOT SANDBOXED, VIEWER DISCRETION IS ADVISED.
+var url = NSURL.fileURLWithPath_('/Library/Desktop Pictures/Yosemite.jpg');
+var img = CIImage.imageWithContentsOfURL_(url)
+var f = CIFilter.filterWithName_('CIColorInvert');
+f.setValue_forKey_(img, kCIInputImageKey);
+var r = f.outputImage();
+var tiff = r.TIFFRepresentation();
+tiff.writeToFile_atomically_('/tmp/foo.tiff', true);
+NSWorkspace.sharedWorkspace().openFile_('/tmp/foo.tiff');</string>
+                                            <attributes>
+                                                <font key="NSFont" size="12" name="Menlo-Regular"/>
+                                                <paragraphStyle key="NSParagraphStyle" alignment="natural" lineBreakMode="wordWrapping" baseWritingDirection="natural" tighteningFactorForTruncation="0.0"/>
+                                            </attributes>
+                                        </fragment>
+                                    </attributedString>
+                                    <color key="insertionPointColor" name="textColor" catalog="System" colorSpace="catalog"/>
+                                </textView>
+                            </subviews>
+                        </clipView>
+                        <scroller key="verticalScroller" wantsLayer="YES" verticalHuggingPriority="750" horizontal="NO" id="ytN-kB-Yiy">
+                            <rect key="frame" x="590" y="0.0" width="16" height="347"/>
+                            <autoresizingMask key="autoresizingMask"/>
+                        </scroller>
+                    </scrollView>
+                    <button verticalHuggingPriority="750" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="RZd-1J-XT9">
+                        <rect key="frame" x="436" y="13" width="196" height="32"/>
+                        <autoresizingMask key="autoresizingMask" flexibleMinX="YES" flexibleMaxY="YES"/>
+                        <buttonCell key="cell" type="push" title="This is a very nice button." bezelStyle="rounded" alignment="center" borderStyle="border" imageScaling="proportionallyDown" inset="2" id="OVX-mQ-9fK">
+                            <behavior key="behavior" pushIn="YES" lightByBackground="YES" lightByGray="YES"/>
+                            <font key="font" metaFont="system"/>
+                        </buttonCell>
+                        <connections>
+                            <action selector="runScriptAction:" target="Voe-Tx-rLC" id="rBq-fZ-SSb"/>
+                        </connections>
+                    </button>
                 </subviews>
             </view>
-            <point key="canvasLocation" x="-102" y="-231"/>
+            <point key="canvasLocation" x="-413" y="-200"/>
         </window>
+        <userDefaultsController representsSharedInstance="YES" id="8wc-ug-3GL"/>
     </objects>
 </document>

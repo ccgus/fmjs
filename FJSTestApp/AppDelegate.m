@@ -30,20 +30,14 @@
 
 - (IBAction)runScriptAction:(id)sender {
     
-    NSOpenPanel *open = [NSOpenPanel openPanel];
-    [open setAllowedFileTypes:@[(id)kUTTypeJavaScript]];
-    [open beginWithCompletionHandler:^(NSModalResponse result) {
-        
-        if (result) {
-            
-            FJSRuntime *rt = [FJSRuntime new];
-            
-            NSString *s = [NSString stringWithContentsOfURL:[open URL] encoding:NSUTF8StringEncoding error:nil];
-            [rt evaluateScript:s withSourceURL:[open URL]];
-            
-            
-        }
-    }];
+    FMAssert(_textView);
+    
+    FJSRuntime *rt = [FJSRuntime new];
+
+    [rt evaluateScript:[_textView string]];;
+
+    [rt shutdown];
+    
     
 }
 

@@ -402,7 +402,7 @@
 }
 
 - (BOOL)returnsRetained {
-#pragma message "FIXME: Look up the actual +1 rules. Isn't it create anywhere in the name?"
+#pragma message "FIXME: Look up the actual +1 rules. Isn't it create anywhere in the name? Holy shit I wish bridge.xml files had returns_retained in there."
 
     if ([_symbolType isEqualToString:@"method"]) {
         return ([_name isEqualToString:@"new"] || [_name isEqualToString:@"init"] || [_name isEqualToString:@"copy"] || [_name isEqualToString:@"mutableCopy"] || [_name hasPrefix:@"create"]);

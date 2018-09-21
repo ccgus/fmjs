@@ -6,11 +6,9 @@
 //  Copyright © 2018 Flying Meat Inc. All rights reserved.
 //
 
-#import <XCTest/XCTest.h>
+#import "FJSSimpleTests.h"
 #import <FMJS/FJS.h>
-@interface FJSSimpleTests : XCTestCase
 
-@end
 
 FOUNDATION_STATIC_INLINE BOOL FJSEqualFloats(CGFloat a, CGFloat b) {
 #if __LP64__
@@ -19,6 +17,10 @@ FOUNDATION_STATIC_INLINE BOOL FJSEqualFloats(CGFloat a, CGFloat b) {
     return fabsf(a - b) <= FLT_EPSILON;
 #endif
 }
+
+const NSString *FJSTestConstString = @"HELLO I'M FJSTestConstString";
+const int FJSTestConstInt = 74;
+
 
 int FJSSimpleTestsInitHappend;
 int FJSSimpleTestsDeallocHappend;
@@ -175,7 +177,7 @@ int FJSSimpleTestsMethodCalled;
     
     // I've seen this take over 70 seconds in the past. I'm sure there's something we can do to nudge things along, I just don't know what those are.
     NSTimeInterval startTime = [NSDate timeIntervalSinceReferenceDate];
-    while (FJSSimpleTestsDeallocHappend != count)  {
+    while (FJSSimpleTestsDeallocHappend != count) {
         debug(@"%f seconds later… %d of %d dealloced.", [NSDate timeIntervalSinceReferenceDate] - startTime, FJSSimpleTestsDeallocHappend, count);
         [[NSRunLoop mainRunLoop] runMode:NSDefaultRunLoopMode beforeDate:[NSDate dateWithTimeIntervalSinceNow:1]];
         
@@ -278,6 +280,18 @@ int FJSSimpleTestsMethodCalled;
     XCTAssert([[runtime evaluateScript:@"FJSMethodCheckNSDictionary(FJSMethodReturnNSDictionary());"] toBOOL]);
     
     XCTAssert([[runtime evaluateScript:@"FJSMethodPleasePassNSNumber3(3);"] toBOOL]);
+    
+    XCTAssert([[[runtime evaluateScript:@"kCIInputImageKey;"] toObject] isEqualToString:@"inputImage"]);
+    
+    // Enum
+    XCTAssert([[runtime evaluateScript:@"NSASCIIStringEncoding;"] toLong] == NSASCIIStringEncoding);
+    
+    // Const double.
+    XCTAssert(FJSEqualFloats([[runtime evaluateScript:@"NSAppKitVersionNumber;"] toDouble], NSAppKitVersionNumber));
+    
+    XCTAssert([[runtime evaluateScript:@"FJSTestConstString;"] pointer] == (__bridge void *)(FJSTestConstString));
+    
+    XCTAssert([[runtime evaluateScript:@"FJSTestConstInt;"] toLong] == FJSTestConstInt);
     
     [runtime shutdown];
     

@@ -366,11 +366,9 @@ JSValueRef FJS_getProperty(JSContextRef ctx, JSObjectRef object, JSStringRef pro
             
             FJSValue *value = [FJSValue valueWithSymbol:sym inRuntime:runtime];
             
-            JSValueRef r = [runtime newJSValueForWrapper:value];
+            JSValueRef jsValue = [runtime newJSValueForWrapper:value];
             
-            debug(@"returning function: %p", r);
-            
-            return r;
+            return jsValue;
         }
         else if ([[sym symbolType] isEqualToString:@"class"]) {
             
@@ -382,9 +380,9 @@ JSValueRef FJS_getProperty(JSContextRef ctx, JSObjectRef object, JSStringRef pro
             
             [w setClass:class];
             
-            JSValueRef val = [runtime newJSValueForWrapper:w];
+            JSValueRef jsValue = [runtime newJSValueForWrapper:w];
             
-            return val;
+            return jsValue;
         }
         else if ([[sym symbolType] isEqualToString:@"enum"]) {
             return JSValueMakeNumber(ctx, [[sym runtimeValue] doubleValue]);
@@ -395,16 +393,17 @@ JSValueRef FJS_getProperty(JSContextRef ctx, JSObjectRef object, JSStringRef pro
             void *dlsymbol = dlsym(RTLD_DEFAULT, [propertyName UTF8String]);
             assert(dlsymbol);
             
-            assert([[sym runtimeType] hasPrefix:@"@"]);
-            
-            id o = (__bridge id)(*(void**)dlsymbol);
-            FJSValue *w = [FJSValue valueWithInstance:(__bridge CFTypeRef _Nonnull)(o) inRuntime:runtime];
-            
-            JSObjectRef r = JSObjectMake(ctx, [runtime globalClass], (__bridge void *)(w));
-            
-            CFRetain((__bridge void *)w);
-            
-            return r;
+            if (dlsymbol) {
+                
+                void *p = (*(void**)dlsymbol);
+                
+                FJSValue *val = [FJSValue valueWithConstantPointer:p ofType:[[sym runtimeType] characterAtIndex:0] inRuntime:runtime];
+                [val setSymbol:sym];
+                
+                JSValueRef jsValue = [runtime newJSValueForWrapper:val];
+                
+                return jsValue;
+            }
         }
     }
     

@@ -40,8 +40,7 @@
 
 - (void)dealloc {
     
-    if ([self isInstance] && _cValue.value.pointerValue) {
-        
+    if ([self isInstance] && _cValue.value.pointerValue && ![[[self symbol] symbolType] isEqualToString:@"constant"]) {
         
         id obj = (__bridge id)(_cValue.value.pointerValue);
         if ([obj isKindOfClass:[NSData class]]) {
@@ -112,6 +111,17 @@
     return cw;
 }
 
++ (instancetype)valueWithConstantPointer:(void*)p ofType:(char)type inRuntime:(FJSRuntime*)runtime {
+    FMAssert(runtime);
+    FJSValue *cw = [[self alloc] init];
+    cw->_cValue.type = type;
+    cw->_cValue.value.pointerValue = p;
+    
+    [cw setRuntime:runtime];
+    
+    return cw;
+}
+
 + (instancetype)valueWithInstance:(CFTypeRef)instance inRuntime:(FJSRuntime*)runtime {
     FMAssert(runtime);
     FJSValue *cw = [[self alloc] init];
@@ -173,7 +183,7 @@
     return (__bridge Class)_cValue.value.pointerValue;
 }
 
-- (void)setInstance:(CFTypeRef)o {
+- (void)setInstance:(nullable CFTypeRef)o {
     FMAssert(!_weakInstance);
     FMAssert(!_cValue.value.pointerValue);
     //debug(@"FJSValue retaining %@ currently at %ld", o, CFGetRetainCount(o));

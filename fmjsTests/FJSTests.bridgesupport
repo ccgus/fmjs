@@ -167,4 +167,8 @@
         <retval type='@'/>
     </function>
     
+    <constant name='FJSTestConstString' type='@'/>
+    
+    <constant name='FJSTestConstInt' type='i'/>
+    
 </signatures>

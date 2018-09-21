@@ -157,7 +157,6 @@
         }
     }
     
-    #pragma message "FIXME: What about constants?"
     if ([sym name] && ([elementName isEqualToString:@"class"] || [elementName isEqualToString:@"constant"] || [elementName isEqualToString:@"function"] || [elementName isEqualToString:@"enum"])) {
         [_symbols setObject:sym forKey:[sym name]];
     }

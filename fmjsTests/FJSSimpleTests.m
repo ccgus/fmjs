@@ -263,6 +263,8 @@ int FJSSimpleTestsMethodCalled;
     
     XCTAssert([[runtime evaluateScript:@"FJSMethodPleasePassUnsignedIntNumber3(3);"] toBOOL]);
     
+    XCTAssert([[runtime evaluateScript:@"NSNull.null() == null;"] toBOOL]);
+    
     [runtime evaluateScript:@"var c = FJSSimpleTests.new(); FJSAssertObject(c); FJSAssert(c != null);"];
     
     [runtime evaluateScript:@"print('Hello?');"];

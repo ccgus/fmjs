@@ -33,7 +33,7 @@ static FJSRuntime *FJSCurrentCOScriptLite;
 
 static void FJS_initialize(JSContextRef ctx, JSObjectRef object);
 static void FJS_finalize(JSObjectRef object);
-JSValueRef FJS_getGlobalProperty(JSContextRef ctx, JSObjectRef object, JSStringRef propertyNameJS, JSValueRef *exception);
+JSValueRef FJS_getProperty(JSContextRef ctx, JSObjectRef object, JSStringRef propertyNameJS, JSValueRef *exception);
 static bool FJS_hasProperty(JSContextRef ctx, JSObjectRef object, JSStringRef propertyName);
 static JSValueRef FJS_callAsFunction(JSContextRef ctx, JSObjectRef functionJS, JSObjectRef thisObject, size_t argumentCount, const JSValueRef arguments[], JSValueRef *exception);
 
@@ -97,7 +97,7 @@ static JSValueRef FJS_callAsFunction(JSContextRef ctx, JSObjectRef functionJS, J
     
     JSClassDefinition COSGlobalClassDefinition  = kJSClassDefinitionEmpty;
     COSGlobalClassDefinition.className          = "CocoaScriptLite";
-    COSGlobalClassDefinition.getProperty        = FJS_getGlobalProperty;
+    COSGlobalClassDefinition.getProperty        = FJS_getProperty;
     COSGlobalClassDefinition.initialize         = FJS_initialize;
     COSGlobalClassDefinition.finalize           = FJS_finalize;
     COSGlobalClassDefinition.hasProperty        = FJS_hasProperty; // If we don't have this, getProperty gets called twice.
@@ -337,7 +337,7 @@ static bool FJS_hasProperty(JSContextRef ctx, JSObjectRef object, JSStringRef pr
 }
 
 
-JSValueRef FJS_getGlobalProperty(JSContextRef ctx, JSObjectRef object, JSStringRef propertyNameJS, JSValueRef *exception) {
+JSValueRef FJS_getProperty(JSContextRef ctx, JSObjectRef object, JSStringRef propertyNameJS, JSValueRef *exception) {
     NSString *propertyName = (NSString *)CFBridgingRelease(JSStringCopyCFString(kCFAllocatorDefault, propertyNameJS));
     if ([propertyName isEqualToString:FJSRuntimeLookupKey]) {
         return nil;
@@ -426,9 +426,9 @@ JSValueRef FJS_getGlobalProperty(JSContextRef ctx, JSObjectRef object, JSStringR
 }
 
 
-static JSValueRef FJS_callAsFunction(JSContextRef ctx, JSObjectRef functionJS, JSObjectRef thisObject, size_t argumentCount, const JSValueRef arguments[], JSValueRef *exception) {
+static JSValueRef FJS_callAsFunction(JSContextRef context, JSObjectRef functionJS, JSObjectRef thisObject, size_t argumentCount, const JSValueRef arguments[], JSValueRef *exception) {
     
-    FJSRuntime *runtime = [FJSRuntime runtimeInContext:ctx];
+    FJSRuntime *runtime = [FJSRuntime runtimeInContext:context];
     
     FJSValue *objectToCall = [FJSValue valueForJSObject:thisObject inRuntime:runtime];
     FJSValue *functionToCall = [FJSValue valueForJSObject:functionJS inRuntime:runtime];
@@ -447,7 +447,13 @@ static JSValueRef FJS_callAsFunction(JSContextRef ctx, JSObjectRef functionJS, J
     
     FJSValue *ret = [ffi callFunction];
     
+    if (!ret) { // Following JSValue.h's lead here.
+        return JSValueMakeUndefined(context);
+    }
+    
     JSValueRef returnRef = [ret JSValue];
+    
+    FMAssert(returnRef);
     
     //debug(@"returnRef: %@ for function '%@' (%@)", returnRef, [[functionToCall symbol] name], ret);
     

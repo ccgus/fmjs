@@ -46,12 +46,20 @@
     }
     
 #ifdef DEBUG
-    if ([self isInstance] && !_weakInstance && !_isWeakReference && !_cValue.value.pointerValue) {
+    if ([self isInstance] && !_weakInstance && !_isWeakReference && !_cValue.value.pointerValue && !_isJSNative) {
         debug(@"Why am I an instance without anything to point to?! %p", self);
         FMAssert(NO);
     }
 #endif
     
+}
+
++ (instancetype)valueWithNullInRuntime:(FJSRuntime*)runtime {
+    return [self valueForJSObject:(JSObjectRef)JSValueMakeNull([runtime contextRef]) inRuntime:runtime];
+}
+
++ (instancetype)valueWithUndefinedInRuntime:(FJSRuntime*)runtime {
+    return [self valueForJSObject:(JSObjectRef)JSValueMakeUndefined([runtime contextRef]) inRuntime:runtime];
 }
 
 + (instancetype)valueForJSObject:(nullable JSObjectRef)jso inRuntime:(FJSRuntime*)runtime {
@@ -163,7 +171,9 @@
     FMAssert(!_cValue.value.pointerValue);
     //debug(@"FJSValue retaining %@ currently at %ld", o, CFGetRetainCount(o));
     
-    CFRetain(o);
+    if (o) { // If a null or underfined jsvalue is pushed to native- well, we get here.
+        CFRetain(o);
+    }
     _cValue.type = _C_ID;
     _cValue.value.pointerValue = (void*)o;
 }
@@ -294,7 +304,13 @@
 }
 
 - (NSString*)description {
-    return [NSString stringWithFormat:@"%@ - %@ (%@ native)", [super description], [self toObject], _isJSNative ? @"js" : @"c"];
+    
+    NSString *obj = [self toObject];
+    if ([obj isKindOfClass:[NSData class]]) {
+        obj = [NSString stringWithFormat:@"%@ of %ld bytes", NSStringFromClass([obj class]), [(NSData*)obj length]];
+    }
+    
+    return [NSString stringWithFormat:@"%@ - %@ (%@ native)", [super description], obj, _isJSNative ? @"js" : @"c"];
 }
 
 - (ffi_type*)FFITypeWithHint:(nullable NSString*)typeEncoding {

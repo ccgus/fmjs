@@ -45,7 +45,6 @@ typedef struct {
 @property (assign) FJSObjCValue cValue;
 @property (assign) JSType jsValueType;
 
-
 - (id)toObject;
 - (BOOL)toBOOL;
 - (float)toFloat;

@@ -16,6 +16,8 @@
 + (instancetype)valueWithWeakInstance:(id)instance inRuntime:(FJSRuntime*)runtime;
 + (instancetype)valueWithClass:(Class)c inRuntime:(FJSRuntime*)runtime;
 + (instancetype)valueWithCValue:(FJSObjCValue)cvalue inRuntime:(FJSRuntime*)runtime;
++ (instancetype)valueWithNullInRuntime:(FJSRuntime*)runtime;
++ (instancetype)valueWithUndefinedInRuntime:(FJSRuntime*)runtime;
 
 - (BOOL)isClass;
 - (BOOL)isInstance;

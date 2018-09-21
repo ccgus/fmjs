@@ -446,13 +446,9 @@ static JSValueRef FJS_callAsFunction(JSContextRef context, JSObjectRef functionJ
     FJSFFI *ffi = [FJSFFI ffiWithFunction:functionToCall caller:objectToCall arguments:args cos:runtime];
     
     FJSValue *ret = [ffi callFunction];
-    
-    if (!ret) { // Following JSValue.h's lead here.
-        return JSValueMakeUndefined(context);
-    }
+    FMAssert(ret);
     
     JSValueRef returnRef = [ret JSValue];
-    
     FMAssert(returnRef);
     
     //debug(@"returnRef: %@ for function '%@' (%@)", returnRef, [[functionToCall symbol] name], ret);

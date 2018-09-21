@@ -14,6 +14,21 @@
         <arg type='@'/>
     </function>
     
+    <function name='FJSTestReturnNil'>
+        <arg type='@'/>
+    </function>
+    
+    <function name='FJSTestReturnPassedObject'>
+        <arg type='@'/>
+        <retval type='@'/>
+    </function>
+    
+    
+    <function name='FJSTestPassNil'>
+        <arg type='@'/>
+        <retval type='B'/>
+    </function>
+    
     
     <function name='FJSAssert'>
         <arg type='B'/>

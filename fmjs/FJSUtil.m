@@ -40,6 +40,11 @@ id FJSNativeObjectFromJSValue(JSValueRef jsValue, NSString *typeEncoding, JSCont
         }
         
         
+        if (JSValueIsNull(context, jsValue) || JSValueIsUndefined(context, jsValue)) {
+            return nil;
+        }
+        
+        
         if (JSValueIsObject(context, jsValue)) {
             
             JSStringRef resultStringJS = JSValueToStringCopy(context, jsValue, NULL);
@@ -50,7 +55,7 @@ id FJSNativeObjectFromJSValue(JSValueRef jsValue, NSString *typeEncoding, JSCont
         
         JSType type = JSValueGetType(context, jsValue);
         debug(@"What am I supposed to do with %d?", type);
-        
+        FMAssert(NO);
         
     }
     

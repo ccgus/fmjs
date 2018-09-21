@@ -115,7 +115,7 @@
                 // We're already +2 on the object now. Time to bring it back down with CFRelease
                 CFRelease(object);
             }
-            debug(@"returnFValue: '%@'", [returnFValue instance]);
+            
         }
         else  {
             #pragma message "FIXME: This obviously isn't going to work for structs and other things that we need to malloc memory on the stack for."
@@ -136,7 +136,7 @@
         return NULL;
     }
     
-    return returnFValue;
+    return returnFValue ? returnFValue : [FJSValue valueWithUndefinedInRuntime:_runtime];
 }
 
 
@@ -216,7 +216,7 @@
         free(ffiValues);
     }
     
-    return returnValue;
+    return returnValue ? returnValue : [FJSValue valueWithUndefinedInRuntime:_runtime];
 }
 
 + (ffi_type *)ffiTypeAddressForTypeEncoding:(char)encoding {

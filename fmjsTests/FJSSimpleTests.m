@@ -265,6 +265,11 @@ int FJSSimpleTestsMethodCalled;
     
     XCTAssert([[runtime evaluateScript:@"NSNull.null() == null;"] toBOOL]);
     
+    XCTAssert([[runtime evaluateScript:@"FJSTestReturnNil() == undefined;"] toBOOL]);
+    
+    XCTAssert([[runtime evaluateScript:@"FJSTestPassNil(null);"] toBOOL]);
+    XCTAssert([[runtime evaluateScript:@"FJSTestPassNil(undefined);"] toBOOL]);
+    
     [runtime evaluateScript:@"var c = FJSSimpleTests.new(); FJSAssertObject(c); FJSAssert(c != null);"];
     
     [runtime evaluateScript:@"print('Hello?');"];
@@ -393,6 +398,18 @@ char FJSTestAddSignedChar(char c) {
 
 unsigned char FJSTestAddUnsignedChar(char c) {
     return c + 1;
+}
+
+id FJSTestReturnNil() {
+    return nil;
+}
+
+id FJSTestReturnPassedObject(id o) {
+    return o;
+}
+
+BOOL FJSTestPassNil(id o) {
+    return o == nil;
 }
 
 

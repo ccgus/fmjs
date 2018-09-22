@@ -150,13 +150,16 @@
     }
     
     FJSSymbol *functionSymbol = [_f symbol];
-    assert(functionSymbol);
+    FMAssert(functionSymbol);
     
-    NSString *functionName = [functionSymbol name];
-    
-    void *callAddress = dlsym(RTLD_DEFAULT, [functionName UTF8String]);
+    void *callAddress = dlsym(RTLD_DEFAULT, [[functionSymbol name] UTF8String]);
 
-    assert(callAddress);
+    if (!callAddress) {
+        debug(@"Can't find call address for '%@'", [functionSymbol name]);
+        FMAssert(NO);
+        return nil;
+    }
+    
     FMAssert(_runtime);
     
     FJSValue *returnValue = [functionSymbol returnValue] ? [FJSValue valueWithSymbol:[functionSymbol returnValue] inRuntime:_runtime] : nil;
@@ -241,6 +244,11 @@
         case _C_BOOL:       return &ffi_type_sint8;
         case _C_VOID:       return &ffi_type_void;
     }
+    
+    // FFI_TYPE_STRUCT
+    
+    FMAssert(NO);
+    
     return nil;
 }
 

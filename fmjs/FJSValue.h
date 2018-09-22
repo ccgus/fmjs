@@ -51,7 +51,7 @@ typedef struct {
 - (double)toDouble;
 - (long)toLong;
 - (long long)toLongLong;
-- (void*)pointer NS_RETURNS_INNER_POINTER;
+- (nullable void*)pointer NS_RETURNS_INNER_POINTER;
 
 - (void*)objectStorage;
 - (BOOL)pushJSValueToNativeType:(NSString*)type;

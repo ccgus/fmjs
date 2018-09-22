@@ -519,6 +519,10 @@
 					"@executable_path/../Frameworks",
 					"@loader_path/Frameworks",
 				);
+				LIBRARY_SEARCH_PATHS = (
+					"$(inherited)",
+					"$(SYSTEM_LIBRARY_DIR)/Frameworks/CoreGraphics.framework/Versions/A/Resources/BridgeSupport",
+				);
 				OTHER_LDFLAGS = "-lffi";
 				PRODUCT_BUNDLE_IDENTIFIER = com.flyingmeat.fmjs;
 				PRODUCT_NAME = "$(TARGET_NAME:c99extidentifier)";
@@ -545,6 +549,10 @@
 					"@executable_path/../Frameworks",
 					"@loader_path/Frameworks",
 				);
+				LIBRARY_SEARCH_PATHS = (
+					"$(inherited)",
+					"$(SYSTEM_LIBRARY_DIR)/Frameworks/CoreGraphics.framework/Versions/A/Resources/BridgeSupport",
+				);
 				OTHER_LDFLAGS = "-lffi";
 				PRODUCT_BUNDLE_IDENTIFIER = com.flyingmeat.fmjs;
 				PRODUCT_NAME = "$(TARGET_NAME:c99extidentifier)";
@@ -564,6 +572,11 @@
 					"@executable_path/../Frameworks",
 					"@loader_path/../Frameworks",
 				);
+				LIBRARY_SEARCH_PATHS = (
+					"$(inherited)",
+					"$(SYSTEM_LIBRARY_DIR)/Frameworks/CoreGraphics.framework/Versions/A/Resources/BridgeSupport",
+				);
+				OTHER_LDFLAGS = "-lffi";
 				PRODUCT_BUNDLE_IDENTIFIER = com.flyingmeat.fmjsTests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
@@ -581,6 +594,11 @@
 					"@executable_path/../Frameworks",
 					"@loader_path/../Frameworks",
 				);
+				LIBRARY_SEARCH_PATHS = (
+					"$(inherited)",
+					"$(SYSTEM_LIBRARY_DIR)/Frameworks/CoreGraphics.framework/Versions/A/Resources/BridgeSupport",
+				);
+				OTHER_LDFLAGS = "-lffi";
 				PRODUCT_BUNDLE_IDENTIFIER = com.flyingmeat.fmjsTests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};

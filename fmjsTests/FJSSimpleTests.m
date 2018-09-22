@@ -8,7 +8,7 @@
 
 #import "FJSSimpleTests.h"
 #import <FMJS/FJS.h>
-
+#import <dlfcn.h>
 
 FOUNDATION_STATIC_INLINE BOOL FJSEqualFloats(CGFloat a, CGFloat b) {
 #if __LP64__
@@ -213,6 +213,131 @@ int FJSSimpleTestsMethodCalled;
     
     FJSRuntime *runtime = [FJSRuntime new];
     [runtime evaluateScript:code];
+}
+
+- (void)testStructs { // OH MY.
+    
+    FJSRuntime *runtime = [FJSRuntime new];
+    
+    void *cmem = calloc(sizeof(CGPoint), 1);
+    
+    
+    void *callAddress = dlsym(RTLD_DEFAULT, "CGPointMake");
+    assert(callAddress);
+    
+    CGFloat a = 74, b = 78;
+    
+    uint effectiveArgumentCount = 2;
+    
+    // Prepare ffi
+    ffi_cif cif;
+    ffi_type** ffiArgs = malloc(sizeof(ffi_type *) * effectiveArgumentCount);
+    void** ffiValues   = malloc(sizeof(void *) * effectiveArgumentCount);
+    
+    ffiArgs[0]   = &ffi_type_double;
+    ffiValues[0] = &a;
+    
+    ffiArgs[1]   = &ffi_type_double;
+    ffiValues[1] = &b;
+    
+    // We have to build our own type yay.
+    ffi_type structureType;
+    ffi_type *structureTypeElements[3];
+    
+    
+    // Build FFI type
+    structureType.size      = 0;
+    structureType.alignment = 0;
+    structureType.type      = FFI_TYPE_STRUCT;
+    structureType.elements  = structureTypeElements; //calloc(sizeof(ffi_type *), effectiveArgumentCount + 1);
+    
+    structureTypeElements[0] = &ffi_type_double;
+    structureTypeElements[1] = &ffi_type_double;
+    structureTypeElements[2] = nil;
+    
+    
+//    structureType.elements[0] = &ffi_type_double;
+//    structureType.elements[1] = &ffi_type_double;
+//    assert(!structureType.elements[2]);
+//    structureType.elements[2] = nil;
+    
+    
+    /*
+     Here is how the struct is defined:
+     
+     struct tm {
+     int tm_sec;
+     int tm_min;
+     int tm_hour;
+     int tm_mday;
+     int tm_mon;
+     int tm_year;
+     int tm_wday;
+     int tm_yday;
+     int tm_isdst;
+     
+    long int __tm_gmtoff__;
+    __const char *__tm_zone__;
+};
+Here is the corresponding code to describe this struct to libffi:
+
+{
+    ffi_type tm_type;
+    ffi_type *tm_type_elements[12];
+    int i;
+    
+    tm_type.size = tm_type.alignment = 0;
+    tm_type.type = FFI_TYPE_STRUCT;
+    tm_type.elements = &tm_type_elements;
+    
+    for (i = 0; i < 9; i++)
+        tm_type_elements[i] = &ffi_type_sint;
+    
+    tm_type_elements[9] = &ffi_type_slong;
+    tm_type_elements[10] = &ffi_type_pointer;
+    tm_type_elements[11] = NULL;
+    
+    / * tm_type can now be used to represent tm argument types and
+     return types for ffi_prep_cif() * /
+}*/
+    
+    
+    
+    
+    
+    
+    
+    
+//    NSUInteger i = 0;
+//    for (NSString *type in types) {
+//        char charEncoding = *(char*)[type UTF8String];
+//        _structureType.elements[i++] = [MOFunctionArgument ffiTypeForTypeEncoding:charEncoding];
+//    }
+//    _structureType.elements[elementCount] = NULL;
+    
+    ;
+    ffi_status prep_status = ffi_prep_cif(&cif, FFI_DEFAULT_ABI, effectiveArgumentCount, &structureType, ffiArgs);
+    
+    assert(prep_status == FFI_OK);
+    
+    ffi_call(&cif, callAddress, cmem, ffiValues);
+    
+    
+    CGPoint apoint;
+    memcpy(&apoint, cmem, sizeof(CGPoint));
+    
+    debug(@"apoint: %@", NSStringFromPoint(apoint));
+    
+    
+    
+//    FJSValue *val = [runtime evaluateScript:@"CGPointMake(74, 78);"];
+//
+//    CGPoint point;
+//    memcpy(&point, [val pointer], sizeof(CGPoint));
+//
+//    XCTAssert(FJSEqualFloats(point.x, 74));
+//    XCTAssert(FJSEqualFloats(point.y, 78));
+    
 }
 
 - (void)testExample {

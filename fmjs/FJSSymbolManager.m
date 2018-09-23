@@ -125,8 +125,6 @@
         else {
             sym = nil;
         }
-        
-        
     }
     else if ([elementName isEqualToString:@"method"]) {
         _currentMethod = sym;
@@ -157,7 +155,7 @@
         }
     }
     
-    if ([sym name] && ([elementName isEqualToString:@"class"] || [elementName isEqualToString:@"constant"] || [elementName isEqualToString:@"function"] || [elementName isEqualToString:@"enum"])) {
+    if ([sym name] && ([elementName isEqualToString:@"class"] || [elementName isEqualToString:@"constant"] || [elementName isEqualToString:@"function"] || [elementName isEqualToString:@"enum"] || [elementName isEqualToString:@"struct"])) {
         [_symbols setObject:sym forKey:[sym name]];
     }
     

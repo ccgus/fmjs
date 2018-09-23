@@ -218,141 +218,108 @@ int FJSSimpleTestsMethodCalled;
     [runtime evaluateScript:code];
 }
 
-- (void)testStructs { // OH MY.
+- (void)testCGPointBridgeStructFFIBuild {
     
     
-    TDTokenizer *tokenizer  = [TDTokenizer tokenizerWithString:@"{CGPoint=dd}"];
-    TDToken *tok                    = nil;
-    BOOL lastWasAtSym               = NO;
+    FJSSymbol *CGPointSym = [FJSSymbol symbolForName:@"CGPoint"];
+    XCTAssert(CGPointSym);
+    
+    FJSSymbol *CGPointMakeSymbol = [FJSSymbol symbolForName:@"CGPointMake"];
+    XCTAssert(CGPointMakeSymbol);
+    
+    FJSSymbol *CGPointMakeRetSymbol = [CGPointMakeSymbol returnValue];
+    XCTAssert(CGPointMakeRetSymbol);
+    
+    XCTAssert([[CGPointMakeRetSymbol runtimeType] isEqualToString:@"{CGPoint=dd}"]);
+    
+    TDTokenizer *tokenizer  = [TDTokenizer tokenizerWithString:[CGPointMakeRetSymbol runtimeType]];
+    TDToken *tok            = nil;
     
     while ((tok = [tokenizer nextToken]) != [TDToken EOFToken]) {
         NSString *sv = [tok stringValue];
         debug(@"[tok isSymbol]: '%d'", [tok isSymbol]);
         debug(@"sv: '%@'", sv);
-    
+        
     }
-    //{CGPoint=dd}
-    //{CGRect={CGPoint=dd}{CGSize=dd}}
+    
+    //names:
+    // <struct name='NSPoint' type='{_NSPoint=&quot;x&quot;f&quot;y&quot;f}' type64='{CGPoint=&quot;x&quot;d&quot;y&quot;d}'/>
+    // <struct name='NSMapTableValueCallBacks' type='{_NSMapTableValueCallBacks=&quot;retain&quot;^?&quot;release&quot;^?&quot;describe&quot;^?}'/>
+
+    
+    // return and arg types
+    // {CGRect={CGPoint=dd}{CGSize=dd}}
+    // {CGAffineTransform=dddddd}
+    // ^{CGAffineTransform=dddddd}
+    // ^{CGPath=}
+    // ^{CGShading=}
+    // {CGScreenUpdateMoveDelta=ii}
+}
+
+- (void)testCGPointStructFFICall {
+    // this is around for reference, as a way to showcase to myself how to call CGPointMake with a couple of doubles.
+    // http://www.chiark.greenend.org.uk/doc/libffi-dev/html/Type-Example.html
     
     
-    void *cmem = calloc(sizeof(CGPoint), 1);
     
+    // This is where ffi will eventually write our struct.
+    void *structReturnStorage = calloc(sizeof(CGPoint), 1);
     
+    // Let's look up the address of CGPointMake
     void *callAddress = dlsym(RTLD_DEFAULT, "CGPointMake");
     assert(callAddress);
     
+    // There are the values, and then the argument count to CGPointMake.
     CGFloat a = 74, b = 78;
-    
     uint effectiveArgumentCount = 2;
     
-    // Prepare ffi
+    // Let's make some meory to store the pointers to our args.
     ffi_cif cif;
     ffi_type** ffiArgs = malloc(sizeof(ffi_type *) * effectiveArgumentCount);
     void** ffiValues   = malloc(sizeof(void *) * effectiveArgumentCount);
     
+    // Assign the type and pointer locations of the arguments.
     ffiArgs[0]   = &ffi_type_double;
     ffiValues[0] = &a;
     
     ffiArgs[1]   = &ffi_type_double;
     ffiValues[1] = &b;
     
-    // We have to build our own type yay.
-    ffi_type structureType;
-    ffi_type *structureTypeElements[3];
-    
+    // Since CGPoint isn't built into lib_ffi, we have to build our own ffi_type. (Things like ffi_type_double are already built in).
+    ffi_type ffi_type_cgpoint;
     
     // Build FFI type
-    structureType.size      = 0;
-    structureType.alignment = 0;
-    structureType.type      = FFI_TYPE_STRUCT;
-    structureType.elements  = structureTypeElements; //calloc(sizeof(ffi_type *), effectiveArgumentCount + 1);
+    ffi_type_cgpoint.size      = 0;
+    ffi_type_cgpoint.alignment = 0;
+    ffi_type_cgpoint.type      = FFI_TYPE_STRUCT;
+    ffi_type_cgpoint.elements  = calloc(sizeof(ffi_type *), effectiveArgumentCount + 1);
     
-    structureTypeElements[0] = &ffi_type_double;
-    structureTypeElements[1] = &ffi_type_double;
-    structureTypeElements[2] = nil;
+    ffi_type_cgpoint.elements[0] = &ffi_type_double;
+    ffi_type_cgpoint.elements[1] = &ffi_type_double;
+    ffi_type_cgpoint.elements[2] = nil;
     
-    
-//    structureType.elements[0] = &ffi_type_double;
-//    structureType.elements[1] = &ffi_type_double;
-//    assert(!structureType.elements[2]);
-//    structureType.elements[2] = nil;
-    
-    
-    /*
-     Here is how the struct is defined:
-     
-     struct tm {
-     int tm_sec;
-     int tm_min;
-     int tm_hour;
-     int tm_mday;
-     int tm_mon;
-     int tm_year;
-     int tm_wday;
-     int tm_yday;
-     int tm_isdst;
-     
-    long int __tm_gmtoff__;
-    __const char *__tm_zone__;
-};
-Here is the corresponding code to describe this struct to libffi:
-
-{
-    ffi_type tm_type;
-    ffi_type *tm_type_elements[12];
-    int i;
-    
-    tm_type.size = tm_type.alignment = 0;
-    tm_type.type = FFI_TYPE_STRUCT;
-    tm_type.elements = &tm_type_elements;
-    
-    for (i = 0; i < 9; i++)
-        tm_type_elements[i] = &ffi_type_sint;
-    
-    tm_type_elements[9] = &ffi_type_slong;
-    tm_type_elements[10] = &ffi_type_pointer;
-    tm_type_elements[11] = NULL;
-    
-    / * tm_type can now be used to represent tm argument types and
-     return types for ffi_prep_cif() * /
-}*/
-    
-    
-    
-    
-    
-    
-    
-    
-//    NSUInteger i = 0;
-//    for (NSString *type in types) {
-//        char charEncoding = *(char*)[type UTF8String];
-//        _structureType.elements[i++] = [MOFunctionArgument ffiTypeForTypeEncoding:charEncoding];
-//    }
-//    _structureType.elements[elementCount] = NULL;
-    
-    ;
-    ffi_status prep_status = ffi_prep_cif(&cif, FFI_DEFAULT_ABI, effectiveArgumentCount, &structureType, ffiArgs);
-    
+    // Get everything ready for the call.
+    ffi_status prep_status = ffi_prep_cif(&cif, FFI_DEFAULT_ABI, effectiveArgumentCount, &ffi_type_cgpoint, ffiArgs);
     assert(prep_status == FFI_OK);
     
-    ffi_call(&cif, callAddress, cmem, ffiValues);
+    // And then actually call it.
+    ffi_call(&cif, callAddress, structReturnStorage, ffiValues);
     
+    // Now we're going to cast our memory to a CGPoint for use in the asserts.
+    CGPoint p = *((CGPoint*)structReturnStorage);
     
-    CGPoint apoint;
-    memcpy(&apoint, cmem, sizeof(CGPoint));
+    XCTAssert(FJSEqualFloats(p.x, 74));
+    XCTAssert(FJSEqualFloats(p.y, 78));
     
-    debug(@"apoint: %@", NSStringFromPoint(apoint));
+    free(structReturnStorage);
     
+    // We're going to do this here, and then reuse it later on for testing in another method.
+    XCTAssert(ffi_type_cgpoint.type == FFI_TYPE_STRUCT);
+    XCTAssert(ffi_type_cgpoint.elements[0] == &ffi_type_double);
+    XCTAssert(ffi_type_cgpoint.elements[1] == &ffi_type_double);
+    XCTAssert(ffi_type_cgpoint.elements[2] == nil);
     
-    
-//    FJSValue *val = [runtime evaluateScript:@"CGPointMake(74, 78);"];
-//
-//    CGPoint point;
-//    memcpy(&point, [val pointer], sizeof(CGPoint));
-//
-//    XCTAssert(FJSEqualFloats(point.x, 74));
-//    XCTAssert(FJSEqualFloats(point.y, 78));
+    free(ffi_type_cgpoint.elements);
     
 }
 

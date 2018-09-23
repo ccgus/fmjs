@@ -20,6 +20,8 @@
 		CC4C3C8D21504638005CA4A6 /* JavaScriptCore.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = CC4C3C89215045E0005CA4A6 /* JavaScriptCore.framework */; };
 		CC5153752153004D0076B554 /* FJSTests.bridgesupport in Resources */ = {isa = PBXBuildFile; fileRef = CC5153742153004D0076B554 /* FJSTests.bridgesupport */; };
 		CC515376215300A20076B554 /* FJSTests.bridgesupport in Resources */ = {isa = PBXBuildFile; fileRef = CC5153742153004D0076B554 /* FJSTests.bridgesupport */; };
+		CC5DAA8C2157095A0089A633 /* TDConglomerate.h in Headers */ = {isa = PBXBuildFile; fileRef = CC5DAA8A2157095A0089A633 /* TDConglomerate.h */; };
+		CC5DAA8D2157095A0089A633 /* TDConglomerate.m in Sources */ = {isa = PBXBuildFile; fileRef = CC5DAA8B2157095A0089A633 /* TDConglomerate.m */; settings = {COMPILER_FLAGS = "-fno-objc-arc"; }; };
 		CCB18568214D7B3000346D2F /* FJS.bridgesupport in Resources */ = {isa = PBXBuildFile; fileRef = CCB1855A214D7B3000346D2F /* FJS.bridgesupport */; };
 		CCB18569214D7B3000346D2F /* FJS.h in Headers */ = {isa = PBXBuildFile; fileRef = CCB1855B214D7B3000346D2F /* FJS.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		CCB1856A214D7B3000346D2F /* FJSSymbolManager.h in Headers */ = {isa = PBXBuildFile; fileRef = CCB1855C214D7B3000346D2F /* FJSSymbolManager.h */; settings = {ATTRIBUTES = (Public, ); }; };
@@ -63,6 +65,8 @@
 		CC4C3C89215045E0005CA4A6 /* JavaScriptCore.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = JavaScriptCore.framework; path = System/Library/Frameworks/JavaScriptCore.framework; sourceTree = SDKROOT; };
 		CC5153742153004D0076B554 /* FJSTests.bridgesupport */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.xml; path = FJSTests.bridgesupport; sourceTree = "<group>"; };
 		CC5DAA7021558FC50089A633 /* FJSSimpleTests.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = FJSSimpleTests.h; sourceTree = "<group>"; };
+		CC5DAA8A2157095A0089A633 /* TDConglomerate.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = TDConglomerate.h; sourceTree = "<group>"; };
+		CC5DAA8B2157095A0089A633 /* TDConglomerate.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = TDConglomerate.m; sourceTree = "<group>"; };
 		CCB1855A214D7B3000346D2F /* FJS.bridgesupport */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.xml; path = FJS.bridgesupport; sourceTree = "<group>"; };
 		CCB1855B214D7B3000346D2F /* FJS.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = FJS.h; sourceTree = "<group>"; };
 		CCB1855C214D7B3000346D2F /* FJSSymbolManager.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = FJSSymbolManager.h; sourceTree = "<group>"; };
@@ -145,6 +149,8 @@
 				CCB18565214D7B3000346D2F /* FJSUtil.m */,
 				CCB18566214D7B3000346D2F /* FJSValue.h */,
 				CCB18567214D7B3000346D2F /* FJSValue.m */,
+				CC5DAA8A2157095A0089A633 /* TDConglomerate.h */,
+				CC5DAA8B2157095A0089A633 /* TDConglomerate.m */,
 				CC2F20A7214D7A3700F38D03 /* Info.plist */,
 			);
 			path = fmjs;
@@ -196,6 +202,7 @@
 				CCB18574214D7B3000346D2F /* FJSValue.h in Headers */,
 				CC1A28152154245F003B72BF /* FJSPrivate.h in Headers */,
 				CCB18572214D7B3000346D2F /* FJSUtil.h in Headers */,
+				CC5DAA8C2157095A0089A633 /* TDConglomerate.h in Headers */,
 				CCB1856C214D7B3000346D2F /* FJSFFI.h in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -338,6 +345,7 @@
 				CCB1856F214D7B3000346D2F /* FJSRuntime.m in Sources */,
 				CCB1856B214D7B3000346D2F /* FJSSymbolManager.m in Sources */,
 				CCB1856D214D7B3000346D2F /* FJSFFI.m in Sources */,
+				CC5DAA8D2157095A0089A633 /* TDConglomerate.m in Sources */,
 				CCB18573214D7B3000346D2F /* FJSUtil.m in Sources */,
 				CCB18575214D7B3000346D2F /* FJSValue.m in Sources */,
 			);

@@ -7,6 +7,7 @@
 //
 
 #import "FJSSimpleTests.h"
+#import "TDConglomerate.h"
 #import <FMJS/FJS.h>
 #import <dlfcn.h>
 
@@ -83,6 +84,8 @@ int FJSSimpleTestsMethodCalled;
 
 - (void)setUp {
     // Put setup code here. This method is called before the invocation of each test method in the class.
+    
+    [FJSRuntime new]; // Warm things up.
     
     NSString *FMJSBridgeSupportPath = [[NSBundle bundleForClass:[self class]] pathForResource:@"FJSTests" ofType:@"bridgesupport"];
     FMAssert(FMJSBridgeSupportPath);
@@ -217,7 +220,20 @@ int FJSSimpleTestsMethodCalled;
 
 - (void)testStructs { // OH MY.
     
-    FJSRuntime *runtime = [FJSRuntime new];
+    
+    TDTokenizer *tokenizer  = [TDTokenizer tokenizerWithString:@"{CGPoint=dd}"];
+    TDToken *tok                    = nil;
+    BOOL lastWasAtSym               = NO;
+    
+    while ((tok = [tokenizer nextToken]) != [TDToken EOFToken]) {
+        NSString *sv = [tok stringValue];
+        debug(@"[tok isSymbol]: '%d'", [tok isSymbol]);
+        debug(@"sv: '%@'", sv);
+    
+    }
+    //{CGPoint=dd}
+    //{CGRect={CGPoint=dd}{CGSize=dd}}
+    
     
     void *cmem = calloc(sizeof(CGPoint), 1);
     

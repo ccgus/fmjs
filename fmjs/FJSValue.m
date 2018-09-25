@@ -316,9 +316,6 @@
     return  &_cValue.value;
 }
 
-- (ffi_type*)FFIType {
-    return [self FFITypeWithHint:nil];
-}
 
 - (NSString*)description {
     
@@ -328,6 +325,12 @@
     }
     
     return [NSString stringWithFormat:@"%@ - %@ (%@ native)", [super description], obj, _isJSNative ? @"js" : @"c"];
+}
+
+#pragma message "FIXME: Should FFIType move to FJSSymbol?"
+
+- (ffi_type*)FFIType {
+    return [self FFITypeWithHint:nil];
 }
 
 - (ffi_type*)FFITypeWithHint:(nullable NSString*)typeEncoding {

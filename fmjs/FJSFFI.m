@@ -11,6 +11,7 @@
 #import "FJSPrivate.h"
 #import "FJSRuntime.h"
 #import "FJSUtil.h"
+#import "TDConglomerate.h"
 #import <objc/runtime.h>
 #import <dlfcn.h>
 
@@ -250,6 +251,62 @@
     FMAssert(NO);
     
     return nil;
+}
+
++ (ffi_type *)ffiTypeForTokenizer:(TDTokenizer*)tokenizer {
+    
+    // {CGRect={CGPoint=dd}{CGSize=dd}}
+    
+    TDToken *tok = [tokenizer nextToken]; // name of struct.
+    FMAssert(![tok isSymbol]);
+    if ([tok isSymbol]) {
+        return nil;
+    }
+    
+    
+    tok = [tokenizer nextToken]; // =
+    FMAssert([tok isSymbol]);
+    if (![tok isSymbol]) {
+        return nil;
+    }
+    
+    // Alright, now we're in the meat of the thing.
+    
+    int elementCount = 0;
+    
+    while ((tok = [tokenizer nextToken]) != [TDToken EOFToken]) {
+        
+        if ([tok isSymbol] && [[tok stringValue] isEqualToString:@"{"]) {
+            // structs in structs!
+            ffi_type *type = [self ffiTypeForTokenizer:tokenizer];
+        }
+        
+    }
+    
+    return nil;
+}
+
++ (ffi_type *)ffiTypeForStructure:(NSString*)structEncoding {
+    
+    FMAssert([structEncoding hasPrefix:@"{"]);
+    if (![structEncoding hasPrefix:@"{"]) {
+        NSLog(@"Struct '%@' has wrong prefix (needed '{')", structEncoding);
+        return nil;
+    }
+    
+    TDTokenizer *tokenizer  = [TDTokenizer tokenizerWithString:structEncoding];
+    TDToken *tok            = [tokenizer nextToken];
+    NSString *sv            = [tok stringValue];
+    FMAssert([sv isEqualToString:@"{"]);
+
+    return [self ffiTypeForTokenizer:tokenizer];
+}
+
++ (void)freeFFIType:(ffi_type*)type {
+    
+    #pragma message "FIXME: Do this recursivly yo."
+    
+    free(type);
 }
 
 @end

@@ -284,6 +284,8 @@ static JSValueRef FJS_callAsFunction(JSContextRef ctx, JSObjectRef functionJS, J
     JSObjectRef r = JSObjectMake(_jsContext, _globalClass, (__bridge void *)(value));
     CFRetain((__bridge void *)value);
     
+    debug(@"retaining %p", value);
+    
     FMAssert(r);
     
     return r;

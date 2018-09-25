@@ -22,7 +22,23 @@ NS_ASSUME_NONNULL_BEGIN
 
 + (ffi_type *)ffiTypeAddressForTypeEncoding:(char)encoding;
 + (ffi_type *)ffiTypeForStructure:(NSString*)structEncoding;
++ (void)freeFFIStructureType:(ffi_type*)type;
 
 @end
+
+/*
+@interface FJSFFIStruct : NSObject {
+    NSMutableArray *_elements;
+}
+
+- (int)countOfElements;
+- (NSArray*)elements;
+- (void)addElement:(id)element; // either a string for a simple type, or a FJSFFIStruct for a complex one.
+
+@end
+*/
+
+
+
 
 NS_ASSUME_NONNULL_END

@@ -27,6 +27,126 @@
     // Put teardown code here. This method is called after the invocation of each test method in the class.
 }
 
+- (void)testCGSizeValues {
+    
+    FJSRuntime *runtime = [FJSRuntime new];
+    
+    {
+        FJSValue *v = [runtime evaluateScript:@"CGPointMake(74, 78);"];
+
+        CGPoint p = [v toCGPoint];
+
+        XCTAssert(FJSEqualFloats(p.x, 74));
+        XCTAssert(FJSEqualFloats(p.y, 78));
+        
+        
+        v = [runtime evaluateScript:@"CGRectMake(74, 78, 11, 16);"];
+        
+        CGRect r = [v toCGRect];
+        
+        XCTAssert(FJSEqualFloats(r.origin.x, 74));
+        XCTAssert(FJSEqualFloats(r.origin.y, 78));
+        XCTAssert(FJSEqualFloats(r.size.width, 11));
+        XCTAssert(FJSEqualFloats(r.size.height, 16));
+        
+        
+        
+        XCTAssert([FJSSymbol symbolForName:@"CGRectInset"]);
+        CGRect inset = [[runtime evaluateScript:@"CGRectInset(CGRectMake(74, 78, 11, 16), 2, 3)"] toCGRect];
+        
+        debug(@"inset: %@", NSStringFromRect(inset));
+        
+        
+        XCTAssert(FJSEqualFloats(inset.origin.x, 76));
+        XCTAssert(FJSEqualFloats(inset.origin.y, 81));
+        XCTAssert(FJSEqualFloats(inset.size.width, 7));
+        XCTAssert(FJSEqualFloats(inset.size.height, 10));
+        
+        
+        
+        
+        
+        [runtime shutdown];
+        
+    }
+    
+    #pragma message "FIXME: Why is the value not deallocating? We need to add some tests that show the struct memory being cleared up."
+    
+    
+    
+    
+}
+
+- (void)testCGRectBridgeStructFFIBuild {
+    
+    FJSSymbol *CGRectSym = [FJSSymbol symbolForName:@"CGRect"];
+    XCTAssert(CGRectSym);
+    
+    FJSSymbol *CGRectMakeSymbol = [FJSSymbol symbolForName:@"CGRectMake"];
+    XCTAssert(CGRectMakeSymbol);
+    
+    FJSSymbol *CGRectMakeRetSymbol = [CGRectMakeSymbol returnValue];
+    XCTAssert(CGRectMakeRetSymbol);
+    
+    XCTAssert([[CGRectMakeRetSymbol runtimeType] isEqualToString:@"{CGRect={CGPoint=dd}{CGSize=dd}}"]);
+    
+    ffi_type *ffi_type_rect = [FJSFFI ffiTypeForStructure:[CGRectMakeRetSymbol runtimeType]];
+    XCTAssert(ffi_type_rect);
+    
+    if (ffi_type_rect) {
+        
+        // We're going to do this here, and then reuse it later on for testing in another method.
+        XCTAssert(ffi_type_rect->type == FFI_TYPE_STRUCT);
+        XCTAssert(ffi_type_rect->elements[0]->type == FFI_TYPE_STRUCT);
+        XCTAssert(ffi_type_rect->elements[1]->type == FFI_TYPE_STRUCT);
+        XCTAssert(ffi_type_rect->elements[2] == nil);
+        
+        
+        // CGPoint
+        XCTAssert(ffi_type_rect->elements[0]->elements[0] == &ffi_type_double);
+        XCTAssert(ffi_type_rect->elements[0]->elements[1] == &ffi_type_double);
+        XCTAssert(ffi_type_rect->elements[0]->elements[2] == nil);
+        
+        // CGSize
+        XCTAssert(ffi_type_rect->elements[1]->elements[0] == &ffi_type_double);
+        XCTAssert(ffi_type_rect->elements[1]->elements[1] == &ffi_type_double);
+        XCTAssert(ffi_type_rect->elements[1]->elements[2] == nil);
+        
+        // Do we have to free the elements as well? Problaby.
+        
+        [FJSFFI freeFFIStructureType:ffi_type_rect];
+    }
+}
+
+- (void)testCGSizeBridgeStructFFIBuild {
+    
+    FJSSymbol *CGSizeSym = [FJSSymbol symbolForName:@"CGSize"];
+    XCTAssert(CGSizeSym);
+    
+    FJSSymbol *CGSizeMakeSymbol = [FJSSymbol symbolForName:@"CGSizeMake"];
+    XCTAssert(CGSizeMakeSymbol);
+    
+    FJSSymbol *CGSizeMakeRetSymbol = [CGSizeMakeSymbol returnValue];
+    XCTAssert(CGSizeMakeRetSymbol);
+    
+    XCTAssert([[CGSizeMakeRetSymbol runtimeType] isEqualToString:@"{CGSize=dd}"]);
+    
+    ffi_type *ffi_type_cgsize = [FJSFFI ffiTypeForStructure:[CGSizeMakeRetSymbol runtimeType]];
+    XCTAssert(ffi_type_cgsize);
+    
+    if (ffi_type_cgsize) {
+        
+        // We're going to do this here, and then reuse it later on for testing in another method.
+        XCTAssert(ffi_type_cgsize->type == FFI_TYPE_STRUCT);
+        XCTAssert(ffi_type_cgsize->elements[0] == &ffi_type_double);
+        XCTAssert(ffi_type_cgsize->elements[1] == &ffi_type_double);
+        XCTAssert(ffi_type_cgsize->elements[2] == nil);
+        
+        // Do we have to free the elements as well? Problaby.
+        
+        [FJSFFI freeFFIStructureType:ffi_type_cgsize];
+    }
+}
 
 
 - (void)testCGPointBridgeStructFFIBuild {
@@ -56,7 +176,7 @@
         
         // Do we have to free the elements as well? Problaby.
         
-        free(ffi_type_cgpoint);
+        [FJSFFI freeFFIStructureType:ffi_type_cgpoint];
     }
     
     
@@ -81,7 +201,7 @@
     
     
     // This is where ffi will eventually write our struct.
-    void *structReturnStorage = calloc(sizeof(CGPoint), 1);
+    void *structReturnStorage = calloc(1, sizeof(CGPoint));
     
     // Let's look up the address of CGPointMake
     void *callAddress = dlsym(RTLD_DEFAULT, "CGPointMake");

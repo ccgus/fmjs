@@ -51,6 +51,13 @@
         CFRelease(_cValue.value.pointerValue);
     }
     
+    debug(@"deallociating type: '%c'", _cValue.type);
+    
+    if (_cValue.type == _C_STRUCT_B) {
+        debug(@"FJSValue dealloc releasing structure %@", [_symbol runtimeType]);
+        free(_cValue.value.structLocation);
+    }
+    
 #ifdef DEBUG
     if ([self isInstance] && !_weakInstance && !_isWeakReference && !_cValue.value.pointerValue && !_isJSNative) {
         debug(@"Why am I an instance without anything to point to?! %p", self);
@@ -297,6 +304,12 @@
             break;
         }
         
+            
+        case _C_STRUCT_B: {
+            vr = [_runtime newJSValueForWrapper:self];
+            break;
+        }
+            
         default:
             FMAssert(NO);
     
@@ -312,6 +325,16 @@
 
 - (void*)objectStorage {
     
+    if (_cValue.type == _C_STRUCT_B) {
+        
+        debug(@"Making room for a struct on %p", self);
+        
+        _cValue.value.structLocation = calloc(1, sizeof(CGRect));
+        
+        // This feels all kinds of wrong. Can't we just return _cValue.value?
+        return _cValue.value.structLocation;
+    }
+    
     FMAssert(_cValue.type);
     return  &_cValue.value;
 }
@@ -322,6 +345,10 @@
     NSString *obj = [self toObject];
     if ([obj isKindOfClass:[NSData class]]) {
         obj = [NSString stringWithFormat:@"%@ of %ld bytes", NSStringFromClass([obj class]), [(NSData*)obj length]];
+    }
+    
+    if ([obj isKindOfClass:[NSValue class]]) {
+        obj = [NSString stringWithFormat:@"nsvalue type '%c' %p", _cValue.type, [(NSValue*)obj pointerValue]];
     }
     
     return [NSString stringWithFormat:@"%@ - %@ (%@ native)", [super description], obj, _isJSNative ? @"js" : @"c"];
@@ -340,7 +367,13 @@
         char c = [[_symbol runtimeType] characterAtIndex:0];
         
         if (c) {
-            return [FJSFFI ffiTypeAddressForTypeEncoding:c];
+            
+            if (c == _C_STRUCT_B) {
+                return [FJSFFI ffiTypeForStructure:[_symbol runtimeType]];
+            }
+            else {
+                return [FJSFFI ffiTypeAddressForTypeEncoding:c];
+            }
         }
     }
     
@@ -407,6 +440,12 @@
     if ([self isInstance]) {
         return [self instance];
     }
+    
+    if (_cValue.type == _C_STRUCT_B && _cValue.value.structLocation) {
+        NSValue *v = [NSValue valueWithPointer:_cValue.value.structLocation];
+        return v;
+    }
+    
     
     if (_cValue.value.pointerValue) {
         debug(@"Haven't implemented toObject for %c yet", _cValue.type);
@@ -572,6 +611,28 @@
     return _cValue.value.pointerValue;
 }
 
+- (CGPoint)toCGPoint {
+    FMAssert(_cValue.type == _C_STRUCT_B);
+    CGPoint *point = (CGPoint*)_cValue.value.structLocation;
+    return *point;
+}
+
+- (CGSize)toCGSize {
+    FMAssert(_cValue.type == _C_STRUCT_B);
+    CGSize size = *((CGSize*)_cValue.value.structLocation);
+    return size;
+}
+
+- (CGRect)toCGRect {
+    FMAssert(_cValue.type == _C_STRUCT_B);
+    CGRect *rect = (CGRect*)_cValue.value.structLocation;
+    return *rect;
+}
+
+- (nullable void*)structLocation {
+    FMAssert(_cValue.type == _C_STRUCT_B);
+    return _cValue.value.structLocation;
+}
 
 @end
 

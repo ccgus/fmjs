@@ -253,7 +253,7 @@
     return nil;
 }
 
-+ (ffi_type *)ffiTypeForTokenizer:(TDTokenizer*)tokenizer {
++ (NSArray *)ffiElementsForTokenizer:(TDTokenizer*)tokenizer {
     
     // {CGRect={CGPoint=dd}{CGSize=dd}}
     
@@ -272,18 +272,69 @@
     
     // Alright, now we're in the meat of the thing.
     
-    int elementCount = 0;
+    NSMutableArray *elements = [NSMutableArray array];
     
     while ((tok = [tokenizer nextToken]) != [TDToken EOFToken]) {
         
-        if ([tok isSymbol] && [[tok stringValue] isEqualToString:@"{"]) {
-            // structs in structs!
-            ffi_type *type = [self ffiTypeForTokenizer:tokenizer];
-        }
+        debug(@"Found '%@'", [tok stringValue]);
         
+        if ([tok isSymbol]) {
+            if ([[tok stringValue] isEqualToString:@"{"]){
+                // structs in structs!
+                [elements addObject:[self ffiElementsForTokenizer:tokenizer]];
+            }
+            else if ([[tok stringValue] isEqualToString:@"}"]) {
+                // End of our struct, we'll be returning now, right?
+                return elements;
+            }
+        }
+        else {
+            
+            const char *s = [[tok stringValue] UTF8String];
+            for (size_t idx = 0; idx < strlen(s); idx++) {
+                [elements addObject:[NSString stringWithFormat:@"%c", s[idx]]];
+            }
+        }
     }
     
-    return nil;
+    return elements;
+}
+
++ (ffi_type *)ffiTypeForArrayEncoding:(NSArray*)encodings {
+    
+    
+    ffi_type *struct_type = calloc(sizeof(ffi_type), 1);
+    
+    // Build FFI type
+    struct_type->size      = 0;
+    struct_type->alignment = 0;
+    struct_type->type      = FFI_TYPE_STRUCT;
+    struct_type->elements  = calloc(sizeof(ffi_type *), [encodings count] + 1);
+    
+    size_t idx = 0;
+    for (id type in encodings) {
+        
+        ffi_type *elementType;
+        
+        if ([type isKindOfClass:[NSArray class]]) {
+            elementType = [self ffiTypeForArrayEncoding:type];
+        }
+        else {
+            FMAssert([type isKindOfClass:[NSString class]]);
+            elementType = [self ffiTypeAddressForTypeEncoding:[type characterAtIndex:0]];
+        }
+        
+        FMAssert(elementType);
+        
+        struct_type->elements[idx] = elementType;
+        
+        idx++;
+    }
+    
+    FMAssert(idx == [encodings count]);
+    struct_type->elements[idx] = nil;
+    
+    return struct_type;
 }
 
 + (ffi_type *)ffiTypeForStructure:(NSString*)structEncoding {
@@ -299,16 +350,35 @@
     NSString *sv            = [tok stringValue];
     FMAssert([sv isEqualToString:@"{"]);
 
-    return [self ffiTypeForTokenizer:tokenizer];
+    NSArray *elements = [self ffiElementsForTokenizer:tokenizer];
+    
+    debug(@"elements: '%@'", elements);
+    
+    return [self ffiTypeForArrayEncoding:elements];
 }
 
-+ (void)freeFFIType:(ffi_type*)type {
++ (void)freeFFIStructureType:(ffi_type*)type {
     
-    #pragma message "FIXME: Do this recursivly yo."
+    #pragma message "FIXME: freeFFIType needs to do things. We either need to cache our structure, or free it up."
+    
     
     free(type);
 }
 
 @end
+
+
+
+/*
+@implementation FJSFFIStruct
+
+- (int)countOfElements {
+    
+}
+- (NSArray*)elements;
+- (void)addElement:(id)element; // either a string for a simple type, or a FJSFFIStruct for a complex one.
+
+@end
+*/
 
 

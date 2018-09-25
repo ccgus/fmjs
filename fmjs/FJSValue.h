@@ -32,8 +32,8 @@ typedef struct {
         BOOL boolValue;
         SEL selectorValue;
         void *pointerValue;
-        void *structLocation;
         char *cStringLocation;
+        void *structLocation;
     } value;
 } FJSObjCValue;
 
@@ -52,6 +52,10 @@ typedef struct {
 - (long)toLong;
 - (long long)toLongLong;
 - (nullable void*)pointer NS_RETURNS_INNER_POINTER;
+- (nullable void*)structLocation NS_RETURNS_INNER_POINTER;
+- (CGPoint)toCGPoint;
+- (CGSize)toCGSize;
+- (CGRect)toCGRect;
 
 - (void*)objectStorage;
 - (BOOL)pushJSValueToNativeType:(NSString*)type;

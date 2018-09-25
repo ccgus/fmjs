@@ -190,7 +190,7 @@ int FJSSimpleTestsMethodCalled;
     XCTAssert(FJSSimpleTestsDeallocHappend == count);
 }
 
-- (void)testCIExample {
+- (void)testCoreImageExample {
     
     // Note- when guard malloc is turned on in 10.14, the Apple JPEG decoders trip it up. Hurray.
     

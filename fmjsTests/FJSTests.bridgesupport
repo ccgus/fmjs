@@ -161,6 +161,12 @@
         <retval type='@'/>
     </function>
     
+    <function name='FJSMethodStringStringArgStringReturn'>
+        <arg type='@'/>
+        <arg type='@'/>
+        <retval type='@'/>
+    </function>
+    
     
     <constant name='FJSTestConstString' type='@'/>
     

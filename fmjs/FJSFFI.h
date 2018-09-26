@@ -23,6 +23,8 @@ NS_ASSUME_NONNULL_BEGIN
 + (ffi_type *)ffiTypeAddressForTypeEncoding:(char)encoding;
 + (ffi_type *)ffiTypeForStructure:(NSString*)structEncoding;
 + (void)freeFFIStructureType:(ffi_type*)type;
++ (void)describeFFIType:(ffi_type*)type;
++ (size_t)countOfElementsInType:(ffi_type*)type;
 
 @end
 

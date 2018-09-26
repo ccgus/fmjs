@@ -16,6 +16,7 @@ APPKIT_EXTERN const NSString *FJSTestConstString;
 APPKIT_EXTERN const int FJSTestConstInt;
 
 
+
 FOUNDATION_STATIC_INLINE BOOL FJSEqualFloats(CGFloat a, CGFloat b) {
 #if __LP64__
     return fabs(a - b)  <= FLT_EPSILON;

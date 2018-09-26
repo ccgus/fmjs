@@ -10,7 +10,6 @@
 
 @implementation FJSStructTests
 
-
 - (void)setUp {
     // Put setup code here. This method is called before the invocation of each test method in the class.
     
@@ -27,27 +26,97 @@
     // Put teardown code here. This method is called after the invocation of each test method in the class.
 }
 
+- (void)testCGRectStuff {
+    
+    CGRect originalRect = CGRectMake(74, 78, 11, 16);
+    
+    FJSSymbol *CGRectMakeSymbol = [FJSSymbol symbolForName:@"CGRectMake"];
+    XCTAssert(CGRectMakeSymbol);
+    FJSSymbol *CGRectMakeRetSymbol = [CGRectMakeSymbol returnValue];
+    XCTAssert(CGRectMakeRetSymbol);
+    
+    // Let's make some meory to store the pointers to our args.
+    ffi_cif cif;
+    ffi_type** ffiArgs = malloc(sizeof(ffi_type *) * 4);
+    void** ffiValues   = malloc(sizeof(void *) * 4);
+    
+    // Assign the type and pointer locations of the arguments.
+    ffiArgs[0]   = &ffi_type_double;
+    ffiValues[0] = &originalRect.origin.x;
+    
+    ffiArgs[1]   = &ffi_type_double;
+    ffiValues[1] = &originalRect.origin.y;
+    
+    ffiArgs[2]   = &ffi_type_double;
+    ffiValues[2] = &originalRect.size.width;
+    
+    ffiArgs[3]   = &ffi_type_double;
+    ffiValues[3] = &originalRect.size.height;
+    
+    ffi_type *ffi_type_cgrect = [FJSFFI ffiTypeForStructure:[CGRectMakeRetSymbol runtimeType]];
+    
+    // Get everything ready for the call.
+    ffi_status prep_status = ffi_prep_cif(&cif, FFI_DEFAULT_ABI, 4, ffi_type_cgrect, ffiArgs);
+    assert(prep_status == FFI_OK);
+    
+    void *structReturnStorage = calloc(1, sizeof(CGRect));
+    
+    // Let's look up the address of CGPointMake
+    void *callAddress = dlsym(RTLD_DEFAULT, "CGRectMake");
+    assert(callAddress);
+    
+    // And then actually call it.
+    ffi_call(&cif, callAddress, structReturnStorage, ffiValues);
+    
+    // Now we're going to cast our memory to a CGPoint for use in the asserts.
+    CGRect p = *((CGRect*)structReturnStorage);
+    
+    XCTAssert(CGRectEqualToRect(p, originalRect));
+    
+    free(ffiArgs);
+    free(ffiValues);
+    
+    
+    
+    ffiArgs   = malloc(sizeof(ffi_type *) * 1);
+    ffiValues = malloc(sizeof(void *) * 1);
+    
+    
+    ffiArgs[0]   = ffi_type_cgrect;
+    ffiValues[0] = structReturnStorage;
+    
+    prep_status = ffi_prep_cif(&cif, FFI_DEFAULT_ABI, 1, &ffi_type_sint8, ffiArgs);
+    assert(prep_status == FFI_OK);
+
+    // Now let's call another method with that storage.
+    callAddress = dlsym(RTLD_DEFAULT, "FJSTestCGRect");
+    assert(callAddress);
+    
+    BOOL returnValue = NO;
+    
+    ffi_call(&cif, callAddress, &returnValue, ffiValues);
+    
+    XCTAssert(returnValue);
+    
+    
+    free(ffiArgs);
+    free(ffiValues);
+    free(structReturnStorage);
+}
+
 - (void)testCGSizeValues {
     
     FJSRuntime *runtime = [FJSRuntime new];
     
     {
-        FJSValue *v = [runtime evaluateScript:@"CGPointMake(74, 78);"];
-
-        CGPoint p = [v toCGPoint];
-
-        XCTAssert(FJSEqualFloats(p.x, 74));
-        XCTAssert(FJSEqualFloats(p.y, 78));
         
         
-        v = [runtime evaluateScript:@"CGRectMake(74, 78, 11, 16);"];
         
-        CGRect r = [v toCGRect];
+        XCTAssert([FJSSymbol symbolForName:@"CGRectOneTwoThree"]);
+        XCTAssert([[runtime evaluateScript:@"FJSTestCGRect(CGRectOneTwoThree)"] toBOOL]);
+        XCTAssert([FJSSymbol symbolForName:@"FJSTestCGRect"]);
+        XCTAssert([[runtime evaluateScript:@"FJSTestCGRect(CGRectMake(74, 78, 11, 16))"] toBOOL]);
         
-        XCTAssert(FJSEqualFloats(r.origin.x, 74));
-        XCTAssert(FJSEqualFloats(r.origin.y, 78));
-        XCTAssert(FJSEqualFloats(r.size.width, 11));
-        XCTAssert(FJSEqualFloats(r.size.height, 16));
         
         
         
@@ -61,6 +130,23 @@
         XCTAssert(FJSEqualFloats(inset.origin.y, 81));
         XCTAssert(FJSEqualFloats(inset.size.width, 7));
         XCTAssert(FJSEqualFloats(inset.size.height, 10));
+        
+        
+        
+        CGPoint p = [[runtime evaluateScript:@"CGPointMake(74, 78);"] toCGPoint];
+
+        XCTAssert(FJSEqualFloats(p.x, 74));
+        XCTAssert(FJSEqualFloats(p.y, 78));
+        
+        
+        CGRect r = [[runtime evaluateScript:@"CGRectMake(74, 78, 11, 16);"] toCGRect];
+        
+        XCTAssert(FJSEqualFloats(r.origin.x, 74));
+        XCTAssert(FJSEqualFloats(r.origin.y, 78));
+        XCTAssert(FJSEqualFloats(r.size.width, 11));
+        XCTAssert(FJSEqualFloats(r.size.height, 16));
+        
+        
         
         
         
@@ -112,6 +198,13 @@
         XCTAssert(ffi_type_rect->elements[1]->elements[1] == &ffi_type_double);
         XCTAssert(ffi_type_rect->elements[1]->elements[2] == nil);
         
+        
+        XCTAssert([FJSFFI countOfElementsInType:ffi_type_rect] == 2);
+        XCTAssert([FJSFFI countOfElementsInType:ffi_type_rect->elements[0]] == 2);
+        XCTAssert([FJSFFI countOfElementsInType:ffi_type_rect->elements[1]] == 2);
+        
+        [FJSFFI describeFFIType:ffi_type_rect];
+        
         // Do we have to free the elements as well? Problaby.
         
         [FJSFFI freeFFIStructureType:ffi_type_rect];
@@ -142,6 +235,7 @@
         XCTAssert(ffi_type_cgsize->elements[1] == &ffi_type_double);
         XCTAssert(ffi_type_cgsize->elements[2] == nil);
         
+        XCTAssert([FJSFFI countOfElementsInType:ffi_type_cgsize] == 2);
         // Do we have to free the elements as well? Problaby.
         
         [FJSFFI freeFFIStructureType:ffi_type_cgsize];
@@ -173,6 +267,8 @@
         XCTAssert(ffi_type_cgpoint->elements[0] == &ffi_type_double);
         XCTAssert(ffi_type_cgpoint->elements[1] == &ffi_type_double);
         XCTAssert(ffi_type_cgpoint->elements[2] == nil);
+        
+        XCTAssert([FJSFFI countOfElementsInType:ffi_type_cgpoint] == 2);
         
         // Do we have to free the elements as well? Problaby.
         
@@ -264,6 +360,11 @@
 
 @end
 
+BOOL FJSTestCGRect(CGRect r) {
+    debug(@"r: %@", NSStringFromRect(r));
+    CGRect t = CGRectMake(74, 78, 11, 16);
+    return CGRectEqualToRect(r, t);
+}
 
 
 /*

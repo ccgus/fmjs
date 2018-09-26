@@ -161,6 +161,8 @@
         return nil;
     }
     
+    debug(@"[functionSymbol name]: '%@'", [functionSymbol name]);
+    
     FMAssert(_runtime);
     
     FJSValue *returnValue = [functionSymbol returnValue] ? [FJSValue valueWithSymbol:[functionSymbol returnValue] inRuntime:_runtime] : nil;
@@ -177,7 +179,6 @@
         ffiArgs = malloc(sizeof(ffi_type *) * effectiveArgumentCount);
         ffiValues = malloc(sizeof(void *) * effectiveArgumentCount);
         
-        
         for (NSInteger idx = 0; idx < [_args count]; idx++) {
             FJSValue *arg = [_args objectAtIndex:idx];
             FJSSymbol *argSym = [[[_f symbol] arguments] objectAtIndex:idx];
@@ -190,8 +191,12 @@
                 [arg setSymbol:argSym];
             }
             
-            ffiArgs[idx]   = [arg FFITypeWithHint:[argSym runtimeType]];
+            
+            ffi_type *type = [arg FFITypeWithHint:[argSym runtimeType]];
+            ffiArgs[idx]   = type;
             ffiValues[idx] = [arg objectStorage];
+            debug(@"arg: '%@'", arg);
+            [FJSFFI describeFFIType:type];
         }
     }
     
@@ -213,6 +218,10 @@
             debug(@"shit: %@", e);
             returnValue = nil;
         }
+        
+        debug(@"returnValue: '%@'", returnValue);
+    
+        [FJSFFI describeFFIType:returnType];
     }
     
     if (effectiveArgumentCount > 0) {
@@ -275,8 +284,6 @@
     NSMutableArray *elements = [NSMutableArray array];
     
     while ((tok = [tokenizer nextToken]) != [TDToken EOFToken]) {
-        
-        debug(@"Found '%@'", [tok stringValue]);
         
         if ([tok isSymbol]) {
             if ([[tok stringValue] isEqualToString:@"{"]){
@@ -352,8 +359,6 @@
 
     NSArray *elements = [self ffiElementsForTokenizer:tokenizer];
     
-    debug(@"elements: '%@'", elements);
-    
     return [self ffiTypeForArrayEncoding:elements];
 }
 
@@ -365,8 +370,107 @@
     free(type);
 }
 
-@end
++ (size_t)countOfElementsInType:(ffi_type*)type {
+    
+    if (!type->elements) {
+        return 0;
+    }
+    
+    size_t idx = 0;
+    ffi_type *curElement = type->elements[idx];
+    while (curElement) {
+        idx++;
+        curElement = type->elements[idx];
+    }
+    return idx;
+}
 
++ (NSString*)FFIType:(unsigned short)type {
+    
+    switch (type) {
+        case FFI_TYPE_VOID:
+            return @"void";
+            
+        case FFI_TYPE_INT:
+            return @"int";
+            
+        case FFI_TYPE_FLOAT:
+            return @"float";
+            
+        case FFI_TYPE_DOUBLE:
+            return @"double";
+            
+        case FFI_TYPE_LONGDOUBLE:
+            return @"long double";
+            
+        case FFI_TYPE_UINT8:
+            return @"uint8";
+            
+        case FFI_TYPE_SINT8:
+            return @"sint8";
+            
+        case FFI_TYPE_UINT16:
+            return @"uint16";
+            
+        case FFI_TYPE_SINT16:
+            return @"sint16";
+            
+        case FFI_TYPE_UINT32:
+            return @"uint32";
+            
+        case FFI_TYPE_SINT32:
+            return @"sint32";
+            
+        case FFI_TYPE_UINT64:
+            return @"uint64";
+            
+        case FFI_TYPE_SINT64:
+            return @"sint64";
+            
+        case FFI_TYPE_STRUCT:
+            return @"struct";
+            
+        case FFI_TYPE_POINTER:
+            return @"pointer";
+            
+        default:
+            break;
+    }
+    
+    FMAssert(NO);
+    
+    return nil;
+}
+
++ (void)describeFFIType:(ffi_type*)type prefix:(NSString*)prefix {
+    
+    
+    printf("%stype:      %s (%d)\n", [prefix UTF8String], [[self FFIType:type->type] UTF8String], type->type);
+    //printf("%ssize:      %ld\n", [prefix UTF8String], type->size);
+    //printf("%salignment: %d\n", [prefix UTF8String], type->alignment);
+    
+    if (type->elements) {
+        
+        printf("%selements:  (%ld)\n", [prefix UTF8String], [self countOfElementsInType:type]);
+        size_t idx = 0;
+        ffi_type *curElement = type->elements[idx];
+        while (curElement) {
+            [self describeFFIType:curElement prefix:[prefix stringByAppendingString:@"  "]];
+            idx++;
+            curElement = type->elements[idx];
+        }
+    }
+    
+    
+}
+
++ (void)describeFFIType:(ffi_type*)type {
+    
+    [self describeFFIType:type prefix:@""];
+    
+}
+
+@end
 
 
 /*

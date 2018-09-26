@@ -33,7 +33,6 @@ typedef struct {
         SEL selectorValue;
         void *pointerValue;
         char *cStringLocation;
-        void *structLocation;
     } value;
 } FJSObjCValue;
 

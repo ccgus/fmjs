@@ -315,7 +315,8 @@ NSString *FJSDescriptionOfTypeEncodingWithFullEncoding(char typeEncoding, NSStri
         case _C_FLT:        return @"float";
         case _C_DBL:        return @"double";
         case _C_STRUCT_B: {
-            FMAssert(NO);
+            return @"struct";
+            //FMAssert(NO);
             //return [MOFunctionArgument structureTypeEncodingDescription:fullTypeEncoding];
         }
         case _C_SEL:        return @"selector";

@@ -20,6 +20,7 @@
 @property (assign) JSObjectRef nativeJSObj;
 
 @property (weak) id weakInstance;
+@property (assign) void *structData;
 
 #ifdef DEBUG
 @property (assign) BOOL isWeakReference;
@@ -55,7 +56,7 @@
     
     if (_cValue.type == _C_STRUCT_B) {
         debug(@"FJSValue dealloc releasing structure %@", [_symbol runtimeType]);
-        free(_cValue.value.structLocation);
+        free(_structData);
     }
     
 #ifdef DEBUG
@@ -327,12 +328,22 @@
     
     if (_cValue.type == _C_STRUCT_B) {
         
-        debug(@"Making room for a struct on %p", self);
+        if (_cValue.value.pointerValue) {
+            
+            debug(@"_cValue.value.pointerValue: %p", _cValue.value.pointerValue);
+            
+            FMAssert([[[self symbol] symbolType] isEqualToString:@"constant"]);
+            return _cValue.value.pointerValue;
+        }
         
-        _cValue.value.structLocation = calloc(1, sizeof(CGRect));
-        
-        // This feels all kinds of wrong. Can't we just return _cValue.value?
-        return _cValue.value.structLocation;
+        if (!_structData) {
+            
+            debug(@"Making room for a struct on %p", self);
+            
+            _structData = calloc(1, sizeof(CGRect));
+            
+            return _structData;
+        }
     }
     
     FMAssert(_cValue.type);
@@ -348,7 +359,15 @@
     }
     
     if ([obj isKindOfClass:[NSValue class]]) {
-        obj = [NSString stringWithFormat:@"nsvalue type '%c' %p", _cValue.type, [(NSValue*)obj pointerValue]];
+        
+        if ([[_symbol runtimeType] hasPrefix:@"{CGRect={CGPoint=dd}{CGSize=dd}}"]) {
+            obj = [NSString stringWithFormat:@"nsvalue type rect '%c' %p (%@)", _cValue.type, [(NSValue*)obj pointerValue], NSStringFromRect([self toCGRect])];
+        }
+        else {
+            obj = [NSString stringWithFormat:@"nsvalue type '%c' %p", _cValue.type, [(NSValue*)obj pointerValue]];
+        }
+        
+        
     }
     
     return [NSString stringWithFormat:@"%@ - %@ (%@ native)", [super description], obj, _isJSNative ? @"js" : @"c"];
@@ -441,8 +460,8 @@
         return [self instance];
     }
     
-    if (_cValue.type == _C_STRUCT_B && _cValue.value.structLocation) {
-        NSValue *v = [NSValue valueWithPointer:_cValue.value.structLocation];
+    if (_cValue.type == _C_STRUCT_B && _structData) {
+        NSValue *v = [NSValue valueWithPointer:_structData];
         return v;
     }
     
@@ -613,25 +632,25 @@
 
 - (CGPoint)toCGPoint {
     FMAssert(_cValue.type == _C_STRUCT_B);
-    CGPoint *point = (CGPoint*)_cValue.value.structLocation;
+    CGPoint *point = (CGPoint*)_structData;
     return *point;
 }
 
 - (CGSize)toCGSize {
     FMAssert(_cValue.type == _C_STRUCT_B);
-    CGSize size = *((CGSize*)_cValue.value.structLocation);
+    CGSize size = *((CGSize*)_structData);
     return size;
 }
 
 - (CGRect)toCGRect {
     FMAssert(_cValue.type == _C_STRUCT_B);
-    CGRect *rect = (CGRect*)_cValue.value.structLocation;
+    CGRect *rect = (CGRect*)_structData;
     return *rect;
 }
 
 - (nullable void*)structLocation {
     FMAssert(_cValue.type == _C_STRUCT_B);
-    return _cValue.value.structLocation;
+    return _structData;
 }
 
 @end

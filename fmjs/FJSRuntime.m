@@ -17,6 +17,9 @@
 #import <objc/runtime.h>
 #import <dlfcn.h>
 
+const CGRect CGRectOneTwoThree = {1, 2, 3, 4};
+
+
 @interface FJSRuntime () {
     
 }
@@ -397,9 +400,12 @@ JSValueRef FJS_getProperty(JSContextRef ctx, JSObjectRef object, JSStringRef pro
             
             if (dlsymbol) {
                 
-                void *p = (*(void**)dlsymbol);
+                char type = [[sym runtimeType] characterAtIndex:0];
                 
-                FJSValue *val = [FJSValue valueWithConstantPointer:p ofType:[[sym runtimeType] characterAtIndex:0] inRuntime:runtime];
+                // This is all wrong I just know it.
+                void *p = type == _C_STRUCT_B ? dlsymbol : (*(void**)dlsymbol);
+                
+                FJSValue *val = [FJSValue valueWithConstantPointer:p ofType:type inRuntime:runtime];
                 [val setSymbol:sym];
                 
                 JSValueRef jsValue = [runtime newJSValueForWrapper:val];

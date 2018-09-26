@@ -12,6 +12,8 @@
 
 @class FJSValue;
 
+APPKIT_EXTERN const CGRect CGRectOneTwoThree;
+
 NS_ASSUME_NONNULL_BEGIN
 
 @interface FJSRuntime : NSObject

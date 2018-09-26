@@ -161,14 +161,18 @@
         <retval type='@'/>
     </function>
     
-    <function name='FJSMethodStringStringArgStringReturn'>
-        <arg type='@'/>
-        <arg type='@'/>
-        <retval type='@'/>
-    </function>
     
     <constant name='FJSTestConstString' type='@'/>
     
     <constant name='FJSTestConstInt' type='i'/>
+    
+    
+    <function name='FJSTestCGRect'>
+        <arg type='{CGRect={CGPoint=ff}{CGSize=ff}}' type64='{CGRect={CGPoint=dd}{CGSize=dd}}'/>
+        <retval type='B'/>
+    </function>
+    
+    <constant name='CGRectOneTwoThree' type='{CGRect={CGPoint=ff}{CGSize=ff}}' type64='{CGRect={CGPoint=dd}{CGSize=dd}}'/>
+
     
 </signatures>

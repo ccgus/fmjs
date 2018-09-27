@@ -36,6 +36,8 @@ A: I hate four letter prefixes, and having it "FJS" always makes me think it sta
 ### Random Todos:
 
  * Stop using NSString for the encodings in the symbols. Try c strings, will ya?
+ * Can we bridge to swift some day using Mirror (and once the ABI is finalized?) https://swift.org/blog/how-mirror-works/
+
 
 
 ### Other Random Notes:

@@ -178,7 +178,7 @@
         <retval type='B'/>
     </function>
     
-    <constant name='CGRectOneTwoThree' type='{CGRect={CGPoint=ff}{CGSize=ff}}' type64='{CGRect={CGPoint=dd}{CGSize=dd}}'/>
+    <constant name='FJSRuntimeTestCGRect' type='{CGRect={CGPoint=ff}{CGSize=ff}}' type64='{CGRect={CGPoint=dd}{CGSize=dd}}'/>
 
     
 </signatures>

@@ -4,6 +4,10 @@
 #import <FMJS/FJS.h>
 #import <dlfcn.h>
 
+// This is in FJSRuntime, as CGRectMake(74, 78, 11, 16)
+APPKIT_EXTERN const CGRect FJSRuntimeTestCGRect;
+
+
 @interface FJSStructTests : XCTestCase
 
 @end
@@ -60,6 +64,7 @@
     assert(prep_status == FFI_OK);
     
     void *structReturnStorage = calloc(1, sizeof(CGRect));
+    debug(@"structReturnStorage: %p", structReturnStorage);
     
     // Let's look up the address of CGPointMake
     void *callAddress = dlsym(RTLD_DEFAULT, "CGRectMake");
@@ -68,22 +73,21 @@
     // And then actually call it.
     ffi_call(&cif, callAddress, structReturnStorage, ffiValues);
     
-    // Now we're going to cast our memory to a CGPoint for use in the asserts.
-    CGRect p = *((CGRect*)structReturnStorage);
     
-    XCTAssert(CGRectEqualToRect(p, originalRect));
+    // Now we're going to cast our memory to a CGPoint for use in the asserts.
+    CGRect *p = ((CGRect*)structReturnStorage);
+    
+    XCTAssert(CGRectEqualToRect(*p, originalRect));
     
     free(ffiArgs);
     free(ffiValues);
-    
-    
     
     ffiArgs   = malloc(sizeof(ffi_type *) * 1);
     ffiValues = malloc(sizeof(void *) * 1);
     
     
     ffiArgs[0]   = ffi_type_cgrect;
-    ffiValues[0] = structReturnStorage;
+    ffiValues[0] = p;
     
     prep_status = ffi_prep_cif(&cif, FFI_DEFAULT_ABI, 1, &ffi_type_sint8, ffiArgs);
     assert(prep_status == FFI_OK);
@@ -104,53 +108,49 @@
     free(structReturnStorage);
 }
 
-- (void)testCGSizeValues {
+- (void)testRandomCGCrap {
     
     FJSRuntime *runtime = [FJSRuntime new];
     
     {
         
-        
-        
-        XCTAssert([FJSSymbol symbolForName:@"CGRectOneTwoThree"]);
-        XCTAssert([[runtime evaluateScript:@"FJSTestCGRect(CGRectOneTwoThree)"] toBOOL]);
         XCTAssert([FJSSymbol symbolForName:@"FJSTestCGRect"]);
-        XCTAssert([[runtime evaluateScript:@"FJSTestCGRect(CGRectMake(74, 78, 11, 16))"] toBOOL]);
         
+        CGRect r = [[runtime evaluateScript:@"var r = CGRectMake(74, 78, 11, 16); r;"] toCGRect];
+        XCTAssert(CGRectEqualToRect(r, FJSRuntimeTestCGRect));
         
+        XCTAssert([[runtime evaluateScript:@"FJSTestCGRect(r)"] toBOOL]);
+        
+        XCTAssert([FJSSymbol symbolForName:@"FJSRuntimeTestCGRect"]);
+        XCTAssert([[runtime evaluateScript:@"FJSTestCGRect(FJSRuntimeTestCGRect)"] toBOOL]);
         
         
         XCTAssert([FJSSymbol symbolForName:@"CGRectInset"]);
         CGRect inset = [[runtime evaluateScript:@"CGRectInset(CGRectMake(74, 78, 11, 16), 2, 3)"] toCGRect];
-        
+
         debug(@"inset: %@", NSStringFromRect(inset));
         
-        
+
+
         XCTAssert(FJSEqualFloats(inset.origin.x, 76));
         XCTAssert(FJSEqualFloats(inset.origin.y, 81));
         XCTAssert(FJSEqualFloats(inset.size.width, 7));
         XCTAssert(FJSEqualFloats(inset.size.height, 10));
-        
-        
-        
+
+
+
         CGPoint p = [[runtime evaluateScript:@"CGPointMake(74, 78);"] toCGPoint];
 
         XCTAssert(FJSEqualFloats(p.x, 74));
         XCTAssert(FJSEqualFloats(p.y, 78));
-        
-        
-        CGRect r = [[runtime evaluateScript:@"CGRectMake(74, 78, 11, 16);"] toCGRect];
-        
+
+
+        r = [[runtime evaluateScript:@"CGRectMake(74, 78, 11, 16);"] toCGRect];
+
         XCTAssert(FJSEqualFloats(r.origin.x, 74));
         XCTAssert(FJSEqualFloats(r.origin.y, 78));
         XCTAssert(FJSEqualFloats(r.size.width, 11));
         XCTAssert(FJSEqualFloats(r.size.height, 16));
-        
-        
-        
-        
-        
-        
         
         [runtime shutdown];
         

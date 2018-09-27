@@ -17,8 +17,7 @@
 #import <objc/runtime.h>
 #import <dlfcn.h>
 
-const CGRect CGRectOneTwoThree = {1, 2, 3, 4};
-
+const CGRect FJSRuntimeTestCGRect = {74, 78, 11, 16};
 
 @interface FJSRuntime () {
     

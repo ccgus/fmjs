@@ -337,13 +337,10 @@
         }
         
         if (!_structData) {
-            
-            debug(@"Making room for a struct on %p", self);
-            
             _structData = calloc(1, sizeof(CGRect));
-            
-            return _structData;
         }
+        
+        return _structData;
     }
     
     FMAssert(_cValue.type);
@@ -461,7 +458,7 @@
     }
     
     if (_cValue.type == _C_STRUCT_B && _structData) {
-        NSValue *v = [NSValue valueWithPointer:_structData];
+        NSValue *v = [NSValue value:&_structData withObjCType:@encode(void *)];
         return v;
     }
     

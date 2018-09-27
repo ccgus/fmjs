@@ -195,7 +195,6 @@
             ffi_type *type = [arg FFITypeWithHint:[argSym runtimeType]];
             ffiArgs[idx]   = type;
             ffiValues[idx] = [arg objectStorage];
-            debug(@"arg: '%@'", arg);
             [FJSFFI describeFFIType:type];
         }
     }

@@ -13,19 +13,15 @@
 
 #import <objc/runtime.h>
 
-#pragma message "FIXME: Get rid of _structData, store it in the pointerValue, and add a flag that we own the memory"
-
 @interface FJSValue ()
 
 @property (weak) FJSRuntime *runtime;
 @property (assign) JSObjectRef nativeJSObj;
 
 @property (weak) id weakInstance;
-@property (assign) void *structData;
+@property (assign) BOOL madePointerMemory;
 
-#ifdef DEBUG
 @property (assign) BOOL isWeakReference;
-#endif
 
 @end
 
@@ -57,8 +53,9 @@ static size_t FJSValueLiveInstances = 0;
         CFRelease(_cValue.value.pointerValue);
     }
     
-    if (_cValue.type == _C_STRUCT_B) {
-        free(_structData);
+    if (_madePointerMemory) {
+        FMAssert(_cValue.type == _C_STRUCT_B);
+        free(_cValue.value.pointerValue);
     }
     
 #ifdef DEBUG
@@ -334,17 +331,21 @@ static size_t FJSValueLiveInstances = 0;
     
     if (_cValue.type == _C_STRUCT_B) {
         
-        if (_cValue.value.pointerValue) {
+//        if (_cValue.value.pointerValue) {
+//
+//            FMAssert([[[self symbol] symbolType] isEqualToString:@"constant"]);
+//            return _cValue.value.pointerValue;
+//        }
+        
+        if (!_cValue.value.pointerValue) {
+            _cValue.value.pointerValue = calloc(1, sizeof(CGRect));
+            _madePointerMemory = YES;
+        }
+        else {
             
-            FMAssert([[[self symbol] symbolType] isEqualToString:@"constant"]);
-            return _cValue.value.pointerValue;
         }
         
-        if (!_structData) {
-            _structData = calloc(1, sizeof(CGRect));
-        }
-        
-        return _structData;
+        return _cValue.value.pointerValue;
     }
     
     FMAssert(_cValue.type);
@@ -457,8 +458,8 @@ static size_t FJSValueLiveInstances = 0;
         return [self instance];
     }
     
-    if (_cValue.type == _C_STRUCT_B && _structData) {
-        NSValue *v = [NSValue value:&_structData withObjCType:@encode(void *)];
+    if (_cValue.type == _C_STRUCT_B && _cValue.value.pointerValue) {
+        NSValue *v = [NSValue value:&_cValue.value.pointerValue withObjCType:@encode(void *)];
         return v;
     }
     
@@ -629,25 +630,25 @@ static size_t FJSValueLiveInstances = 0;
 
 - (CGPoint)toCGPoint {
     FMAssert(_cValue.type == _C_STRUCT_B);
-    CGPoint *point = (CGPoint*)_structData;
+    CGPoint *point = (CGPoint*)_cValue.value.pointerValue;
     return *point;
 }
 
 - (CGSize)toCGSize {
     FMAssert(_cValue.type == _C_STRUCT_B);
-    CGSize size = *((CGSize*)_structData);
+    CGSize size = *((CGSize*)_cValue.value.pointerValue);
     return size;
 }
 
 - (CGRect)toCGRect {
     FMAssert(_cValue.type == _C_STRUCT_B);
-    CGRect *rect = (CGRect*)_structData;
+    CGRect *rect = (CGRect*)_cValue.value.pointerValue;
     return *rect;
 }
 
 - (nullable void*)structLocation {
     FMAssert(_cValue.type == _C_STRUCT_B);
-    return _structData;
+    return _cValue.value.pointerValue;
 }
 
 @end

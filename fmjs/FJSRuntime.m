@@ -286,8 +286,6 @@ static JSValueRef FJS_callAsFunction(JSContextRef ctx, JSObjectRef functionJS, J
     JSObjectRef r = JSObjectMake(_jsContext, _globalClass, (__bridge void *)(value));
     CFRetain((__bridge void *)value);
     
-    debug(@"retaining %p", value);
-    
     FMAssert(r);
     
     return r;
@@ -325,7 +323,7 @@ static bool FJS_hasProperty(JSContextRef ctx, JSObjectRef object, JSStringRef pr
         return nil;
     }
     
-    debug(@"FJS_hasProperty: '%@'?", propertyName);
+    //debug(@"FJS_hasProperty: '%@'?", propertyName);
     
     FJSRuntime *runtime   = [FJSRuntime runtimeInContext:ctx];
     FJSValue *objectValue = [FJSValue valueForJSObject:object inRuntime:runtime];
@@ -335,7 +333,7 @@ static bool FJS_hasProperty(JSContextRef ctx, JSObjectRef object, JSStringRef pr
         return YES;
     }
     
-    debug(@"No property for %@", propertyName);
+    //debug(@"No property for %@", propertyName);
     
     return NO;
 }

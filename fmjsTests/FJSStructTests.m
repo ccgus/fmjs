@@ -114,6 +114,20 @@ APPKIT_EXTERN const CGRect FJSRuntimeTestCGRect;
     
     {
         
+        
+        CIVector *v2 = [[runtime evaluateScript:@"v = CIVector.vectorWithCGRect_(CGRectMake(83, 75, 79, 13));"] toObject];
+        XCTAssert([v2 isKindOfClass:[CIVector class]]);
+        CGRect vr2 = [v2 CGRectValue];
+        XCTAssert(CGRectEqualToRect(vr2, CGRectMake(83, 75, 79, 13)));
+        
+        
+        CIVector *v1 = [[runtime evaluateScript:@"v = CIVector.vectorWithX_Y_Z_W_(82, 74, 78, 12);"] toObject];
+        XCTAssert([v1 isKindOfClass:[CIVector class]]);
+        CGRect vr1 = [v1 CGRectValue];
+        XCTAssert(CGRectEqualToRect(vr1, CGRectMake(82, 74, 78, 12)));
+        
+        
+        
         XCTAssert([FJSSymbol symbolForName:@"FJSTestCGRect"]);
         
         CGRect r = [[runtime evaluateScript:@"var r = CGRectMake(74, 78, 11, 16); r;"] toCGRect];
@@ -151,6 +165,11 @@ APPKIT_EXTERN const CGRect FJSRuntimeTestCGRect;
         XCTAssert(FJSEqualFloats(r.origin.y, 78));
         XCTAssert(FJSEqualFloats(r.size.width, 11));
         XCTAssert(FJSEqualFloats(r.size.height, 16));
+        
+        
+        
+        
+        
         
         [runtime shutdown];
         

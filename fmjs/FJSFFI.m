@@ -47,10 +47,6 @@
         
         SEL selector = NSSelectorFromString(methodName);
         
-        if (selector == @selector(imageWithContentsOfURL:)) {
-            debug(@"Breaking");
-        }
-        
         id object = [_caller instance];
         
         NSMethodSignature *methodSignature = [object methodSignatureForSelector:selector];
@@ -89,8 +85,8 @@
                 [v pushJSValueToNativeType:[argSymbol runtimeType]];
             }
             
-            void *arg = [v cValue].value.pointerValue;
-            [invocation setArgument:&arg atIndex:objcIndex];
+            void *arg = [v objectStorage];
+            [invocation setArgument:arg atIndex:objcIndex];
             currentArgIndex++;
         }
         

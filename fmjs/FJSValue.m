@@ -52,8 +52,6 @@
         CFRelease(_cValue.value.pointerValue);
     }
     
-    debug(@"deallociating type: '%c'", _cValue.type);
-    
     if (_cValue.type == _C_STRUCT_B) {
         debug(@"FJSValue dealloc releasing structure %@", [_symbol runtimeType]);
         free(_structData);

@@ -196,6 +196,8 @@ int FJSSimpleTestsMethodCalled;
     
     #pragma message "FIXME: Throw in a imageByApplyingTransform for the CIImage stuff."
     
+    #pragma message "FIXME: Gus- adding in r = r.imageByCroppingToRect_(CGRectMake(0, 0, 500, 500)); cause the app to have an assertion fail (and the image isn't made)"
+    
     NSString *code = @"\
     var url = NSURL.fileURLWithPath_('/Library/Desktop Pictures/Yosemite.jpg');\n\
     var img = CIImage.imageWithContentsOfURL_(url)\n\

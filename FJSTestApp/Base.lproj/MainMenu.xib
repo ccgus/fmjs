@@ -723,6 +723,7 @@ var img = CIImage.imageWithContentsOfURL_(url)
 var f = CIFilter.filterWithName_('CIColorInvert');
 f.setValue_forKey_(img, kCIInputImageKey);
 var r = f.outputImage();
+//r = r.imageByCroppingToRect_(CGRectMake(0, 0, 500, 500));
 var tiff = r.TIFFRepresentation();
 tiff.writeToFile_atomically_('/tmp/foo.tiff', true);
 NSWorkspace.sharedWorkspace().openFile_('/tmp/foo.tiff');</string>

@@ -2,6 +2,7 @@
 #import "FJSSymbolManager.h"
 #import "FJSFFI.h"
 
+
 @interface FJSValue (Private)
 
 @property (assign) BOOL isJSNative;

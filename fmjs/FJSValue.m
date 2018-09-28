@@ -26,20 +26,25 @@
 @property (assign) BOOL isWeakReference;
 #endif
 
-
 @end
+
+// This is used for the unit tests.
+static size_t FJSValueLiveInstances = 0;
+
 
 @implementation FJSValue
 
 - (instancetype)init {
     self = [super init];
     if (self) {
-        
+        FJSValueLiveInstances++;
     }
     return self;
 }
 
 - (void)dealloc {
+    
+    FJSValueLiveInstances--;
     
     if ([self isInstance] && _cValue.value.pointerValue && ![[[self symbol] symbolType] isEqualToString:@"constant"]) {
         
@@ -64,6 +69,10 @@
     }
 #endif
     
+}
+
++ (size_t)countOfLiveInstances { // This is used in unit testing.
+    return FJSValueLiveInstances;
 }
 
 + (instancetype)valueWithNullInRuntime:(FJSRuntime*)runtime {
@@ -367,8 +376,6 @@
     
     return [NSString stringWithFormat:@"%@ - %@ (%@ native)", [super description], obj, _isJSNative ? @"js" : @"c"];
 }
-
-#pragma message "FIXME: Should FFIType move to FJSSymbol?"
 
 - (ffi_type*)FFIType {
     return [self FFITypeWithHint:nil];

@@ -11,6 +11,10 @@
 #import <FMJS/FJS.h>
 #import <dlfcn.h>
 
+@interface FJSValue (Private)
++ (size_t)countOfLiveInstances;
+@end
+
 const NSString *FJSTestConstString = @"HELLO I'M FJSTestConstString";
 const int FJSTestConstInt = 74;
 
@@ -184,6 +188,7 @@ int FJSSimpleTestsMethodCalled;
     }
     
     
+    XCTAssert(![FJSValue countOfLiveInstances]);
     XCTAssert(!testClass);
     XCTAssert(FJSSimpleTestsMethodCalled == count);
     XCTAssert(FJSSimpleTestsInitHappend == count);

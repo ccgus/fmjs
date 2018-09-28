@@ -11,8 +11,6 @@
 
 @import ObjectiveC;
 
-#pragma message "FIXME: Make FJSSymbolManager thread safe."
-
 @interface FJSSymbol (Private)
 - (FJSSymbol*)methodNamed:(NSString*)name isClass:(BOOL)isClassMethod;
 @end
@@ -22,43 +20,70 @@
 @property (strong) FJSSymbol *currentFunction;
 @property (strong) FJSSymbol *currentClass;
 @property (strong) FJSSymbol *currentMethod;
+@property (strong) NSMutableDictionary *symbols;
+
 
 @end
+
+static FJSSymbolManager *FJSSymbolManagerSharedInstance = nil;
 
 @implementation FJSSymbolManager
 
 + (instancetype)sharedManager {
     
-    static FJSSymbolManager *bp = nil;
     static dispatch_once_t onceToken;
     dispatch_once(&onceToken, ^{
-        bp = [[self alloc] init];
+        FJSSymbolManagerSharedInstance = [[self alloc] init];
     });
     
     
-    return bp;
+    return FJSSymbolManagerSharedInstance;
     
 }
 
 - (instancetype)init {
+    
+    assert(!FJSSymbolManagerSharedInstance);
+    
     self = [super init];
     if (self) {
         _symbols = [NSMutableDictionary dictionary];
     }
+    
     return self;
 }
 
-
+- (void)addSymbol:(FJSSymbol*)symbol {
+    
+    if (![symbol name]) {
+        FMAssert(NO);
+        NSLog(@"addSymbol: ignoring symbol given without name: %@", symbol);
+        return;
+    }
+    
+    if ([_symbols objectForKey:[symbol name]]) {
+        NSLog(@"addSymbol: replacing symbol %@", [symbol name]);
+        FMAssert(NO);
+    }
+    
+    @synchronized (self) {
+        
+        [_symbols setObject:symbol forKey:[symbol name]];
+        
+    }
+    
+}
 
 - (void)parseBridgeFileAtPath:(NSString*)bridgePath {
     
-    NSXMLParser *p = [[NSXMLParser alloc] initWithContentsOfURL:[NSURL fileURLWithPath:bridgePath]];
-    
-    [p setDelegate:self];
-    
-    [p parse];
-    
-    
+    @synchronized (self) {
+        
+        NSXMLParser *p = [[NSXMLParser alloc] initWithContentsOfURL:[NSURL fileURLWithPath:bridgePath]];
+        
+        [p setDelegate:self];
+        
+        [p parse];
+    }
 }
 
 
@@ -372,7 +397,7 @@
                 [sym setSymbolType:@"class"];
                 [sym setName:name];
                 
-                [[[FJSSymbolManager sharedManager] symbols] setObject:sym forKey:name];
+                [[FJSSymbolManager sharedManager] addSymbol:sym];
             }
         }
         

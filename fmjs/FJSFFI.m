@@ -105,14 +105,14 @@ static NSMutableDictionary *FJSFFIStructureLookup;
         else if (FJSCharEquals(returnType, @encode(id)) || FJSCharEquals(returnType, @encode(Class))) {
             
             // Using CFTypeRef with libffi is a great way to workaround ARC getting in the way of things.
-            CFTypeRef object = nil;
-            [invocation getReturnValue:&object];
+            CFTypeRef cfobject = nil;
+            [invocation getReturnValue:&cfobject];
             
-            returnFValue = [FJSValue valueWithInstance:object inRuntime:_runtime];
+            returnFValue = [FJSValue valueWithInstance:cfobject inRuntime:_runtime];
             
             if ([functionSymbol returnsRetained]) {
                 // We're already +2 on the object now. Time to bring it back down with CFRelease
-                CFRelease(object);
+                CFRelease(cfobject);
             }
             
         }

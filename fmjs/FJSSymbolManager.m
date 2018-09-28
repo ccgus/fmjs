@@ -358,7 +358,11 @@ static FJSSymbolManager *FJSSymbolManagerSharedInstance = nil;
         
         [(isClassMethod ? [self classMethods] : [self instanceMethods]) addObject:methodSymbol];
         
-        assert([NSThread isMainThread]); // need to put things in a queue if we're doing this in a background thread.
+        if (![NSThread isMainThread]) {
+            //assert([NSThread isMainThread]); // need to put things in a queue if we're doing this in a background thread.
+            NSLog(@"symbol manager is not thread safe");
+        }
+        
         
         return methodSymbol;
     }

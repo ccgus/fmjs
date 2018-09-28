@@ -21,6 +21,8 @@ NS_ASSUME_NONNULL_BEGIN
 @property (copy) void(^exceptionHandler)(FJSRuntime *runtime, NSException *exception);
 @property (copy) void(^printHandler)(FJSRuntime *runtime, NSString *stringToPrint);
 
++ (void)loadFrameworkAtPath:(NSString*)path;
+
 - (FJSValue*)evaluateScript:(NSString*)str;
 - (FJSValue*)evaluateScript:(NSString *)script withSourceURL:(nullable NSURL *)sourceURL;
 
@@ -33,6 +35,8 @@ NS_ASSUME_NONNULL_BEGIN
 
 - (JSContextRef)contextRef;
 
+- (FJSValue *)callFunctionNamed:(NSString*)name withArguments:(NSArray*)arguments;
+- (BOOL)hasFunctionNamed:(NSString*)name;
 
 @end
 

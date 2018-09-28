@@ -157,8 +157,6 @@
         return nil;
     }
     
-    debug(@"[functionSymbol name]: '%@'", [functionSymbol name]);
-    
     FMAssert(_runtime);
     
     FJSValue *returnValue = [functionSymbol returnValue] ? [FJSValue valueWithSymbol:[functionSymbol returnValue] inRuntime:_runtime] : nil;
@@ -191,7 +189,7 @@
             ffi_type *type = [arg FFITypeWithHint:[argSym runtimeType]];
             ffiArgs[idx]   = type;
             ffiValues[idx] = [arg objectStorage];
-            [FJSFFI describeFFIType:type];
+            //[FJSFFI describeFFIType:type];
         }
     }
     
@@ -214,9 +212,7 @@
             returnValue = nil;
         }
         
-        debug(@"returnValue: '%@'", returnValue);
-    
-        [FJSFFI describeFFIType:returnType];
+        //[FJSFFI describeFFIType:returnType];
     }
     
     if (effectiveArgumentCount > 0) {

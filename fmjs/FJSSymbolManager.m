@@ -11,6 +11,8 @@
 
 @import ObjectiveC;
 
+#pragma message "FIXME: Make FJSSymbolManager thread safe."
+
 @interface FJSSymbol (Private)
 - (FJSSymbol*)methodNamed:(NSString*)name isClass:(BOOL)isClassMethod;
 @end
@@ -283,7 +285,6 @@
         if (superClassSymbol) {
             FJSSymbol *methodSymbol = [superClassSymbol methodNamed:methodName isClass:isClassMethod];
             if (methodSymbol) {
-                debug(@"Found %@ in %@ (from %@)", methodName, superClassName, _name);
                 return methodSymbol;
             }
         }
@@ -296,8 +297,6 @@
     // OK, it wasn't part of the bridge xml file. Let's look it up in the runtime.
     Class c = NSClassFromString([self name]);
     assert(c); // We have to exist, right?
-    
-    debug(@"Looking %@ up in the runtime, since it's not in bridge.xml", methodName);
     
     SEL selector = NSSelectorFromString(methodName);
     
@@ -369,7 +368,6 @@
             
             Class objCClass = NSClassFromString(name);
             if (objCClass) {
-                debug(@"%@ class found in runtime", name);
                 sym = [[FJSSymbol alloc] init];
                 [sym setSymbolType:@"class"];
                 [sym setName:name];

@@ -13,6 +13,7 @@
 
 #import <objc/runtime.h>
 
+#pragma message "FIXME: Get rid of _structData, store it in the pointerValue, and add a flag that we own the memory"
 
 @interface FJSValue ()
 
@@ -53,12 +54,10 @@ static size_t FJSValueLiveInstances = 0;
             obj = [NSString stringWithFormat:@"%@ of %ld bytes", NSStringFromClass([obj class]), [(NSData*)obj length]];
         }
         
-        debug(@"FJSValue dealloc releasing %@", obj);
         CFRelease(_cValue.value.pointerValue);
     }
     
     if (_cValue.type == _C_STRUCT_B) {
-        debug(@"FJSValue dealloc releasing structure %@", [_symbol runtimeType]);
         free(_structData);
     }
     
@@ -401,8 +400,6 @@ static size_t FJSValueLiveInstances = 0;
     if ([typeEncoding isEqualToString:@"@"]) {
         return &ffi_type_pointer;
     }
-    
-    debug(@"NO SYMBOL IN WRAPPER: %@", self);
     
     if (_cValue.type == _C_ID) {
         return &ffi_type_pointer;

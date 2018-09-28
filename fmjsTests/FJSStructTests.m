@@ -141,11 +141,7 @@ APPKIT_EXTERN const CGRect FJSRuntimeTestCGRect;
         
         XCTAssert([FJSSymbol symbolForName:@"CGRectInset"]);
         CGRect inset = [[runtime evaluateScript:@"CGRectInset(CGRectMake(74, 78, 11, 16), 2, 3)"] toCGRect];
-
-        debug(@"inset: %@", NSStringFromRect(inset));
         
-
-
         XCTAssert(FJSEqualFloats(inset.origin.x, 76));
         XCTAssert(FJSEqualFloats(inset.origin.y, 81));
         XCTAssert(FJSEqualFloats(inset.size.width, 7));
@@ -166,20 +162,9 @@ APPKIT_EXTERN const CGRect FJSRuntimeTestCGRect;
         XCTAssert(FJSEqualFloats(r.size.width, 11));
         XCTAssert(FJSEqualFloats(r.size.height, 16));
         
-        
-        
-        
-        
-        
         [runtime shutdown];
         
     }
-    
-    #pragma message "FIXME: Why is the value not deallocating? We need to add some tests that show the struct memory being cleared up."
-    
-    
-    
-    
 }
 
 - (void)testCGRectBridgeStructFFIBuild {

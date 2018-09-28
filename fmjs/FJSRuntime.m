@@ -17,6 +17,9 @@
 #import <objc/runtime.h>
 #import <dlfcn.h>
 
+#pragma message "FIXME: Add an exception handler"
+#pragma message "FIXME: Add a queue"
+
 const CGRect FJSRuntimeTestCGRect = {74, 78, 11, 16};
 
 @interface FJSRuntime () {
@@ -345,12 +348,7 @@ JSValueRef FJS_getProperty(JSContextRef ctx, JSObjectRef object, JSStringRef pro
         return nil;
     }
     
-    //BOOL isGlobalLookup = object == JSContextGetGlobalObject(ctx);
-    //debug(@"isGlobalLookup: %d (%@)", isGlobalLookup, propertyName);
-    
     FJSRuntime *runtime = [FJSRuntime runtimeInContext:ctx];
-    
-    debug(@"Getting property: '%@' (%p)", propertyName, object);
     
     if ([propertyName isEqualToString:@"toString"] || [propertyName isEqualToString:@"Symbol.toStringTag"]/* || [propertyName isEqualToString:@"Symbol.toPrimitive"]*/) {
         FJSValue *w = [FJSValue valueForJSObject:object inRuntime:runtime];
@@ -358,9 +356,8 @@ JSValueRef FJS_getProperty(JSContextRef ctx, JSObjectRef object, JSStringRef pro
         return [w toJSString];
     }
     
-    FJSValue *objectWrapper = [FJSValue valueForJSObject:object inRuntime:runtime];
-    FJSSymbol *sym = [FJSSymbol symbolForName:propertyName inObject:[objectWrapper instance]];
-    
+    FJSValue *valueFromJSObject = [FJSValue valueForJSObject:object inRuntime:runtime];
+    FJSSymbol *sym = [FJSSymbol symbolForName:propertyName inObject:[valueFromJSObject instance]];
     
     if (sym) {
         
@@ -377,12 +374,11 @@ JSValueRef FJS_getProperty(JSContextRef ctx, JSObjectRef object, JSStringRef pro
             Class class = NSClassFromString(propertyName);
             assert(class);
             
-            FJSValue *w = [FJSValue valueWithSymbol:sym inRuntime:runtime];
+            FJSValue *value = [FJSValue valueWithSymbol:sym inRuntime:runtime];
             
+            [value setClass:class];
             
-            [w setClass:class];
-            
-            JSValueRef jsValue = [runtime newJSValueForWrapper:w];
+            JSValueRef jsValue = [runtime newJSValueForWrapper:value];
             
             return jsValue;
         }
@@ -402,27 +398,13 @@ JSValueRef FJS_getProperty(JSContextRef ctx, JSObjectRef object, JSStringRef pro
                 // This is all wrong I just know it.
                 void *p = type == _C_STRUCT_B ? dlsymbol : (*(void**)dlsymbol);
                 
-                FJSValue *val = [FJSValue valueWithConstantPointer:p ofType:type inRuntime:runtime];
-                [val setSymbol:sym];
+                FJSValue *value = [FJSValue valueWithConstantPointer:p ofType:type inRuntime:runtime];
+                [value setSymbol:sym];
                 
-                JSValueRef jsValue = [runtime newJSValueForWrapper:val];
+                JSValueRef jsValue = [runtime newJSValueForWrapper:value];
                 
                 return jsValue;
             }
-        }
-    }
-    
-    if ([objectWrapper symbol]) {
-        // We have a symbol of some sort!
-        // Maybe we're going to call a method on a class.
-        
-        if ([[[objectWrapper symbol] symbolType] isEqualToString:@"class"]) {
-            // Look up a method on it I guess?
-            debug(@"looking up a method or property on %@", [[objectWrapper symbol] name]);
-            
-            FJSSymbol *classMethod = [[objectWrapper symbol] classMethodNamed:propertyName];
-            debug(@"classMethod: '%@'", classMethod);
-            
         }
     }
     
@@ -436,8 +418,6 @@ static JSValueRef FJS_callAsFunction(JSContextRef context, JSObjectRef functionJ
     
     FJSValue *objectToCall = [FJSValue valueForJSObject:thisObject inRuntime:runtime];
     FJSValue *functionToCall = [FJSValue valueForJSObject:functionJS inRuntime:runtime];
-    
-    debug(@"Calling function '%@'", [[functionToCall symbol] name]);
     
     NSMutableArray *args = [NSMutableArray arrayWithCapacity:argumentCount];
     for (size_t idx = 0; idx < argumentCount; idx++) {
@@ -461,13 +441,8 @@ static JSValueRef FJS_callAsFunction(JSContextRef context, JSObjectRef functionJ
 }
 
 static void FJS_finalize(JSObjectRef object) {
-    debug(@"finalize: %p", object);
     
     CFTypeRef value = JSObjectGetPrivate(object);
-    
-    debug(@"value: '%@'", value);
-    
-    //FJSValue *value = (__bridge FJSValue *)(JSObjectGetPrivate(object));
     
     if (value) {
         CFRelease(value);
@@ -479,7 +454,7 @@ void print(id s) {
         s = @"<null>";
     }
     
-    printf("** %s\n", [[s description] UTF8String]);
+    printf("%s\n", [[s description] UTF8String]);
 }
 
 void FJSAssert(BOOL b) {

@@ -67,7 +67,6 @@ int FJSSimpleTestsMethodCalled;
 
 - (void)dealloc {
     FJSSimpleTestsDeallocHappend++;
-    NSLog(@"Gone! (%d)", FJSSimpleTestsDeallocHappend);
 }
 
 @end

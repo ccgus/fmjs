@@ -194,16 +194,14 @@ int FJSSimpleTestsMethodCalled;
     
     // Note- when guard malloc is turned on in 10.14, the Apple JPEG decoders trip it up. Hurray.
     
-    #pragma message "FIXME: Throw in a imageByApplyingTransform for the CIImage stuff."
-    
-    #pragma message "FIXME: Gus- adding in r = r.imageByCroppingToRect_(CGRectMake(0, 0, 500, 500)); cause the app to have an assertion fail (and the image isn't made)"
-    
     NSString *code = @"\
     var url = NSURL.fileURLWithPath_('/Library/Desktop Pictures/Yosemite.jpg');\n\
     var img = CIImage.imageWithContentsOfURL_(url)\n\
     var f = CIFilter.filterWithName_('CIColorInvert');\n\
     f.setValue_forKey_(img, kCIInputImageKey);\n\
     var r = f.outputImage();\n\
+    r = r.imageByCroppingToRect_(CGRectMake(0, 0, 500, 500));\n\
+    r = r.imageByApplyingTransform_(CGAffineTransformMakeScale(.5, .5));\n\
     var tiff = r.TIFFRepresentation();\n\
     tiff.writeToFile_atomically_('/tmp/foo.tiff', true);\n\
     NSWorkspace.sharedWorkspace().openFile_('/tmp/foo.tiff');";

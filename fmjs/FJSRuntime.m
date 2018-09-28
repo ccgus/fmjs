@@ -17,7 +17,6 @@
 #import <objc/runtime.h>
 #import <dlfcn.h>
 
-#pragma message "FIXME: Add a print handler?"
 NSString *FMJavaScriptExceptionName = @"FMJavaScriptException";
 const CGRect FJSRuntimeTestCGRect = {74, 78, 11, 16};
 static const void * const kDispatchQueueSpecificKey = &kDispatchQueueSpecificKey;
@@ -35,7 +34,7 @@ static const void * const kDispatchQueueSpecificKey = &kDispatchQueueSpecificKey
 
 #define FJSRuntimeLookupKey @"__FJSRuntimeLookupKey__"
 
-static FJSRuntime *FJSCurrentCOScriptLite;
+static FJSRuntime *FJSCurrentRuntime;
 
 static void FJS_initialize(JSContextRef ctx, JSObjectRef object);
 static void FJS_finalize(JSObjectRef object);
@@ -45,8 +44,8 @@ static JSValueRef FJS_callAsFunction(JSContextRef ctx, JSObjectRef functionJS, J
 
 @implementation FJSRuntime
 
-+ (FJSRuntime*)currentCOScriptLite {
-    return FJSCurrentCOScriptLite;
++ (FJSRuntime*)currentRuntime {
+    return FJSCurrentRuntime;
 }
 
 + (instancetype)runtimeInContext:(JSContextRef)context {
@@ -148,18 +147,24 @@ static JSValueRef FJS_callAsFunction(JSContextRef ctx, JSObjectRef functionJS, J
 }
 
 - (void)pushAsCurrentFJS {
-    [self setPreviousRuntime:FJSCurrentCOScriptLite];
-    FJSCurrentCOScriptLite = self;
+    // FIXME: This doesn't nest at all.
+    [self setPreviousRuntime:FJSCurrentRuntime];
+    FJSCurrentRuntime = self;
 }
 
 - (void)popAsCurrentFJS {
-    FJSCurrentCOScriptLite = [self previousRuntime];
+    FJSCurrentRuntime = [self previousRuntime];
 }
 
 - (void)reportNSException:(NSException*)e {
     
     if (_exceptionHandler) {
         _exceptionHandler(self, e);
+    }
+    else {
+        NSLog(@"Unhandled exception in FJSRuntime! Please assign an exception handler");
+        NSLog(@"%@", e);
+        FMAssert(NO);
     }
     
 }
@@ -487,6 +492,15 @@ JSValueRef FJS_getProperty(JSContextRef ctx, JSObjectRef object, JSStringRef pro
 static JSValueRef FJS_callAsFunction(JSContextRef context, JSObjectRef functionJS, JSObjectRef thisObject, size_t argumentCount, const JSValueRef arguments[], JSValueRef *exception) {
     
     FJSRuntime *runtime = [FJSRuntime runtimeInContext:context];
+    BOOL needsToPushRuntime = ![FJSRuntime currentRuntime];
+    if (needsToPushRuntime) {
+        [runtime pushAsCurrentFJS];
+    }
+    else if ([FJSRuntime currentRuntime] != runtime) {
+        // WTF is going on? Is one runtime calling into another? NOPE
+        assert(NO);
+    }
+    
     
     FJSValue *objectToCall = [FJSValue valueForJSObject:thisObject inRuntime:runtime];
     FJSValue *functionToCall = [FJSValue valueForJSObject:functionJS inRuntime:runtime];
@@ -507,7 +521,9 @@ static JSValueRef FJS_callAsFunction(JSContextRef context, JSObjectRef functionJ
     JSValueRef returnRef = [ret JSValue];
     FMAssert(returnRef);
     
-    //debug(@"returnRef: %@ for function '%@' (%@)", returnRef, [[functionToCall symbol] name], ret);
+    if (needsToPushRuntime) {
+        [runtime popAsCurrentFJS];
+    }
     
     return returnRef;
 }
@@ -522,11 +538,24 @@ static void FJS_finalize(JSObjectRef object) {
 }
 
 void print(id s) {
+    
+    FJSRuntime *rt = [FJSRuntime currentRuntime];
+    FMAssert(rt);
+    if (!rt) {
+        NSLog(@"No runtime found for print.");
+    }
+    
     if (!s) {
         s = @"<null>";
     }
     
-    printf("%s\n", [[s description] UTF8String]);
+    if ([rt printHandler]) {
+        [rt printHandler](rt, [s description]);
+    }
+    else {
+        printf("%s\n", [[s description] UTF8String]);
+    }
+    
 }
 
 void FJSAssert(BOOL b) {

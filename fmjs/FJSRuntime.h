@@ -19,6 +19,7 @@ NS_ASSUME_NONNULL_BEGIN
 @interface FJSRuntime : NSObject
 
 @property (copy) void(^exceptionHandler)(FJSRuntime *runtime, NSException *exception);
+@property (copy) void(^printHandler)(FJSRuntime *runtime, NSString *stringToPrint);
 
 - (FJSValue*)evaluateScript:(NSString*)str;
 - (FJSValue*)evaluateScript:(NSString *)script withSourceURL:(nullable NSURL *)sourceURL;

@@ -274,6 +274,27 @@ int FJSSimpleTestsMethodCalled;
     [runtime shutdown];
 }
 
+- (void)testPrintHandler {
+    
+    
+    FJSRuntime *runtime = [FJSRuntime new];
+    __block NSString *lastString = nil;
+    [runtime setPrintHandler:^(FJSRuntime * _Nonnull rt, NSString * _Nonnull stringToPrint) {
+        lastString = stringToPrint;
+    }];
+    
+    [runtime evaluateScript:@"print('Hello, FMJS');"];
+    
+    XCTAssert([lastString isEqualToString:@"Hello, FMJS"]);
+    
+    // TODO: How can we make the print happen outside this thread?
+    [runtime evaluateScript:@"print('Hello again!');"];
+    
+    XCTAssert([lastString isEqualToString:@"Hello again!"]);
+    
+    [runtime shutdown];
+}
+
 - (void)testExample {
     
     FJSRuntime *runtime = [FJSRuntime new];

@@ -45,8 +45,6 @@ static NSMutableDictionary *FJSFFIStructureLookup;
     NSString *methodName = [functionSymbol name];
     FJSValue *returnFValue = nil;
     
-    debug(@"methodName: '%@'", methodName);
-    
     @try {
         
         SEL selector = NSSelectorFromString(methodName);

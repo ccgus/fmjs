@@ -30,7 +30,7 @@ APPKIT_EXTERN const CGRect FJSRuntimeTestCGRect;
     // Put teardown code here. This method is called after the invocation of each test method in the class.
 }
 
-- (void)testCGRectStuff {
+- (void)testCGRectReference {
     
     CGRect originalRect = CGRectMake(74, 78, 11, 16);
     
@@ -102,10 +102,45 @@ APPKIT_EXTERN const CGRect FJSRuntimeTestCGRect;
     
     XCTAssert(returnValue);
     
-    
     free(ffiArgs);
     free(ffiValues);
     free(structReturnStorage);
+}
+
+
+- (void)testFFITestStructCaching {
+    
+    /*
+     {CGPoint=dd}16@0:8
+     {_NSAffineTransformStruct=dddddd}
+     {CGScreenUpdateMoveDelta="dX"i"dY"i}
+     {CGRect={CGPoint=dd}{CGSize=dd}}16@0:8
+     {CGSize=dd}
+     {_NSRange=QQ}
+     {_NSHashEnumerator="_pi"Q"_si"Q"_bs"^v}
+     {_NSDecimal="_exponent"i"_length"I"_isNegative"I"_isCompact"I"_reserved"I"_mantissa"[8S]}
+     {CGRect={CGPoint=dd}{CGSize=dd}}32@0:8{_NSRange=QQ}16
+     {CGPSConverterCallbacks="version"I"beginDocument"^?"endDocument"^?"beginPage"^?"endPage"^?"noteProgress"^?"noteMessage"^?"releaseInfo"^?}
+     {_NSHashTableCallBacks="hash"^?"isEqual"^?"retain"^?"release"^?"describe"^?}
+     {NSEdgeInsets=dddd}
+     {CGAffineTransform=dddddd}
+     {_NSRange=QQ}24@0:8q16
+     {_NSHashEnumerator=QQ^v}
+     */
+    
+    [FJSFFI ffiTypeForStructure:@"{CGRect={CGPoint=dd}{CGSize=dd}}16@0:8"];
+    
+    
+    NSString *cgPointStuctString = @"{CGPoint=dd}";
+    ffi_type *cgPointType = [FJSFFI ffiTypeForStructure:cgPointStuctString];
+    XCTAssert(cgPointType == [FJSFFI ffiTypeForStructure:cgPointStuctString]);
+    
+    
+    NSString *cgRectStuctString = @"{CGRect={CGPoint=dd}{CGSize=dd}}";
+    ffi_type *cgRectType = [FJSFFI ffiTypeForStructure:cgRectStuctString];
+    XCTAssert(cgRectType == [FJSFFI ffiTypeForStructure:cgRectStuctString]);
+    
+    
 }
 
 - (void)testRandomCGCrap {
@@ -208,10 +243,6 @@ APPKIT_EXTERN const CGRect FJSRuntimeTestCGRect;
         XCTAssert([FJSFFI countOfElementsInType:ffi_type_rect->elements[1]] == 2);
         
         [FJSFFI describeFFIType:ffi_type_rect];
-        
-        // Do we have to free the elements as well? Problaby.
-        
-        [FJSFFI freeFFIStructureType:ffi_type_rect];
     }
 }
 
@@ -240,9 +271,7 @@ APPKIT_EXTERN const CGRect FJSRuntimeTestCGRect;
         XCTAssert(ffi_type_cgsize->elements[2] == nil);
         
         XCTAssert([FJSFFI countOfElementsInType:ffi_type_cgsize] == 2);
-        // Do we have to free the elements as well? Problaby.
         
-        [FJSFFI freeFFIStructureType:ffi_type_cgsize];
     }
 }
 
@@ -274,9 +303,6 @@ APPKIT_EXTERN const CGRect FJSRuntimeTestCGRect;
         
         XCTAssert([FJSFFI countOfElementsInType:ffi_type_cgpoint] == 2);
         
-        // Do we have to free the elements as well? Problaby.
-        
-        [FJSFFI freeFFIStructureType:ffi_type_cgpoint];
     }
     
     

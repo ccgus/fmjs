@@ -336,8 +336,6 @@ static size_t FJSValueLiveInstances = 0;
         
         if (_cValue.value.pointerValue) {
             
-            debug(@"_cValue.value.pointerValue: %p", _cValue.value.pointerValue);
-            
             FMAssert([[[self symbol] symbolType] isEqualToString:@"constant"]);
             return _cValue.value.pointerValue;
         }

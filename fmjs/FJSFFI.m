@@ -22,6 +22,8 @@
 @property (weak) FJSRuntime *runtime;
 @end
 
+static NSMutableDictionary *FJSFFIStructureLookup;
+
 @implementation FJSFFI
 
 
@@ -337,29 +339,73 @@
 
 + (ffi_type *)ffiTypeForStructure:(NSString*)structEncoding {
     
+    static dispatch_once_t onceToken;
+    dispatch_once(&onceToken, ^{
+        FJSFFIStructureLookup = [NSMutableDictionary dictionary];
+    });
+    
+    NSValue *v = [FJSFFIStructureLookup objectForKey:structEncoding];
+    if (v) {
+        return [v pointerValue];
+    }
+    
     FMAssert([structEncoding hasPrefix:@"{"]);
     if (![structEncoding hasPrefix:@"{"]) {
         NSLog(@"Struct '%@' has wrong prefix (needed '{')", structEncoding);
         return nil;
     }
     
-    TDTokenizer *tokenizer  = [TDTokenizer tokenizerWithString:structEncoding];
-    TDToken *tok            = [tokenizer nextToken];
-    NSString *sv            = [tok stringValue];
-    FMAssert([sv isEqualToString:@"{"]);
-
-    NSArray *elements = [self ffiElementsForTokenizer:tokenizer];
+    ffi_type *type = nil;
     
-    return [self ffiTypeForArrayEncoding:elements];
+    @synchronized (self) {
+        
+        TDTokenizer *tokenizer  = [TDTokenizer tokenizerWithString:structEncoding];
+        TDToken *tok            = [tokenizer nextToken];
+        NSString *sv            = [tok stringValue];
+        FMAssert([sv isEqualToString:@"{"]);
+        
+        NSArray *elements = [self ffiElementsForTokenizer:tokenizer];
+        
+        while ((tok = [tokenizer nextToken]) != [TDToken EOFToken]) {
+            debug(@"remaining in structure, being ignored: '%@'", [tok stringValue]);
+        }
+        
+        type = [self ffiTypeForArrayEncoding:elements];
+        
+        [FJSFFIStructureLookup setObject:[NSValue valueWithPointer:type] forKey:structEncoding];
+    }
+    
+    FMAssert(type);
+    
+    return type;
+    
+    
 }
 
-+ (void)freeFFIStructureType:(ffi_type*)type {
+/* Keep this around. We're caching the ffi_type now, but… well, we might need this again some day?
++ (void)freeFFIStructureType:(ffi_type*)structType {
+ 
+    if (structType->type != FFI_TYPE_STRUCT) {
+        NSLog(@"Attempt to free a ffi_type that's not a struct.");
+        FMAssert(NO);
+        return;
+    }
     
-    #pragma message "FIXME: freeFFIType needs to do things. We either need to cache our structure, or free it up."
+    size_t idx = 0;
+    ffi_type *curElement = structType->elements[idx];
+    while (curElement) {
+        
+        if (curElement->type == FFI_TYPE_STRUCT) {
+            [self freeFFIStructureType:curElement];
+        }
+        
+        idx++;
+        curElement = structType->elements[idx];
+    }
     
-    
-    free(type);
+    free(structType);
 }
+*/
 
 + (size_t)countOfElementsInType:(ffi_type*)type {
     

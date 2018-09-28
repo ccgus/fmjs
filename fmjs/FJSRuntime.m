@@ -17,8 +17,8 @@
 #import <objc/runtime.h>
 #import <dlfcn.h>
 
-#pragma message "FIXME: Add an exception handler"
-
+#pragma message "FIXME: Add a print handler?"
+NSString *FMJavaScriptExceptionName = @"FMJavaScriptException";
 const CGRect FJSRuntimeTestCGRect = {74, 78, 11, 16};
 static const void * const kDispatchQueueSpecificKey = &kDispatchQueueSpecificKey;
 
@@ -156,6 +156,62 @@ static JSValueRef FJS_callAsFunction(JSContextRef ctx, JSObjectRef functionJS, J
     FJSCurrentCOScriptLite = [self previousRuntime];
 }
 
+- (void)reportNSException:(NSException*)e {
+    
+    if (_exceptionHandler) {
+        _exceptionHandler(self, e);
+    }
+    
+}
+
+- (void)reportPossibleJSException:(nullable JSValueRef)exception {
+    
+    if (!exception) {
+        return;
+    }
+    
+    // Taken from Mocha
+    NSString *error = nil;
+    JSStringRef resultStringJS = JSValueToStringCopy(_jsContext, exception, NULL);
+    if (resultStringJS != NULL) {
+        error = (NSString *)CFBridgingRelease(JSStringCopyCFString(kCFAllocatorDefault, resultStringJS));
+        JSStringRelease(resultStringJS);
+    }
+    
+    if (JSValueGetType(_jsContext, exception) != kJSTypeObject) {
+        [self reportNSException:[NSException exceptionWithName:FMJavaScriptExceptionName reason:error userInfo:nil]];
+    }
+    else {
+        // Iterate over all properties of the exception
+        JSObjectRef jsObject = JSValueToObject(_jsContext, exception, NULL);
+        JSPropertyNameArrayRef jsNames = JSObjectCopyPropertyNames(_jsContext, jsObject);
+        size_t count = JSPropertyNameArrayGetCount(jsNames);
+        
+        NSMutableDictionary *userInfo = [NSMutableDictionary dictionaryWithCapacity:count];
+        
+        for (size_t i = 0; i < count; i++) {
+            JSStringRef jsName = JSPropertyNameArrayGetNameAtIndex(jsNames, i);
+            NSString *name = (NSString *)CFBridgingRelease(JSStringCopyCFString(kCFAllocatorDefault, jsName));
+            
+            JSValueRef jsValueRef = JSObjectGetProperty(_jsContext, jsObject, jsName, NULL);
+            JSStringRef valueJS = JSValueToStringCopy(_jsContext, jsValueRef, NULL);
+            NSString *value = (NSString *)CFBridgingRelease(JSStringCopyCFString(kCFAllocatorDefault, valueJS));
+            JSStringRelease(valueJS);
+            
+            [userInfo setObject:value forKey:name];
+        }
+        
+        JSPropertyNameArrayRelease(jsNames);
+        
+        [self reportNSException:[NSException exceptionWithName:FMJavaScriptExceptionName reason:error userInfo:userInfo]];
+    }
+
+    
+    
+}
+
+
+
 - (JSContextRef)contextRef {
     return _jsContext;
 }
@@ -168,8 +224,8 @@ static JSValueRef FJS_callAsFunction(JSContextRef ctx, JSObjectRef functionJS, J
     JSValueRef jsValue = JSObjectGetProperty([self contextRef], JSContextGetGlobalObject([self contextRef]), jsName, &exception);
     JSStringRelease(jsName);
     
-    if (exception != NULL) {
-        FMAssert(NO);
+    if (exception) {
+        [self reportPossibleJSException:exception];
         return NULL;
     }
     
@@ -232,9 +288,12 @@ static JSValueRef FJS_callAsFunction(JSContextRef ctx, JSObjectRef functionJS, J
             
             JSValueRef result = JSEvaluateScript([self contextRef], jsString, NULL, jsScriptPath, 1, &exception);
             
+            [self reportPossibleJSException:exception];
+            
             if (jsString != NULL) {
                 JSStringRelease(jsString);
             }
+            
             if (jsScriptPath != NULL) {
                 JSStringRelease(jsScriptPath);
             }
@@ -244,6 +303,7 @@ static JSValueRef FJS_callAsFunction(JSContextRef ctx, JSObjectRef functionJS, J
         }
         @catch (NSException *exception) {
             debug(@"Exception: %@", exception);
+            [self reportNSException:exception];
         }
         @finally {
             ;
@@ -423,7 +483,6 @@ JSValueRef FJS_getProperty(JSContextRef ctx, JSObjectRef object, JSStringRef pro
     
     return nil;
 }
-
 
 static JSValueRef FJS_callAsFunction(JSContextRef context, JSObjectRef functionJS, JSObjectRef thisObject, size_t argumentCount, const JSValueRef arguments[], JSValueRef *exception) {
     

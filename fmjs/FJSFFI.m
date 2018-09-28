@@ -45,6 +45,8 @@ static NSMutableDictionary *FJSFFIStructureLookup;
     NSString *methodName = [functionSymbol name];
     FJSValue *returnFValue = nil;
     
+    debug(@"methodName: '%@'", methodName);
+    
     @try {
         
         SEL selector = NSSelectorFromString(methodName);
@@ -62,18 +64,10 @@ static NSMutableDictionary *FJSFFIStructureLookup;
         if (methodArgumentCount != [_args count]) {
             debug(@"_args: %@", _args);
             NSString *reason = [NSString stringWithFormat:@"ObjC method %@ requires %lu %@, but JavaScript passed %zd %@", NSStringFromSelector(selector), methodArgumentCount, (methodArgumentCount == 1 ? @"argument" : @"arguments"), [_args count], ([_args count] == 1 ? @"argument" : @"arguments")];
-            debug(@"reason: '%@'", reason);
-            assert(NO);
-//            NSException *e = [NSException exceptionWithName:MORuntimeException reason:reason userInfo:nil];
-//            if (exception != NULL) {
-//                *exception = [runtime JSValueForObject:e];
-//            }
-//            return NULL;
-        }
-        
-        if (methodArgumentCount != [[functionSymbol arguments] count]) {
-            // We don't have any bridge info for the arguments?
-            FMAssert(NO);
+            
+            [_runtime reportNSException:[NSException exceptionWithName:FMJavaScriptExceptionName reason:reason userInfo:nil]];
+            
+            return [FJSValue valueWithUndefinedInRuntime:_runtime];
         }
         
         NSInteger currentArgIndex = 0;
@@ -93,7 +87,12 @@ static NSMutableDictionary *FJSFFIStructureLookup;
         }
         
         // Invoke
-        [invocation invoke];
+        @try {
+            [invocation invoke];
+        }
+        @catch (NSException *exception) {
+            [_runtime reportNSException:exception];
+        }
         
         const char *returnType = [methodSignature methodReturnType];
         JSValueRef returnValue = NULL;
@@ -130,7 +129,7 @@ static NSMutableDictionary *FJSFFIStructureLookup;
         
     }
     @catch (NSException *e) {
-        debug(@"e: '%@'", e);
+        [_runtime reportNSException:e];
         assert(NO);
         return NULL;
     }
@@ -161,12 +160,20 @@ static NSMutableDictionary *FJSFFIStructureLookup;
     
     FMAssert(_runtime);
     
-    FJSValue *returnValue = [functionSymbol returnValue] ? [FJSValue valueWithSymbol:[functionSymbol returnValue] inRuntime:_runtime] : nil;
-    
     // Prepare ffi
     ffi_cif cif;
     ffi_type** ffiArgs = NULL;
     void** ffiValues = NULL;
+    
+    size_t functionArgumentCount = [[functionSymbol arguments] count];
+    if ([_args count] != functionArgumentCount) {
+        NSString *reason = [NSString stringWithFormat:@"Method %@ requires %lu %@, but JavaScript passed %zd %@", [functionSymbol name], functionArgumentCount, (functionArgumentCount == 1 ? @"argument" : @"arguments"), [_args count], ([_args count] == 1 ? @"argument" : @"arguments")];
+        
+        [_runtime reportNSException:[NSException exceptionWithName:FMJavaScriptExceptionName reason:reason userInfo:nil]];
+        
+        return [FJSValue valueWithUndefinedInRuntime:_runtime];
+    }
+    
     
     // Build the arguments
     unsigned int effectiveArgumentCount = (unsigned int)[_args count];
@@ -195,6 +202,8 @@ static NSMutableDictionary *FJSFFIStructureLookup;
         }
     }
     
+    FJSValue *returnValue = [functionSymbol returnValue] ? [FJSValue valueWithSymbol:[functionSymbol returnValue] inRuntime:_runtime] : nil;
+    
     ffi_type *returnType = returnValue ? [returnValue FFIType] : &ffi_type_void;
     
     ffi_status prep_status = ffi_prep_cif(&cif, FFI_DEFAULT_ABI, effectiveArgumentCount, returnType, ffiArgs);
@@ -207,10 +216,9 @@ static NSMutableDictionary *FJSFFIStructureLookup;
             ffi_call(&cif, callAddress, returnStorage, ffiValues);
             
             [returnValue retainReturnValue];
-            
         }
         @catch (NSException *e) {
-            debug(@"shit: %@", e);
+            [_runtime reportNSException:e];
             returnValue = nil;
         }
         

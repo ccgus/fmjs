@@ -29,6 +29,7 @@
         <retval type='B'/>
     </function>
     
+    <function name='FJSThrowException' />
     
     <function name='FJSAssert'>
         <arg type='B'/>

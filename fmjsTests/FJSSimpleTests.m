@@ -18,6 +18,7 @@
 const NSString *FJSTestConstString = @"HELLO I'M FJSTestConstString";
 const int FJSTestConstInt = 74;
 
+NSString *FJSTestExceptionReason = @"this is a test exception";
 
 int FJSSimpleTestsInitHappend;
 int FJSSimpleTestsDeallocHappend;
@@ -67,6 +68,14 @@ int FJSSimpleTestsMethodCalled;
 
 - (void)dealloc {
     FJSSimpleTestsDeallocHappend++;
+}
+
++ (void)methodThatTakesAnArgument:(id)whatever {
+    // pass.
+}
+
++ (void)throwException {
+    @throw [NSException exceptionWithName:NSGenericException reason:FJSTestExceptionReason userInfo:nil];
 }
 
 @end
@@ -186,8 +195,11 @@ int FJSSimpleTestsMethodCalled;
         }
     }
     
+    // xctest(30812,0x1000c05c0) malloc: circular parent reference in __decrement_table_slot_refcount
+    // Why is the above printing out?
+    // https://opensource.apple.com/source/libmalloc/libmalloc-116.30.3/src/stack_logging_disk.c.auto.html
     
-    XCTAssert(![FJSValue countOfLiveInstances]);
+    XCTAssert(![FJSValue countOfLiveInstances]); // If this fails, make sure you're calling shutdown on all your runtimes.
     XCTAssert(!testClass);
     XCTAssert(FJSSimpleTestsMethodCalled == count);
     XCTAssert(FJSSimpleTestsInitHappend == count);
@@ -217,11 +229,49 @@ int FJSSimpleTestsMethodCalled;
 - (void)testReentrantCrash {
     
     // If you want to test crashes on reentrantcy (is that a word?) uncomment these:
-//    FJSRuntime *runtime = [FJSRuntime new];
-//    [runtime setRuntimeObject:runtime withName:@"rt"];
-//    [runtime evaluateScript:@"print(rt);"];
-//    [runtime evaluateScript:@"rt.evaluateScript_('please crash');"];
-       
+    //    FJSRuntime *runtime = [FJSRuntime new];
+    //    [runtime setRuntimeObject:runtime withName:@"rt"];
+    //    [runtime evaluateScript:@"print(rt);"];
+    //    [runtime evaluateScript:@"rt.evaluateScript_('please crash');"];
+    
+}
+
+- (void)testExceptionHandler {
+    
+    __block NSException *lastException;
+    FJSRuntime *runtime = [FJSRuntime new];
+    [runtime setExceptionHandler:^(FJSRuntime * _Nonnull rt, NSException * _Nonnull exception) {
+        lastException = exception;
+        XCTAssert(rt == runtime);
+    }];
+    
+    [runtime evaluateScript:@"var i = 0;"];
+    XCTAssert(!lastException);
+    
+    [runtime evaluateScript:@"blh blahfd _ ++ fsjdl; !!"];
+    XCTAssert(lastException);
+    
+    lastException = nil;
+    [runtime evaluateScript:@"FJSTestClass.throwException();"];
+    XCTAssert(lastException);
+    XCTAssert([[lastException reason] isEqualToString:FJSTestExceptionReason]);
+    
+    lastException = nil;
+    [runtime evaluateScript:@"FJSThrowException();"];
+    XCTAssert(lastException);
+    XCTAssert([[lastException reason] isEqualToString:FJSTestExceptionReason]);
+    
+    
+    lastException = nil;
+    [runtime evaluateScript:@"FJSTestClass.methodThatTakesAnArgument_();"];
+    XCTAssert(lastException);
+    
+    lastException = nil;
+    [runtime evaluateScript:@"FJSTestReturnPassedObject();"];
+    XCTAssert(lastException);
+    
+    
+    [runtime shutdown];
 }
 
 - (void)testExample {
@@ -435,8 +485,9 @@ BOOL FJSTestPassNil(id o) {
     return o == nil;
 }
 
-
-
+void FJSThrowException() {
+    @throw [NSException exceptionWithName:NSGenericException reason:FJSTestExceptionReason userInfo:nil];
+}
 
 
 

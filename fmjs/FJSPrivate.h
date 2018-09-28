@@ -2,6 +2,11 @@
 #import "FJSSymbolManager.h"
 #import "FJSFFI.h"
 
+@interface FJSRuntime (Private)
+- (void)reportNSException:(NSException*)e;
+- (void)reportPossibleJSException:(nullable JSValueRef)exception;
+
+@end
 
 @interface FJSValue (Private)
 

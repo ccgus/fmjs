@@ -10,11 +10,15 @@
 
 @import JavaScriptCore;
 
+extern NSString *FMJavaScriptExceptionName;
+
 @class FJSValue;
 
 NS_ASSUME_NONNULL_BEGIN
 
 @interface FJSRuntime : NSObject
+
+@property (copy) void(^exceptionHandler)(FJSRuntime *runtime, NSException *exception);
 
 - (FJSValue*)evaluateScript:(NSString*)str;
 - (FJSValue*)evaluateScript:(NSString *)script withSourceURL:(nullable NSURL *)sourceURL;
@@ -27,6 +31,7 @@ NS_ASSUME_NONNULL_BEGIN
 - (JSValueRef)newJSValueForWrapper:(FJSValue*)w;
 
 - (JSContextRef)contextRef;
+
 
 @end
 

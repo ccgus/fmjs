@@ -422,7 +422,7 @@ static size_t FJSValueLiveInstances = 0;
         char type = _cValue.type;
         
         if (!type) {
-            FMAssert(_jsValueType);
+            
             FMAssert(_nativeJSObj);
             
             switch (_jsValueType) {

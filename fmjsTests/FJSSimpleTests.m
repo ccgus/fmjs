@@ -214,6 +214,15 @@ int FJSSimpleTestsMethodCalled;
     [runtime evaluateScript:code];
 }
 
+- (void)testReentrantCrash {
+    
+    // If you want to test crashes on reentrantcy (is that a word?) uncomment these:
+//    FJSRuntime *runtime = [FJSRuntime new];
+//    [runtime setRuntimeObject:runtime withName:@"rt"];
+//    [runtime evaluateScript:@"print(rt);"];
+//    [runtime evaluateScript:@"rt.evaluateScript_('please crash');"];
+       
+}
 
 - (void)testExample {
     

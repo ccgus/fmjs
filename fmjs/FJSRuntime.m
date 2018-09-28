@@ -18,9 +18,9 @@
 #import <dlfcn.h>
 
 #pragma message "FIXME: Add an exception handler"
-#pragma message "FIXME: Add a queue"
 
 const CGRect FJSRuntimeTestCGRect = {74, 78, 11, 16};
+static const void * const kDispatchQueueSpecificKey = &kDispatchQueueSpecificKey;
 
 @interface FJSRuntime () {
     
@@ -29,6 +29,7 @@ const CGRect FJSRuntimeTestCGRect = {74, 78, 11, 16};
 @property (weak) FJSRuntime *previousRuntime;
 @property (assign) JSGlobalContextRef jsContext;
 @property (assign) JSClassRef globalClass;
+@property (strong) dispatch_queue_t evaluateQueue;
 
 @end
 
@@ -81,6 +82,9 @@ static JSValueRef FJS_callAsFunction(JSContextRef ctx, JSObjectRef functionJS, J
         [self loadFrameworkAtPath:@"/System/Library/Frameworks/CoreGraphics.framework"];
         [self loadFrameworkAtPath:@"/System/Library/Frameworks/CoreImage.framework"];
         
+        _evaluateQueue = dispatch_queue_create([[NSString stringWithFormat:@"fmjs.evaluateQueue.%p", self] UTF8String], NULL);
+        dispatch_queue_set_specific(_evaluateQueue, kDispatchQueueSpecificKey, (__bridge void *)self, NULL);
+
         [self setupJS];
     }
     
@@ -208,37 +212,46 @@ static JSValueRef FJS_callAsFunction(JSContextRef ctx, JSObjectRef functionJS, J
 
 - (FJSValue*)evaluateScript:(NSString *)script withSourceURL:(nullable NSURL *)sourceURL {
     
-    FJSValue *returnValue = nil;
+    /* Get the currently executing queue (which should probably be nil, but in theory could be another DB queue
+     * and then check it against self to make sure we're not about to deadlock. */
+    FJSRuntime *currentSyncQueue = (__bridge id)dispatch_get_specific(kDispatchQueueSpecificKey);
+    assert(currentSyncQueue != self && "evaluateScript: was called reentrantly on the same queue, which is a programmer error.");
     
-    [self pushAsCurrentFJS];
+    __block FJSValue *returnValue = nil;
     
-    @try {
+    dispatch_sync(_evaluateQueue, ^{
         
+        [self pushAsCurrentFJS];
         
-        JSStringRef jsString = JSStringCreateWithCFString((__bridge CFStringRef)script);
-        JSStringRef jsScriptPath = (sourceURL != nil ? JSStringCreateWithUTF8CString([[sourceURL path] UTF8String]) : NULL);
-        JSValueRef exception = NULL;
-        
-        JSValueRef result = JSEvaluateScript([self contextRef], jsString, NULL, jsScriptPath, 1, &exception);
-        
-        if (jsString != NULL) {
-            JSStringRelease(jsString);
+        @try {
+            
+            
+            JSStringRef jsString = JSStringCreateWithCFString((__bridge CFStringRef)script);
+            JSStringRef jsScriptPath = (sourceURL != nil ? JSStringCreateWithUTF8CString([[sourceURL path] UTF8String]) : NULL);
+            JSValueRef exception = NULL;
+            
+            JSValueRef result = JSEvaluateScript([self contextRef], jsString, NULL, jsScriptPath, 1, &exception);
+            
+            if (jsString != NULL) {
+                JSStringRelease(jsString);
+            }
+            if (jsScriptPath != NULL) {
+                JSStringRelease(jsScriptPath);
+            }
+            
+            returnValue = [FJSValue valueForJSObject:(JSObjectRef)result inRuntime:self];
+            
         }
-        if (jsScriptPath != NULL) {
-            JSStringRelease(jsScriptPath);
+        @catch (NSException *exception) {
+            debug(@"Exception: %@", exception);
+        }
+        @finally {
+            ;
         }
         
-        returnValue = [FJSValue valueForJSObject:(JSObjectRef)result inRuntime:self];
+        [self popAsCurrentFJS];
         
-    }
-    @catch (NSException *exception) {
-        debug(@"Exception: %@", exception);
-    }
-    @finally {
-        ;
-    }
-    
-    [self popAsCurrentFJS];
+    });
     
     return returnValue;
 }

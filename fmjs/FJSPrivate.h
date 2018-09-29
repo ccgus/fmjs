@@ -14,6 +14,7 @@
 @property (strong) FJSSymbol *symbol;
 @property (assign) FJSObjCValue cValue;
 @property (assign) JSType jsValueType;
+@property (weak) FJSRuntime *runtime;
 
 
 + (instancetype)valueForJSObject:(nullable JSObjectRef)jso inRuntime:(FJSRuntime*)runtime;

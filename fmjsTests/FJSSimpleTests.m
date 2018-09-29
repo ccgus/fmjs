@@ -176,28 +176,77 @@ int FJSSimpleTestsMethodCalled;
         [runtime evaluateScript:@"c = null;"];
         XCTAssert(![[runtime evaluateScript:@"c;"] toObject]);
         
+#define USE_PRIVATE_API_FOR_SYNC_GC
+#ifdef USE_PRIVATE_API_FOR_SYNC_GC
+        // If we wanted to use private APIS, we could do this:
+        JSContextRef jsRef = CFRetain([runtime contextRef]);
+        JSGlobalContextRef global = JSGlobalContextRetain(JSContextGetGlobalContext(jsRef));
+        
         [runtime shutdown];
+        
+        // We could also define `JS_EXPORT void JSSynchronousGarbageCollectForDebugging(JSContextRef);` instead of using runtime lookups. But this feels a little safer in case JSSynchronousGarbageCollectForDebugging goes away some day.
+        void *callAddress = dlsym(RTLD_DEFAULT, "JSSynchronousGarbageCollectForDebugging");
+        if (callAddress) {
+            void (*jc)(JSContextRef) = (void (*)(JSContextRef))callAddress;
+            jc(jsRef);
+        }
+        
+        // Also this for the private APIs:
+        CFRelease(jsRef);
+        JSGlobalContextRelease(global);
+#else
+        [runtime shutdown];
+#endif
         
         XCTAssert(FJSSimpleTestsMethodCalled == count);
         XCTAssert(FJSSimpleTestsInitHappend == count);
     }
     
+    
+#ifndef USE_PRIVATE_API_FOR_SYNC_GC
     // I've seen this take over 70 seconds in the past. I'm sure there's something we can do to nudge things along, I just don't know what those are.
     NSTimeInterval startTime = [NSDate timeIntervalSinceReferenceDate];
     while (FJSSimpleTestsDeallocHappend != count) {
         debug(@"%f seconds later… %d of %d dealloced.", [NSDate timeIntervalSinceReferenceDate] - startTime, FJSSimpleTestsDeallocHappend, count);
-        [[NSRunLoop mainRunLoop] runMode:NSDefaultRunLoopMode beforeDate:[NSDate dateWithTimeIntervalSinceNow:1]];
+        [[NSRunLoop currentRunLoop] runMode:NSDefaultRunLoopMode beforeDate:[NSDate dateWithTimeIntervalSinceNow:1]];
         
         if (FJSSimpleTestsDeallocHappend == (count - 1) && testClass) {
             // The __weak ivar release isn't happening. Try compiling with -O
             XCTAssert(NO, @"The release of __weak testClass didn't happen- try compiling with -O");
             testClass = nil;
         }
+        
+        /*
+         
+         https://github.com/WebKit/webkit/blob/master/Source/JavaScriptCore/runtime/JSRunLoopTimer.cpp
+         
+         And FWIW, this is the stack trace
+         #0    0x0000000104a1f5c4 in FJS_finalize at /Volumes/srv/Users/gus/Projects/fmjs/fmjs/FJSRuntime.m:627
+         #1    0x00007fff549685be in JSC::JSCallbackObject<JSC::JSDestructibleObject>::destroy(JSC::JSCell*) ()
+         #2    0x00007fff55349761 in void JSC::MarkedBlock::Handle::specializedSweep<true, (JSC::MarkedBlock::Handle::EmptyMode)0, (JSC::MarkedBlock::Handle::SweepMode)0, (JSC::MarkedBlock::Handle::SweepDestructionMode)1, (JSC::MarkedBlock::Handle::ScribbleMode)0, (JSC::MarkedBlock::Handle::NewlyAllocatedMode)1, (JSC::MarkedBlock::Handle::MarksMode)0, JSC::JSDestructibleObjectDestroyFunc>(JSC::FreeList*, JSC::MarkedBlock::Handle::EmptyMode, JSC::MarkedBlock::Handle::SweepMode, JSC::MarkedBlock::Handle::SweepDestructionMode, JSC::MarkedBlock::Handle::ScribbleMode, JSC::MarkedBlock::Handle::NewlyAllocatedMode, JSC::MarkedBlock::Handle::MarksMode, JSC::JSDestructibleObjectDestroyFunc const&) ()
+         #3    0x00007fff55348c3d in void JSC::MarkedBlock::Handle::finishSweepKnowingHeapCellType<JSC::JSDestructibleObjectDestroyFunc>(JSC::FreeList*, JSC::JSDestructibleObjectDestroyFunc const&)::'lambda'()::operator()() const ()
+         #4    0x00007fff55330e48 in void JSC::MarkedBlock::Handle::finishSweepKnowingHeapCellType<JSC::JSDestructibleObjectDestroyFunc>(JSC::FreeList*, JSC::JSDestructibleObjectDestroyFunc const&) ()
+         #5    0x00007fff55330d0a in JSC::JSDestructibleObjectHeapCellType::finishSweep(JSC::MarkedBlock::Handle&, JSC::FreeList*) ()
+         #6    0x00007fff5507da69 in JSC::MarkedBlock::Handle::sweep(JSC::FreeList*) ()
+         #7    0x00007fff55072c3c in JSC::IncrementalSweeper::sweepNextBlock() ()
+         #8    0x00007fff5485cde8 in JSC::IncrementalSweeper::doWork() ()
+         #9    0x00007fff5537e704 in JSC::JSRunLoopTimer::timerDidFireCallback(__CFRunLoopTimer*, void*) ()
+         #10    0x00007fff5144fe6d in __CFRUNLOOP_IS_CALLING_OUT_TO_A_TIMER_CALLBACK_FUNCTION__ ()
+         #11    0x00007fff5144fa20 in __CFRunLoopDoTimer ()
+         #12    0x00007fff5144f560 in __CFRunLoopDoTimers ()
+         #13    0x00007fff514307b7 in __CFRunLoopRun ()
+         #14    0x00007fff5142fce4 in CFRunLoopRunSpecific ()
+         #15    0x00007fff537905da in -[NSRunLoop(NSRunLoop) runMode:beforeDate:] ()
+         #16    0x00000001049c8f9a in -[FJSSimpleTests testInitAndDealoc] at /Volumes/srv/Users/gus/Projects/fmjs/fmjsTests/FJSSimpleTests.m:189
+         */
     }
+#endif
     
     // xctest(30812,0x1000c05c0) malloc: circular parent reference in __decrement_table_slot_refcount
     // Why is the above printing out?
     // https://opensource.apple.com/source/libmalloc/libmalloc-116.30.3/src/stack_logging_disk.c.auto.html
+    
+    debug(@"[FJSValue countOfLiveInstances]: %ld", [FJSValue countOfLiveInstances]);
     
     XCTAssert(![FJSValue countOfLiveInstances]); // If this fails, make sure you're calling shutdown on all your runtimes.
     XCTAssert(!testClass);

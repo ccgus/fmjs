@@ -458,6 +458,10 @@ static size_t FJSValueLiveInstances = 0;
         return [self instance];
     }
     
+    if ([self isClass]) {
+        return [self rtClass];
+    }
+    
     if (_cValue.type == _C_STRUCT_B && _cValue.value.pointerValue) {
         NSValue *v = [NSValue value:&_cValue.value.pointerValue withObjCType:@encode(void *)];
         return v;

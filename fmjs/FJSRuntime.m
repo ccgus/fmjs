@@ -141,7 +141,7 @@ static JSValueRef FJS_callAsFunction(JSContextRef ctx, JSObjectRef functionJS, J
         
         JSClassRelease(_globalClass);
         
-        JSGarbageCollect(_jsContext);
+        [self garbageCollect];
         
         JSGlobalContextRelease(_jsContext);
         
@@ -624,6 +624,16 @@ static void FJS_finalize(JSObjectRef object) {
     CFTypeRef value = JSObjectGetPrivate(object);
     
     if (value) {
+        
+        if ([(__bridge id)value isKindOfClass:[FJSValue class]]) {
+            FMAssert(![(__bridge FJSValue*)value isJSNative]); // Sanity.
+            FJSRuntime *rt = [(__bridge FJSValue*)value runtime];
+            
+            if ([rt finalizeHandler]) {
+                [rt finalizeHandler](rt, (__bridge FJSValue*)value);
+            }
+        }
+        
         CFRelease(value);
     }
 }

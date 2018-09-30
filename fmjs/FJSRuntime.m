@@ -72,9 +72,10 @@ static JSValueRef FJS_callAsFunction(JSContextRef ctx, JSObjectRef functionJS, J
     if (self) {
         
         NSString *FMJSBridgeSupportPath = [[NSBundle bundleForClass:[self class]] pathForResource:@"FJS" ofType:@"bridgesupport"];
-        FMAssert(FMJSBridgeSupportPath);
         
-        [[FJSSymbolManager sharedManager] parseBridgeFileAtPath:FMJSBridgeSupportPath];
+        if (FMJSBridgeSupportPath) {
+            [[FJSSymbolManager sharedManager] parseBridgeFileAtPath:FMJSBridgeSupportPath];
+        }
         
         static dispatch_once_t onceToken;
         dispatch_once(&onceToken, ^{

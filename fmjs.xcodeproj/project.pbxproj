@@ -23,6 +23,14 @@
 		CC515376215300A20076B554 /* FJSTests.bridgesupport in Resources */ = {isa = PBXBuildFile; fileRef = CC5153742153004D0076B554 /* FJSTests.bridgesupport */; };
 		CC5DAA8C2157095A0089A633 /* TDConglomerate.h in Headers */ = {isa = PBXBuildFile; fileRef = CC5DAA8A2157095A0089A633 /* TDConglomerate.h */; };
 		CC5DAA8D2157095A0089A633 /* TDConglomerate.m in Sources */ = {isa = PBXBuildFile; fileRef = CC5DAA8B2157095A0089A633 /* TDConglomerate.m */; settings = {COMPILER_FLAGS = "-fno-objc-arc"; }; };
+		CC92AE2721618497001F0CA4 /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = CC92AE2621618497001F0CA4 /* main.m */; };
+		CC92AE2B21618506001F0CA4 /* FJSSymbolManager.m in Sources */ = {isa = PBXBuildFile; fileRef = CCB1855D214D7B3000346D2F /* FJSSymbolManager.m */; };
+		CC92AE2C21618506001F0CA4 /* FJSFFI.m in Sources */ = {isa = PBXBuildFile; fileRef = CCB1855F214D7B3000346D2F /* FJSFFI.m */; };
+		CC92AE2D21618506001F0CA4 /* FJSRuntime.m in Sources */ = {isa = PBXBuildFile; fileRef = CCB18561214D7B3000346D2F /* FJSRuntime.m */; };
+		CC92AE2E21618506001F0CA4 /* FJSUtil.m in Sources */ = {isa = PBXBuildFile; fileRef = CCB18565214D7B3000346D2F /* FJSUtil.m */; };
+		CC92AE2F21618506001F0CA4 /* FJSValue.m in Sources */ = {isa = PBXBuildFile; fileRef = CCB18567214D7B3000346D2F /* FJSValue.m */; };
+		CC92AE3021618506001F0CA4 /* TDConglomerate.m in Sources */ = {isa = PBXBuildFile; fileRef = CC5DAA8B2157095A0089A633 /* TDConglomerate.m */; settings = {COMPILER_FLAGS = "-fno-objc-arc"; }; };
+		CC92AE3321618720001F0CA4 /* FJSInterpreter.m in Sources */ = {isa = PBXBuildFile; fileRef = CC92AE3121618720001F0CA4 /* FJSInterpreter.m */; };
 		CCB18568214D7B3000346D2F /* FJS.bridgesupport in Resources */ = {isa = PBXBuildFile; fileRef = CCB1855A214D7B3000346D2F /* FJS.bridgesupport */; };
 		CCB18569214D7B3000346D2F /* FJS.h in Headers */ = {isa = PBXBuildFile; fileRef = CCB1855B214D7B3000346D2F /* FJS.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		CCB1856A214D7B3000346D2F /* FJSSymbolManager.h in Headers */ = {isa = PBXBuildFile; fileRef = CCB1855C214D7B3000346D2F /* FJSSymbolManager.h */; settings = {ATTRIBUTES = (Public, ); }; };
@@ -47,6 +55,18 @@
 		};
 /* End PBXContainerItemProxy section */
 
+/* Begin PBXCopyFilesBuildPhase section */
+		CC92AE2221618496001F0CA4 /* CopyFiles */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = /usr/share/man/man1/;
+			dstSubfolderSpec = 0;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 1;
+		};
+/* End PBXCopyFilesBuildPhase section */
+
 /* Begin PBXFileReference section */
 		CC1A28142154245F003B72BF /* FJSPrivate.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = FJSPrivate.h; sourceTree = "<group>"; };
 		CC2F20A3214D7A3700F38D03 /* FMJS.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = FMJS.framework; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -69,6 +89,10 @@
 		CC5DAA7021558FC50089A633 /* FJSSimpleTests.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = FJSSimpleTests.h; sourceTree = "<group>"; };
 		CC5DAA8A2157095A0089A633 /* TDConglomerate.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = TDConglomerate.h; sourceTree = "<group>"; };
 		CC5DAA8B2157095A0089A633 /* TDConglomerate.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = TDConglomerate.m; sourceTree = "<group>"; };
+		CC92AE2421618496001F0CA4 /* tool */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = tool; sourceTree = BUILT_PRODUCTS_DIR; };
+		CC92AE2621618497001F0CA4 /* main.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = main.m; sourceTree = "<group>"; };
+		CC92AE3121618720001F0CA4 /* FJSInterpreter.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = FJSInterpreter.m; sourceTree = "<group>"; };
+		CC92AE3221618720001F0CA4 /* FJSInterpreter.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = FJSInterpreter.h; sourceTree = "<group>"; };
 		CCB1855A214D7B3000346D2F /* FJS.bridgesupport */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.xml; path = FJS.bridgesupport; sourceTree = "<group>"; };
 		CCB1855B214D7B3000346D2F /* FJS.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = FJS.h; sourceTree = "<group>"; };
 		CCB1855C214D7B3000346D2F /* FJSSymbolManager.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = FJSSymbolManager.h; sourceTree = "<group>"; };
@@ -110,6 +134,13 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		CC92AE2121618496001F0CA4 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
@@ -120,6 +151,7 @@
 				CC2F20A5214D7A3700F38D03 /* fmjs */,
 				CC2F20B0214D7A3700F38D03 /* fmjsTests */,
 				CC4C3C772150193F005CA4A6 /* FJSTestApp */,
+				CC92AE2521618497001F0CA4 /* tool */,
 				CC2F20A4214D7A3700F38D03 /* Products */,
 				CC4C3C87215019F6005CA4A6 /* Frameworks */,
 			);
@@ -131,6 +163,7 @@
 				CC2F20A3214D7A3700F38D03 /* FMJS.framework */,
 				CC2F20AC214D7A3700F38D03 /* FMJSTests.xctest */,
 				CC4C3C762150193F005CA4A6 /* FJSTestApp.app */,
+				CC92AE2421618496001F0CA4 /* tool */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -190,6 +223,16 @@
 				CC4C3C89215045E0005CA4A6 /* JavaScriptCore.framework */,
 			);
 			name = Frameworks;
+			sourceTree = "<group>";
+		};
+		CC92AE2521618497001F0CA4 /* tool */ = {
+			isa = PBXGroup;
+			children = (
+				CC92AE3221618720001F0CA4 /* FJSInterpreter.h */,
+				CC92AE3121618720001F0CA4 /* FJSInterpreter.m */,
+				CC92AE2621618497001F0CA4 /* main.m */,
+			);
+			path = tool;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -266,6 +309,23 @@
 			productReference = CC4C3C762150193F005CA4A6 /* FJSTestApp.app */;
 			productType = "com.apple.product-type.application";
 		};
+		CC92AE2321618496001F0CA4 /* tool */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = CC92AE2A21618497001F0CA4 /* Build configuration list for PBXNativeTarget "tool" */;
+			buildPhases = (
+				CC92AE2021618496001F0CA4 /* Sources */,
+				CC92AE2121618496001F0CA4 /* Frameworks */,
+				CC92AE2221618496001F0CA4 /* CopyFiles */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = tool;
+			productName = tool;
+			productReference = CC92AE2421618496001F0CA4 /* tool */;
+			productType = "com.apple.product-type.tool";
+		};
 /* End PBXNativeTarget section */
 
 /* Begin PBXProject section */
@@ -289,6 +349,9 @@
 							};
 						};
 					};
+					CC92AE2321618496001F0CA4 = {
+						CreatedOnToolsVersion = 10.0;
+					};
 				};
 			};
 			buildConfigurationList = CC2F209D214D7A3700F38D03 /* Build configuration list for PBXProject "fmjs" */;
@@ -307,6 +370,7 @@
 				CC2F20A2214D7A3700F38D03 /* FMJS */,
 				CC2F20AB214D7A3700F38D03 /* FMJSTests */,
 				CC4C3C752150193F005CA4A6 /* FJSTestApp */,
+				CC92AE2321618496001F0CA4 /* tool */,
 			);
 		};
 /* End PBXProject section */
@@ -369,6 +433,21 @@
 			files = (
 				CC4C3C8221501940005CA4A6 /* main.m in Sources */,
 				CC4C3C7A2150193F005CA4A6 /* AppDelegate.m in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		CC92AE2021618496001F0CA4 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				CC92AE2B21618506001F0CA4 /* FJSSymbolManager.m in Sources */,
+				CC92AE2C21618506001F0CA4 /* FJSFFI.m in Sources */,
+				CC92AE3321618720001F0CA4 /* FJSInterpreter.m in Sources */,
+				CC92AE2D21618506001F0CA4 /* FJSRuntime.m in Sources */,
+				CC92AE2E21618506001F0CA4 /* FJSUtil.m in Sources */,
+				CC92AE2F21618506001F0CA4 /* FJSValue.m in Sources */,
+				CC92AE3021618506001F0CA4 /* TDConglomerate.m in Sources */,
+				CC92AE2721618497001F0CA4 /* main.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -654,6 +733,34 @@
 			};
 			name = Release;
 		};
+		CC92AE2821618497001F0CA4 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_IDENTITY = "-";
+				CODE_SIGN_STYLE = Automatic;
+				MACOSX_DEPLOYMENT_TARGET = 10.14;
+				OTHER_LDFLAGS = (
+					"-lffi",
+					"-lreadline",
+				);
+				PRODUCT_NAME = "$(TARGET_NAME)";
+			};
+			name = Debug;
+		};
+		CC92AE2921618497001F0CA4 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_IDENTITY = "-";
+				CODE_SIGN_STYLE = Automatic;
+				MACOSX_DEPLOYMENT_TARGET = 10.14;
+				OTHER_LDFLAGS = (
+					"-lffi",
+					"-lreadline",
+				);
+				PRODUCT_NAME = "$(TARGET_NAME)";
+			};
+			name = Release;
+		};
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
@@ -689,6 +796,15 @@
 			buildConfigurations = (
 				CC4C3C8521501940005CA4A6 /* Debug */,
 				CC4C3C8621501940005CA4A6 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		CC92AE2A21618497001F0CA4 /* Build configuration list for PBXNativeTarget "tool" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				CC92AE2821618497001F0CA4 /* Debug */,
+				CC92AE2921618497001F0CA4 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;

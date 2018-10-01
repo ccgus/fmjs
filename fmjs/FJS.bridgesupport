@@ -2,8 +2,4 @@
 <!DOCTYPE signatures SYSTEM "file://localhost/System/Library/DTDs/BridgeSupport.dtd">
 <signatures version='1.0'>
     
-    <function name='print'>
-        <arg type='@'/>
-    </function>
-    
 </signatures>

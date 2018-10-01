@@ -86,6 +86,14 @@ static FJSSymbolManager *FJSSymbolManagerSharedInstance = nil;
     }
 }
 
+- (void)parseBridgeString:(NSString*)str {
+    
+    NSXMLParser *p = [[NSXMLParser alloc] initWithData:[str dataUsingEncoding:NSUTF8StringEncoding]];
+    
+    [p setDelegate:self];
+    
+    [p parse];
+}
 
 - (void)parserDidStartDocument:(NSXMLParser *)parser {
     

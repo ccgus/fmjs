@@ -15,3 +15,12 @@
 - (void)run;
 
 @end
+
+
+
+@interface NSFileHandle (FJSAdditions)
+
+- (BOOL)fjs_isReadable;
+- (BOOL)fjs_isTerminal;
+
+@end

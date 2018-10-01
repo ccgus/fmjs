@@ -13,40 +13,6 @@
 #import <getopt.h>
 #import "FJS.h"
 #import "FJSInterpreter.h"
-#import <sys/select.h>
-#include <sys/_select.h>    /* select() prototype */
-
-
-@interface NSFileHandle (FJSAdditions)
-
-- (BOOL)fjs_isReadable;
-- (BOOL)fjs_isTerminal;
-
-@end
-
-@implementation NSFileHandle (FJSAdditions)
-
-- (BOOL)fjs_isReadable {
-    int fd = [self fileDescriptor];
-    fd_set fdset;
-    struct timeval tmout = { 0, 0 }; // return immediately
-    FD_ZERO(&fdset);
-    FD_SET(fd, &fdset);
-    if (select(fd + 1, &fdset, NULL, NULL, &tmout) <= 0) {
-        return NO;
-    }
-    return FD_ISSET(fd, &fdset);
-}
-
-- (BOOL)fjs_isTerminal {
-    int fd = [self fileDescriptor];
-    return (isatty(fd) == 1 ? YES : NO);
-}
-
-@end
-
-
-
 
 static const char * program_name = "fmjs";
 static const char * program_version = "0.1a";

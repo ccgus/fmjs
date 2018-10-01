@@ -8,6 +8,11 @@
 
 @end
 
+@interface FJSSymbolManager (Private)
+- (void)addSymbol:(FJSSymbol*)symbol;
+- (void)parseBridgeString:(NSString*)str;
+@end
+
 @interface FJSValue (Private)
 
 @property (assign) BOOL isJSNative;

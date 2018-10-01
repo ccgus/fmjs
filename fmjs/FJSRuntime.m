@@ -32,7 +32,7 @@ static const void * const kDispatchQueueSpecificKey = &kDispatchQueueSpecificKey
 
 @end
 
-#define FJSRuntimeLookupKey @"__FJSRuntimeLookupKey__"
+#define FJSRuntimeLookupKey @"fmjs"
 
 static FJSRuntime *FJSCurrentRuntime;
 
@@ -83,6 +83,16 @@ static JSValueRef FJS_callAsFunction(JSContextRef ctx, JSObjectRef functionJS, J
             [FJSRuntime loadFrameworkAtPath:@"/System/Library/Frameworks/AppKit.framework"];
             [FJSRuntime loadFrameworkAtPath:@"/System/Library/Frameworks/CoreGraphics.framework"];
             [FJSRuntime loadFrameworkAtPath:@"/System/Library/Frameworks/CoreImage.framework"];
+            
+            NSString *xml =
+                @"<signatures version='1.0'>"
+                    "<function name='print'>"
+                        "<arg type='@'/>"
+                    "</function>"
+                "</signatures>";
+            
+            [[FJSSymbolManager sharedManager] parseBridgeString:xml];
+            
         });
         
         _evaluateQueue = dispatch_queue_create([[NSString stringWithFormat:@"fmjs.evaluateQueue.%p", self] UTF8String], NULL);
@@ -108,7 +118,7 @@ static JSValueRef FJS_callAsFunction(JSContextRef ctx, JSObjectRef functionJS, J
     
     
     JSClassDefinition COSGlobalClassDefinition  = kJSClassDefinitionEmpty;
-    COSGlobalClassDefinition.className          = "CocoaScriptLite";
+    COSGlobalClassDefinition.className          = "FMJSClass";
     COSGlobalClassDefinition.getProperty        = FJS_getProperty;
     COSGlobalClassDefinition.initialize         = FJS_initialize;
     COSGlobalClassDefinition.finalize           = FJS_finalize;
@@ -135,11 +145,8 @@ static JSValueRef FJS_callAsFunction(JSContextRef ctx, JSObjectRef functionJS, J
 - (void)shutdown {
     
     if (_jsContext) {
-        JSValueRef exception = NULL;
-        JSStringRef jsName = JSStringCreateWithUTF8CString([FJSRuntimeLookupKey UTF8String]);
-        JSObjectDeleteProperty(_jsContext, JSContextGetGlobalObject(_jsContext), jsName, &exception);
-        JSStringRelease(jsName);
         
+        [self deleteRuntimeObjectWithName:FJSRuntimeLookupKey];
         JSClassRelease(_globalClass);
         
         [self garbageCollect];
@@ -312,6 +319,16 @@ static JSValueRef FJS_callAsFunction(JSContextRef ctx, JSObjectRef functionJS, J
 
 
 
+- (void)deleteRuntimeObjectWithName:(NSString*)name {
+    JSValueRef exception = NULL;
+    JSStringRef jsName = JSStringCreateWithUTF8CString([name UTF8String]);
+    JSObjectDeleteProperty(_jsContext, JSContextGetGlobalObject(_jsContext), jsName, &exception);
+    JSStringRelease(jsName);
+    
+    [self reportPossibleJSException:exception];
+    
+}
+
 
 
 - (id)runtimeObjectWithName:(NSString *)name {
@@ -335,11 +352,7 @@ static JSValueRef FJS_callAsFunction(JSContextRef ctx, JSObjectRef functionJS, J
 - (JSValueRef)setRuntimeObject:(nullable id)object withName:(NSString *)name {
     
     if (!object) {
-        JSValueRef exception = NULL;
-        JSStringRef jsName = JSStringCreateWithUTF8CString([name UTF8String]);
-        JSObjectDeleteProperty([self contextRef], JSContextGetGlobalObject([self contextRef]), jsName, &exception);
-        JSStringRelease(jsName);
-        return nil;
+        [self deleteRuntimeObjectWithName:name];
     }
     
     FJSValue *w = [FJSValue valueWithInstance:(__bridge CFTypeRef _Nonnull)(object) inRuntime:self];
@@ -357,6 +370,7 @@ static JSValueRef FJS_callAsFunction(JSContextRef ctx, JSObjectRef functionJS, J
         return NULL;
     }
     
+#pragma message "FIXME: Return a FJSValue in setRuntimeObject:"
     return jsValue;
 }
 
@@ -638,6 +652,7 @@ static void FJS_finalize(JSObjectRef object) {
         CFRelease(value);
     }
 }
+
 
 void print(id s) {
     

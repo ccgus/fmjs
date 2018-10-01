@@ -15,6 +15,7 @@
 #import <string.h>
 #import <readline/readline.h>
 #import <readline/history.h>
+#import <sys/select.h>
 
 
 static const char interactivePrompt[] = "> ";
@@ -46,7 +47,15 @@ static const char interactivePrompt[] = "> ";
 
 - (void)run {
     FJSRuntime *runtime = [FJSRuntime new];
-    //[runtime setDelegate:self];
+    
+    [runtime setExceptionHandler:^(FJSRuntime * _Nonnull rt, NSException * _Nonnull e) {
+        if ([e userInfo] != nil) {
+            printf("%s: %s\n%s\n", [[e name] UTF8String], [[e reason] UTF8String], [[[e userInfo] description] UTF8String]);
+        }
+        else {
+            printf("%s: %s\n", [[e name] UTF8String], [[e reason] UTF8String]);
+        }
+    }];
     
     [self installBuiltins];
     
@@ -62,35 +71,14 @@ static const char interactivePrompt[] = "> ";
         
         NSString *string = [NSString stringWithCString:(const char *)line encoding:NSUTF8StringEncoding];
         
-        if ([string length] > 0) {
-            @try {
-                [runtime evaluateScript:string];
-//
-//                JSValueRef value =
-//                if (value != NULL) {
-//                    JSStringRef string = JSValueToStringCopy([runtime context], value, NULL);
-//                    NSString *description = (NSString *)CFBridgingRelease(JSStringCopyCFString(NULL, string));
-//                    JSStringRelease(string);
-//                    printf("%s\n", [description UTF8String]);
-//                }
-//
-//                // Set the last result as the special variable "_"
-//                id object = [runtime objectForJSValue:value];
-//                if (object != nil) {
-//                    [runtime setValue:object forKey:@"_"];
-//                }
-//                else {
-//                    [runtime setNilValueForKey:@"_"];
-//                }
+        if ([string length]) {
+            
+            FJSValue *value = [runtime evaluateScript:string];
+            if (value) {
+                printf("%s\n", [[[value toObject] description] UTF8String]);
             }
-            @catch (NSException *e) {
-                if ([e userInfo] != nil) {
-                    printf("%s: %s\n%s\n", [[e name] UTF8String], [[e reason] UTF8String], [[[e userInfo] description] UTF8String]);
-                }
-                else {
-                    printf("%s: %s\n", [[e name] UTF8String], [[e reason] UTF8String]);
-                }
-            }
+            
+            
         }
         
         free(line);
@@ -127,4 +115,33 @@ static const char interactivePrompt[] = "> ";
 //    
 //    return matches;
 //}
+
+// For some reason, #import <sys/select.h> isn't good enough…
+int select(int, fd_set * __restrict, fd_set * __restrict, fd_set * __restrict, struct timeval * __restrict);
+
+@implementation NSFileHandle (FJSAdditions)
+
+- (BOOL)fjs_isReadable {
+    int fd = [self fileDescriptor];
+    fd_set fdset;
+    struct timeval tmout = { 0, 0 }; // return immediately
+    FD_ZERO(&fdset);
+    FD_SET(fd, &fdset);
+    if (select(fd + 1, &fdset, NULL, NULL, &tmout) <= 0) {
+        return NO;
+    }
+    return FD_ISSET(fd, &fdset);
+}
+
+- (BOOL)fjs_isTerminal {
+    int fd = [self fileDescriptor];
+    return (isatty(fd) == 1 ? YES : NO);
+}
+
+@end
+
+
+
+
+
 

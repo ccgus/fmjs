@@ -10,10 +10,6 @@
         </method>
     </class>
     
-    <function name='print'>
-        <arg type='@'/>
-    </function>
-    
     <function name='FJSTestReturnNil'>
     </function>
     

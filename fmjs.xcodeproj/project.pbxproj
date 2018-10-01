@@ -149,7 +149,7 @@
 			children = (
 				CC32D33221540B66000BDA47 /* README.md */,
 				CC2F20A5214D7A3700F38D03 /* fmjs */,
-				CC2F20B0214D7A3700F38D03 /* fmjsTests */,
+				CC2F20B0214D7A3700F38D03 /* tests */,
 				CC4C3C772150193F005CA4A6 /* FJSTestApp */,
 				CC92AE2521618497001F0CA4 /* tool */,
 				CC2F20A4214D7A3700F38D03 /* Products */,
@@ -191,7 +191,7 @@
 			path = fmjs;
 			sourceTree = "<group>";
 		};
-		CC2F20B0214D7A3700F38D03 /* fmjsTests */ = {
+		CC2F20B0214D7A3700F38D03 /* tests */ = {
 			isa = PBXGroup;
 			children = (
 				CC5153742153004D0076B554 /* FJSTests.bridgesupport */,
@@ -200,7 +200,7 @@
 				CC5DAA7021558FC50089A633 /* FJSSimpleTests.h */,
 				CC2F20B3214D7A3700F38D03 /* Info.plist */,
 			);
-			path = fmjsTests;
+			path = tests;
 			sourceTree = "<group>";
 		};
 		CC4C3C772150193F005CA4A6 /* FJSTestApp */ = {
@@ -659,7 +659,7 @@
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
 				DEVELOPMENT_TEAM = WZCN9HJ4VP;
-				INFOPLIST_FILE = fmjsTests/Info.plist;
+				INFOPLIST_FILE = tests/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/../Frameworks",
@@ -670,7 +670,7 @@
 					"$(SYSTEM_LIBRARY_DIR)/Frameworks/CoreGraphics.framework/Versions/A/Resources/BridgeSupport",
 				);
 				OTHER_LDFLAGS = "-lffi";
-				PRODUCT_BUNDLE_IDENTIFIER = com.flyingmeat.fmjsTests;
+				PRODUCT_BUNDLE_IDENTIFIER = com.flyingmeat.fmjs.tests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
 			name = Debug;
@@ -681,7 +681,7 @@
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
 				DEVELOPMENT_TEAM = WZCN9HJ4VP;
-				INFOPLIST_FILE = fmjsTests/Info.plist;
+				INFOPLIST_FILE = tests/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/../Frameworks",
@@ -692,7 +692,7 @@
 					"$(SYSTEM_LIBRARY_DIR)/Frameworks/CoreGraphics.framework/Versions/A/Resources/BridgeSupport",
 				);
 				OTHER_LDFLAGS = "-lffi";
-				PRODUCT_BUNDLE_IDENTIFIER = com.flyingmeat.fmjsTests;
+				PRODUCT_BUNDLE_IDENTIFIER = com.flyingmeat.fmjs.tests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
 			name = Release;

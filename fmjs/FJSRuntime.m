@@ -349,15 +349,16 @@ static JSValueRef FJS_callAsFunction(JSContextRef ctx, JSObjectRef functionJS, J
     return [w instance];
 }
 
-- (JSValueRef)setRuntimeObject:(nullable id)object withName:(NSString *)name {
+- (FJSValue*)setRuntimeObject:(nullable id)object withName:(NSString *)name {
     
     if (!object) {
         [self deleteRuntimeObjectWithName:name];
     }
     
-    FJSValue *w = [FJSValue valueWithInstance:(__bridge CFTypeRef _Nonnull)(object) inRuntime:self];
+    FJSValue *value = [FJSValue valueWithInstance:(__bridge CFTypeRef _Nonnull)(object) inRuntime:self];
     
-    JSValueRef jsValue = [self newJSValueForWrapper:w];
+    #pragma message "FIXME: Does this mean value is retained twice? What happens if we call JSValue on value?"
+    JSValueRef jsValue = [self newJSValueForWrapper:value];
     
     // Set
     JSValueRef exception = NULL;
@@ -370,8 +371,7 @@ static JSValueRef FJS_callAsFunction(JSContextRef ctx, JSObjectRef functionJS, J
         return NULL;
     }
     
-#pragma message "FIXME: Return a FJSValue in setRuntimeObject:"
-    return jsValue;
+    return value;
 }
 
 - (void)garbageCollect {
@@ -429,7 +429,6 @@ static JSValueRef FJS_callAsFunction(JSContextRef ctx, JSObjectRef functionJS, J
 }
 
 - (FJSValue*)evaluateScript:(NSString*)script {
-    
     return [self evaluateScript:script withSourceURL:nil];
 }
 

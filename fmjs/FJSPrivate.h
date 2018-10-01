@@ -9,6 +9,7 @@
 @end
 
 @interface FJSSymbolManager (Private)
+- (NSArray*)symbolNames;
 - (void)addSymbol:(FJSSymbol*)symbol;
 - (void)parseBridgeString:(NSString*)str;
 @end

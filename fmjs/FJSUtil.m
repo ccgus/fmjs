@@ -134,6 +134,10 @@ id FJSNativeObjectFromJSValue(JSValueRef jsValue, NSString *typeEncoding, JSCont
         return nil;
     }
     
+    if ([typeEncoding isEqualToString:@"?"]) { // _C_UNDEF
+        return nil;
+    }
+    
     debug(@"Not sure what to do with type encoding '%@'", typeEncoding);
     
     //assert(NO);

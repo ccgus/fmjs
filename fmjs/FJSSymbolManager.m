@@ -21,6 +21,7 @@
 @property (strong) FJSSymbol *currentClass;
 @property (strong) FJSSymbol *currentMethod;
 @property (strong) NSMutableDictionary *symbols;
+@property (strong) NSArray *symNames;
 
 
 @end
@@ -51,6 +52,15 @@ static FJSSymbolManager *FJSSymbolManagerSharedInstance = nil;
     }
     
     return self;
+}
+
+- (NSArray*)symbolNames {
+    
+    if ([_symNames count] != [_symbols count]) {
+        _symNames = [[_symbols allKeys] sortedArrayUsingSelector:@selector(compare:)];
+    }
+    
+    return _symNames;
 }
 
 - (void)addSymbol:(FJSSymbol*)symbol {

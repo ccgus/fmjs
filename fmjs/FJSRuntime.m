@@ -353,14 +353,14 @@ static JSValueRef FJS_callAsFunction(JSContextRef ctx, JSObjectRef functionJS, J
     
     if (!object) {
         [self deleteRuntimeObjectWithName:name];
+        return nil;
     }
     
     FJSValue *value = [FJSValue valueWithInstance:(__bridge CFTypeRef _Nonnull)(object) inRuntime:self];
+    JSValueRef jsValue = [value JSValue];
     
-    #pragma message "FIXME: Does this mean value is retained twice? What happens if we call JSValue on value?"
-    JSValueRef jsValue = [self newJSValueForWrapper:value];
+    FMAssert(jsValue);
     
-    // Set
     JSValueRef exception = NULL;
     JSStringRef jsName = JSStringCreateWithUTF8CString([name UTF8String]);
     JSObjectSetProperty([self contextRef], JSContextGetGlobalObject([self contextRef]), jsName, jsValue, kJSPropertyAttributeNone, &exception);
@@ -375,7 +375,18 @@ static JSValueRef FJS_callAsFunction(JSContextRef ctx, JSObjectRef functionJS, J
 }
 
 - (void)garbageCollect {
-    JSGarbageCollect(_jsContext);
+    
+    #pragma message "FIXME: Maybe add a flag to do the sync GC? Or a compile time option?"
+    
+    // We could also define `JS_EXPORT void JSSynchronousGarbageCollectForDebugging(JSContextRef);` instead of using runtime lookups. But this feels a little safer in case JSSynchronousGarbageCollectForDebugging goes away some day.
+    void *callAddress = dlsym(RTLD_DEFAULT, "JSSynchronousGarbageCollectForDebugging");
+    if (callAddress) {
+        void (*syncGC)(JSContextRef) = (void (*)(JSContextRef))callAddress;
+        syncGC(_jsContext);
+    }
+    else {
+        JSGarbageCollect(_jsContext);
+    }
 }
 
 - (FJSValue*)evaluateScript:(NSString *)script withSourceURL:(nullable NSURL *)sourceURL {
@@ -661,14 +672,16 @@ void print(id s) {
         NSLog(@"No runtime found for print.");
     }
     
-    if (!s) {
-        s = @"<null>";
-    }
     
     if ([rt printHandler]) {
         [rt printHandler](rt, [s description]);
     }
     else {
+        
+        if (!s) {
+            s = @"<null>";
+        }
+        
         printf("%s\n", [[s description] UTF8String]);
     }
     

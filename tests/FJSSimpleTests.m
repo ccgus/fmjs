@@ -130,7 +130,12 @@ int FJSSimpleTestsMethodCalled;
     // This however, will not work. We get two arguments that are trying to be passed to passAndPrintString: The first is a js object, the second is the value of n
     // [runtime evaluateScript:@"c.passAndPrintString_`Hello again, ${n}!`;"];
     
+    [runtime evaluateScript:@"c = null;"];
+    
     [runtime shutdown];
+    
+    
+    
     
 }
 
@@ -150,6 +155,47 @@ int FJSSimpleTestsMethodCalled;
     XCTAssert([FJSSymbol symbolForName:@"stringWithCString:length:" inObject:[NSMutableString class]] != nil); // This is in bridge support on 10.14
     XCTAssert([FJSSymbol symbolForName:@"string" inObject:[NSMutableString class]] != nil); // This isn't! (at least in Foundation.bridgesupport)
 
+    
+}
+
+- (void)testRuntimeObjectDealoc {
+    
+    
+    FJSSimpleTestsInitHappend = 0;
+    FJSSimpleTestsDeallocHappend = 0;
+    FJSSimpleTestsMethodCalled = 0;
+    
+    
+    __weak __attribute__((objc_precise_lifetime)) FJSTestClass *weakTestClass;
+    
+    @autoreleasepool {
+        
+        FJSRuntime *runtime = [[FJSRuntime alloc] init];
+        
+        FJSTestClass *testClass = [FJSTestClass new];
+        weakTestClass = testClass;
+        [runtime setRuntimeObject:testClass withName:@"testClass"];
+        
+        [runtime setPrintHandler:^(FJSRuntime * _Nonnull rt, NSString * _Nonnull stringToPrint) {
+            XCTAssert(stringToPrint);
+        }];
+        
+        [runtime evaluateScript:@"print(testClass);"];
+        [runtime evaluateScript:@"testClass.testMethod();"];
+        
+        // FIXME: Why doesn't the runtime do this automatically when we shut down? Do we have to delete our objects?
+        [runtime evaluateScript:@"testClass = null;"];
+        
+        [runtime shutdown];
+        
+    }
+    
+    XCTAssert(!weakTestClass);
+    XCTAssert(FJSSimpleTestsMethodCalled == 1);
+    XCTAssert(FJSSimpleTestsInitHappend == 1);
+    
+    XCTAssert(FJSSimpleTestsDeallocHappend == 1, @"Got %d deallocs", FJSSimpleTestsDeallocHappend);
+    XCTAssert(![FJSValue countOfLiveInstances]); // If this fails, make sure you're calling shutdown on all your runtimes.
     
 }
 
@@ -176,7 +222,7 @@ int FJSSimpleTestsMethodCalled;
         [runtime evaluateScript:@"c = null;"];
         XCTAssert(![[runtime evaluateScript:@"c;"] toObject]);
         
-#define USE_PRIVATE_API_FOR_SYNC_GC
+//#define USE_PRIVATE_API_FOR_SYNC_GC
 #ifdef USE_PRIVATE_API_FOR_SYNC_GC
         // If we wanted to use private APIS, we could do this:
         JSContextRef jsRef = CFRetain([runtime contextRef]);

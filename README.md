@@ -48,3 +48,19 @@ If /usr/bin/gen_bridge_metadata isn't working because it can't find @rpath/libcl
 `sudo ln -s /Library/Developer/CommandLineTools/usr/lib/libclang.dylib`
 
 `gen_bridge_metadata -c '-lffi' ~/Projects/fmjs/fmjsTests/FJSSimpleTests.h`
+
+
+### Code Usage
+
+FMJS utilizes code and ideas from the following projects:
+
+- Mocha (https://github.com/logancollins/Mocha, Apache License)
+- PyObjC (http://pyobjc.sourceforge.net/, MIT license)
+- JSCocoa (http://inexdo.com/JSCocoa, MIT license)
+- JavaScriptCore (http://www.webkit.org/projects/javascript/index.html, WebKit license).
+- libffi-iphone (https://github.com/parmanoir/libffi-iphone, MIT license)
+- JavaScriptCore-iOS (http://www.phoboslab.org/log/2011/06/javascriptcore-project-files-for-ios, WebKit license).
+
+Files are marked appropriately when code it utilized in complete or near-complete duplicate from these awesome projects.
+
+

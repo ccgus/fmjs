@@ -89,7 +89,7 @@
 		CC5DAA7021558FC50089A633 /* FJSSimpleTests.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = FJSSimpleTests.h; sourceTree = "<group>"; };
 		CC5DAA8A2157095A0089A633 /* TDConglomerate.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = TDConglomerate.h; sourceTree = "<group>"; };
 		CC5DAA8B2157095A0089A633 /* TDConglomerate.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = TDConglomerate.m; sourceTree = "<group>"; };
-		CC92AE2421618496001F0CA4 /* tool */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = tool; sourceTree = BUILT_PRODUCTS_DIR; };
+		CC92AE2421618496001F0CA4 /* fmjs */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = fmjs; sourceTree = BUILT_PRODUCTS_DIR; };
 		CC92AE2621618497001F0CA4 /* main.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = main.m; sourceTree = "<group>"; };
 		CC92AE3121618720001F0CA4 /* FJSInterpreter.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = FJSInterpreter.m; sourceTree = "<group>"; };
 		CC92AE3221618720001F0CA4 /* FJSInterpreter.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = FJSInterpreter.h; sourceTree = "<group>"; };
@@ -163,7 +163,7 @@
 				CC2F20A3214D7A3700F38D03 /* FMJS.framework */,
 				CC2F20AC214D7A3700F38D03 /* FMJSTests.xctest */,
 				CC4C3C762150193F005CA4A6 /* FJSTestApp.app */,
-				CC92AE2421618496001F0CA4 /* tool */,
+				CC92AE2421618496001F0CA4 /* fmjs */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -309,9 +309,9 @@
 			productReference = CC4C3C762150193F005CA4A6 /* FJSTestApp.app */;
 			productType = "com.apple.product-type.application";
 		};
-		CC92AE2321618496001F0CA4 /* tool */ = {
+		CC92AE2321618496001F0CA4 /* fmjstool */ = {
 			isa = PBXNativeTarget;
-			buildConfigurationList = CC92AE2A21618497001F0CA4 /* Build configuration list for PBXNativeTarget "tool" */;
+			buildConfigurationList = CC92AE2A21618497001F0CA4 /* Build configuration list for PBXNativeTarget "fmjstool" */;
 			buildPhases = (
 				CC92AE2021618496001F0CA4 /* Sources */,
 				CC92AE2121618496001F0CA4 /* Frameworks */,
@@ -321,9 +321,9 @@
 			);
 			dependencies = (
 			);
-			name = tool;
+			name = fmjstool;
 			productName = tool;
-			productReference = CC92AE2421618496001F0CA4 /* tool */;
+			productReference = CC92AE2421618496001F0CA4 /* fmjs */;
 			productType = "com.apple.product-type.tool";
 		};
 /* End PBXNativeTarget section */
@@ -370,7 +370,7 @@
 				CC2F20A2214D7A3700F38D03 /* FMJS */,
 				CC2F20AB214D7A3700F38D03 /* FMJSTests */,
 				CC4C3C752150193F005CA4A6 /* FJSTestApp */,
-				CC92AE2321618496001F0CA4 /* tool */,
+				CC92AE2321618496001F0CA4 /* fmjstool */,
 			);
 		};
 /* End PBXProject section */
@@ -743,7 +743,7 @@
 					"-lffi",
 					"-lreadline",
 				);
-				PRODUCT_NAME = "$(TARGET_NAME)";
+				PRODUCT_NAME = fmjs;
 			};
 			name = Debug;
 		};
@@ -757,7 +757,7 @@
 					"-lffi",
 					"-lreadline",
 				);
-				PRODUCT_NAME = "$(TARGET_NAME)";
+				PRODUCT_NAME = fmjs;
 			};
 			name = Release;
 		};
@@ -800,7 +800,7 @@
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
-		CC92AE2A21618497001F0CA4 /* Build configuration list for PBXNativeTarget "tool" */ = {
+		CC92AE2A21618497001F0CA4 /* Build configuration list for PBXNativeTarget "fmjstool" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				CC92AE2821618497001F0CA4 /* Debug */,

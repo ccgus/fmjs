@@ -43,13 +43,24 @@ static char ** runtimeCompletion(const char * text, int start, int end);
 - (void)run {
     FJSRuntime *runtime = [FJSRuntime new];
     
-    [runtime setExceptionHandler:^(FJSRuntime * _Nonnull rt, NSException * _Nonnull e) {
-        if ([e userInfo] != nil) {
-            printf("%s: %s\n%s\n", [[e name] UTF8String], [[e reason] UTF8String], [[[e userInfo] description] UTF8String]);
+    
+    [runtime setExceptionHandler:^(FJSRuntime * _Nonnull rt, NSException * _Nonnull exception) {
+        
+        NSString *sourceURL = [[exception userInfo] objectForKey:@"sourceURL"];
+        NSString *line      = [[exception userInfo] objectForKey:@"line"];
+        NSString *column    = [[exception userInfo] objectForKey:@"column"];
+        
+        printf("Exception:");
+        
+        if (line && column) {
+            printf(" line %s:%s", [line UTF8String], [column UTF8String]);
         }
-        else {
-            printf("%s: %s\n", [[e name] UTF8String], [[e reason] UTF8String]);
+        if (sourceURL) {
+            printf(" of %s", [sourceURL UTF8String]);
         }
+        
+        printf("\n%s\n", [[exception description] UTF8String]);
+        
     }];
     
     [self installBuiltinsInRuntime:runtime];

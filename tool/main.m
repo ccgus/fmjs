@@ -41,7 +41,7 @@ static void printVersion(void) {
 }
 
 
-void executeScript(NSString *script, NSString *path);
+void FJSToolExecuteScript(NSString *script, NSString *path);
 
 
 int main(int argc, const char * argv[]) {
@@ -97,14 +97,14 @@ int main(int argc, const char * argv[]) {
                     exit(1);
                 }
                 
-                executeScript(s, path);
+                FJSToolExecuteScript(s, path);
             }
         }
         else if ([stdinHandle fjs_isReadable]) {
             // Execute contents of stdin
             NSData *stdinData = [stdinHandle readDataToEndOfFile];
             NSString *string = [[NSString alloc] initWithData:stdinData encoding:NSUTF8StringEncoding];
-            executeScript(string, nil);
+            FJSToolExecuteScript(string, nil);
         }
         else {
             // Interactive mode
@@ -116,8 +116,27 @@ int main(int argc, const char * argv[]) {
 }
 
 
-void executeScript(NSString *script, NSString *path) {
+void FJSToolExecuteScript(NSString *script, NSString *path) {
     FJSRuntime *rt = [FJSRuntime new];
+    
+    [rt setExceptionHandler:^(FJSRuntime * _Nonnull runtime, NSException * _Nonnull exception) {
+        
+        NSString *sourceURL = [[exception userInfo] objectForKey:@"sourceURL"];
+        NSString *line      = [[exception userInfo] objectForKey:@"line"];
+        NSString *column    = [[exception userInfo] objectForKey:@"column"];
+        
+        printf("Exception:");
+        
+        if (line && column) {
+            printf(" line %s:%s", [line UTF8String], [column UTF8String]);
+        }
+        if (sourceURL) {
+            printf(" of %s", [sourceURL UTF8String]);
+        }
+        
+        printf("\n%s\n", [[exception description] UTF8String]);
+        
+    }];
     
     if ([script length] >= 2 && [[script substringWithRange:NSMakeRange(0, 2)] isEqualToString:@"#!"]) {
         // Ignore bash shebangs

@@ -13,6 +13,7 @@
 #import "FJSRuntime.h"
 #import "FJSPrivate.h"
 
+#pragma message "FIXME: Hey Gus, use https://www.mikeash.com/pyblog/friday-qa-2011-05-06-a-tour-of-mablockclosure.html to get info about a block for automagic runtime functions."
 
 #import <objc/runtime.h>
 #import <dlfcn.h>

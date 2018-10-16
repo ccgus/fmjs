@@ -47,10 +47,49 @@ id FJSNativeObjectFromJSValue(JSValueRef jsValue, NSString *typeEncoding, JSCont
         
         if (JSValueIsObject(context, jsValue)) {
             
+            
+            JSObjectRef jsObject = JSValueToObject(context, jsValue, NULL);
+            BOOL isFunction = JSObjectIsFunction(context, jsObject);
+            FMAssert(!isFunction); // TODO
+            
+            #pragma message "FIXME: Detect if this is an array or a dictionary."
+            
+            JSPropertyNameArrayRef names = JSObjectCopyPropertyNames(context, jsObject);
+            NSUInteger length = JSPropertyNameArrayGetCount(names);
+            
+            NSMutableDictionary *dictionary = [NSMutableDictionary dictionaryWithCapacity:length];
+            JSValueRef exception = NULL;
+            
+            for (NSUInteger i=0; i<length; i++) {
+                id obj = nil;
+                JSStringRef name = JSPropertyNameArrayGetNameAtIndex(names, i);
+                JSValueRef lValue = JSObjectGetProperty(context, jsObject, name, &exception);
+                
+                if (exception) {
+                    #pragma message "FIXME: Report the exception here."
+                    return nil;
+                }
+                
+                obj = FJSNativeObjectFromJSValue(lValue, @"@", context);
+                if (obj == nil) {
+                    obj = [NSNull null];
+                }
+                
+                NSString *key = (NSString *)CFBridgingRelease(JSStringCopyCFString(kCFAllocatorDefault, name));
+                [dictionary setObject:obj forKey:key];
+            }
+            
+            JSPropertyNameArrayRelease(names);
+            
+            return dictionary;
+
+            
+            /*
             JSStringRef resultStringJS = JSValueToStringCopy(context, jsValue, NULL);
             id o = (NSString *)CFBridgingRelease(JSStringCopyCFString(kCFAllocatorDefault, resultStringJS));
             JSStringRelease(resultStringJS);
-            return [NSString stringWithFormat:@"%@ (native js object)", o];
+            return [NSString stringWithFormat:@"%@ (native js object)", o];*/
+            
         }
         
         JSType type = JSValueGetType(context, jsValue);

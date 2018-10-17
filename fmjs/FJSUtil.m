@@ -16,6 +16,76 @@ BOOL FJSCharEquals(const char *__s1, const char *__s2) {
     return (strcmp(__s1, __s2) == 0);
 }
 
+NSArray *FJSNativeArrayFromJSObject(JSObjectRef arrayValue, JSContextRef ctx) {
+    
+    JSValueRef exception = NULL;
+    JSStringRef lengthJS = JSStringCreateWithUTF8CString("length");
+    NSUInteger length = JSValueToNumber(ctx, JSObjectGetProperty(ctx, arrayValue, lengthJS, NULL), &exception);
+    JSStringRelease(lengthJS);
+    
+    if (exception) {
+        return nil;
+    }
+    
+    NSMutableArray *array = [NSMutableArray arrayWithCapacity:length];
+    
+    for (NSUInteger i=0; i<length; i++) {
+        id obj = nil;
+        JSValueRef jsValue = JSObjectGetPropertyAtIndex(ctx, arrayValue, (unsigned int)i, &exception);
+        if (exception != NULL) {
+            return nil;
+        }
+        
+        obj = FJSNativeObjectFromJSValue(jsValue, @"@", ctx);
+        if (obj == nil) {
+            obj = [NSNull null];
+        }
+        
+        [array addObject:obj];
+    }
+    
+    return [array copy];
+}
+
+NSDictionary *FJSNativeDictionaryFromJSObject(JSObjectRef jsObject, JSContextRef context) {
+    JSPropertyNameArrayRef names = JSObjectCopyPropertyNames(context, jsObject);
+    NSUInteger length = JSPropertyNameArrayGetCount(names);
+    
+    NSMutableDictionary *dictionary = [NSMutableDictionary dictionaryWithCapacity:length];
+    JSValueRef exception = NULL;
+    
+    for (NSUInteger i=0; i<length; i++) {
+        id obj = nil;
+        JSStringRef name = JSPropertyNameArrayGetNameAtIndex(names, i);
+        JSValueRef jsValue = JSObjectGetProperty(context, jsObject, name, &exception);
+        
+        if (exception != NULL) {
+            return nil;
+        }
+        
+        obj = FJSNativeObjectFromJSValue(jsValue, @"@", context);
+        if (obj == nil) {
+            obj = [NSNull null];
+        }
+        
+        NSString *key = (NSString *)CFBridgingRelease(JSStringCopyCFString(kCFAllocatorDefault, name));
+        [dictionary setObject:obj forKey:key];
+    }
+    
+    JSPropertyNameArrayRelease(names);
+    
+    return [dictionary copy];
+}
+
+BOOL FJSObjectIsArray(JSObjectRef jsObject, JSContextRef context) {
+    
+    JSStringRef scriptJS = JSStringCreateWithUTF8CString("return arguments[0].constructor == Array.prototype.constructor");
+    JSObjectRef fn = JSObjectMakeFunction(context, NULL, 0, NULL, scriptJS, NULL, 1, NULL);
+    JSValueRef result = JSObjectCallAsFunction(context, fn, NULL, 1, (JSValueRef *)&jsObject, NULL);
+    JSStringRelease(scriptJS);
+    
+    return JSValueToBoolean(context, result);
+}
 
 id FJSNativeObjectFromJSValue(JSValueRef jsValue, NSString *typeEncoding, JSContextRef context) {
     
@@ -47,49 +117,20 @@ id FJSNativeObjectFromJSValue(JSValueRef jsValue, NSString *typeEncoding, JSCont
         
         if (JSValueIsObject(context, jsValue)) {
             
-            
             JSObjectRef jsObject = JSValueToObject(context, jsValue, NULL);
             BOOL isFunction = JSObjectIsFunction(context, jsObject);
-            FMAssert(!isFunction); // TODO
             
-            #pragma message "FIXME: Detect if this is an array or a dictionary."
-            
-            JSPropertyNameArrayRef names = JSObjectCopyPropertyNames(context, jsObject);
-            NSUInteger length = JSPropertyNameArrayGetCount(names);
-            
-            NSMutableDictionary *dictionary = [NSMutableDictionary dictionaryWithCapacity:length];
-            JSValueRef exception = NULL;
-            
-            for (NSUInteger i=0; i<length; i++) {
-                id obj = nil;
-                JSStringRef name = JSPropertyNameArrayGetNameAtIndex(names, i);
-                JSValueRef lValue = JSObjectGetProperty(context, jsObject, name, &exception);
-                
-                if (exception) {
-                    #pragma message "FIXME: Report the exception here."
-                    return nil;
-                }
-                
-                obj = FJSNativeObjectFromJSValue(lValue, @"@", context);
-                if (obj == nil) {
-                    obj = [NSNull null];
-                }
-                
-                NSString *key = (NSString *)CFBridgingRelease(JSStringCopyCFString(kCFAllocatorDefault, name));
-                [dictionary setObject:obj forKey:key];
+            if (isFunction) {
+                JSStringRef resultStringJS = JSValueToStringCopy(context, jsValue, NULL);
+                NSString *functionString = (NSString *)CFBridgingRelease(JSStringCopyCFString(kCFAllocatorDefault, resultStringJS));
+                JSStringRelease(resultStringJS);
+                return functionString;
+            }
+            else if (FJSObjectIsArray(jsObject, context)) {
+                return FJSNativeArrayFromJSObject(jsObject, context);
             }
             
-            JSPropertyNameArrayRelease(names);
-            
-            return dictionary;
-
-            
-            /*
-            JSStringRef resultStringJS = JSValueToStringCopy(context, jsValue, NULL);
-            id o = (NSString *)CFBridgingRelease(JSStringCopyCFString(kCFAllocatorDefault, resultStringJS));
-            JSStringRelease(resultStringJS);
-            return [NSString stringWithFormat:@"%@ (native js object)", o];*/
-            
+            return FJSNativeDictionaryFromJSObject(jsObject, context);
         }
         
         JSType type = JSValueGetType(context, jsValue);

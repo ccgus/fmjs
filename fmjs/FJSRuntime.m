@@ -667,6 +667,8 @@ static void FJS_finalize(JSObjectRef object) {
 
 void print(id s) {
     
+    // FIXME: Use JSValueCreateJSONString in the future if it's a jsnative object?
+    
     FJSRuntime *rt = [FJSRuntime currentRuntime];
     FMAssert(rt);
     if (!rt) {

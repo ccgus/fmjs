@@ -28,6 +28,7 @@ static const void * const kDispatchQueueSpecificKey = &kDispatchQueueSpecificKey
 @property (assign) JSGlobalContextRef jsContext;
 @property (assign) JSClassRef globalClass;
 @property (strong) dispatch_queue_t evaluateQueue;
+@property (strong) NSMutableSet<NSString*> *runtimeObjectNames;
 
 @end
 
@@ -83,20 +84,19 @@ static JSValueRef FJS_callAsFunction(JSContextRef ctx, JSObjectRef functionJS, J
             [FJSRuntime loadFrameworkAtPath:@"/System/Library/Frameworks/CoreGraphics.framework"];
             [FJSRuntime loadFrameworkAtPath:@"/System/Library/Frameworks/CoreImage.framework"];
             
+            /* If we have custom functions again, we'll need this.
             NSString *xml =
                 @"<signatures version='1.0'>"
-                    //"<function name='print'>"
-                    //    "<arg type='@'/>"
-                    //"</function>"
                 "</signatures>";
             
             [[FJSSymbolManager sharedManager] parseBridgeString:xml];
-            
+            */
         });
         
         _evaluateQueue = dispatch_queue_create([[NSString stringWithFormat:@"fmjs.evaluateQueue.%p", self] UTF8String], NULL);
         dispatch_queue_set_specific(_evaluateQueue, kDispatchQueueSpecificKey, (__bridge void *)self, NULL);
         
+        _runtimeObjectNames = [NSMutableSet set];
         
         [self setupJS];
     }
@@ -138,6 +138,8 @@ static JSValueRef FJS_callAsFunction(JSContextRef ctx, JSObjectRef functionJS, J
     JSObjectSetProperty(_jsContext, JSContextGetGlobalObject(_jsContext), jsName, jsValue, kJSPropertyAttributeReadOnly|kJSPropertyAttributeDontEnum, &exception);
     JSStringRelease(jsName);
     
+    [_runtimeObjectNames addObject:FJSRuntimeLookupKey]; // This is so we can have auto-cleanup later on.
+    
     FMAssert([[self runtimeObjectWithName:FJSRuntimeLookupKey] instance] == self);
     FMAssert([FJSRuntime runtimeInContext:_jsContext]  == self);
     
@@ -159,15 +161,16 @@ static JSValueRef FJS_callAsFunction(JSContextRef ctx, JSObjectRef functionJS, J
     
     [self setRuntimeObject:printHandler withName:@"print"];
     
-    
-    
 }
 
 - (void)shutdown {
     
     if (_jsContext) {
         
-        [self deleteRuntimeObjectWithName:FJSRuntimeLookupKey];
+        for (NSString *name in [_runtimeObjectNames copy]) {
+            [self deleteRuntimeObjectWithName:name];
+        }
+        
         JSClassRelease(_globalClass);
         
         [self garbageCollect];
@@ -341,13 +344,14 @@ static JSValueRef FJS_callAsFunction(JSContextRef ctx, JSObjectRef functionJS, J
 
 
 - (void)deleteRuntimeObjectWithName:(NSString*)name {
+    debug(@"removing name: '%@'", name);
     JSValueRef exception = NULL;
     JSStringRef jsName = JSStringCreateWithUTF8CString([name UTF8String]);
     JSObjectDeleteProperty(_jsContext, JSContextGetGlobalObject(_jsContext), jsName, &exception);
     JSStringRelease(jsName);
     
     [self reportPossibleJSException:exception];
-    
+    [_runtimeObjectNames removeObject:name];
 }
 
 
@@ -369,11 +373,11 @@ static JSValueRef FJS_callAsFunction(JSContextRef ctx, JSObjectRef functionJS, J
     return w;
 }
 
-- (FJSValue*)setRuntimeObject:(nullable id)object withName:(NSString *)name {
+- (void)setRuntimeObject:(nullable id)object withName:(NSString *)name {
     
     if (!object) {
         [self deleteRuntimeObjectWithName:name];
-        return nil;
+        return;
     }
     
     FJSValue *value = nil;
@@ -394,12 +398,13 @@ static JSValueRef FJS_callAsFunction(JSContextRef ctx, JSObjectRef functionJS, J
     JSObjectSetProperty([self contextRef], JSContextGetGlobalObject([self contextRef]), jsName, jsValue, kJSPropertyAttributeNone, &exception);
     JSStringRelease(jsName);
     
+    [_runtimeObjectNames addObject:name];
+    
     if (exception != NULL) {
         FMAssert(NO);
-        return NULL;
+        return;
     }
     
-    return value;
 }
 
 - (void)garbageCollect {
@@ -574,8 +579,6 @@ JSValueRef FJS_getProperty(JSContextRef ctx, JSObjectRef object, JSStringRef pro
     if ([propertyName isEqualToString:FJSRuntimeLookupKey]) {
         return nil;
     }
-    
-    debug(@"propertyName: '%@'", propertyName);
     
     FJSRuntime *runtime = [FJSRuntime runtimeInContext:ctx];
     

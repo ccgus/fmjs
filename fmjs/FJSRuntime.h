@@ -27,7 +27,7 @@ NS_ASSUME_NONNULL_BEGIN
 - (FJSValue*)evaluateScript:(NSString*)str;
 - (FJSValue*)evaluateScript:(NSString *)script withSourceURL:(nullable NSURL *)sourceURL;
 
-- (FJSValue*)setRuntimeObject:(nullable id)object withName:(NSString *)name;
+- (void)setRuntimeObject:(nullable id)object withName:(NSString *)name;
 - (FJSValue*)runtimeObjectWithName:(NSString *)name;
 - (void)deleteRuntimeObjectWithName:(NSString*)name;
 

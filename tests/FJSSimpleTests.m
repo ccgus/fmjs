@@ -13,6 +13,7 @@
 
 @interface FJSValue (Private)
 + (size_t)countOfLiveInstances;
++ (NSPointerArray*)liveInstancesPointerArray;
 @end
 
 const NSString *FJSTestConstString = @"HELLO I'M FJSTestConstString";
@@ -89,7 +90,7 @@ int FJSSimpleTestsMethodCalled;
 - (void)setUp {
     // Put setup code here. This method is called before the invocation of each test method in the class.
     
-    [FJSRuntime new]; // Warm things up.
+    // [[FJSRuntime new] shutdown]; // Warm things up.
     
     NSString *FMJSBridgeSupportPath = [[NSBundle bundleForClass:[self class]] pathForResource:@"FJSTests" ofType:@"bridgesupport"];
     FMAssert(FMJSBridgeSupportPath);
@@ -195,7 +196,7 @@ int FJSSimpleTestsMethodCalled;
     XCTAssert(FJSSimpleTestsInitHappend == 1);
     
     XCTAssert(FJSSimpleTestsDeallocHappend == 1, @"Got %d deallocs", FJSSimpleTestsDeallocHappend);
-    XCTAssert(![FJSValue countOfLiveInstances]); // If this fails, make sure you're calling shutdown on all your runtimes.
+    XCTAssert(![FJSValue countOfLiveInstances], @"Got %ld instances still around", [FJSValue countOfLiveInstances]); // If this fails, make sure you're calling shutdown on all your runtimes.
     
 }
 
@@ -292,13 +293,30 @@ int FJSSimpleTestsMethodCalled;
     // Why is the above printing out?
     // https://opensource.apple.com/source/libmalloc/libmalloc-116.30.3/src/stack_logging_disk.c.auto.html
     
-    debug(@"[FJSValue countOfLiveInstances]: %ld", [FJSValue countOfLiveInstances]);
-    
-    XCTAssert(![FJSValue countOfLiveInstances]); // If this fails, make sure you're calling shutdown on all your runtimes.
+    XCTAssert(![FJSValue countOfLiveInstances], @"Got %ld instances still around", [FJSValue countOfLiveInstances]); // If this fails, make sure you're calling shutdown on all your runtimes.
     XCTAssert(!testClass);
     XCTAssert(FJSSimpleTestsMethodCalled == count);
     XCTAssert(FJSSimpleTestsInitHappend == count);
     XCTAssert(FJSSimpleTestsDeallocHappend == count);
+    
+    if ([FJSValue countOfLiveInstances]) {
+        
+        NSPointerArray *ar = [FJSValue liveInstancesPointerArray];
+        
+        for (NSUInteger idx = 0; idx < [ar count]; idx++) {
+            
+            FJSValue *v = [ar pointerAtIndex:idx];
+            if (v) {
+                debug(@"v: '%@'", v);
+                debug(@"[v toObject]: '%@'", [v toObject]);
+                
+            }
+        }
+        
+        abort();
+    }
+    
+    
 }
 
 - (void)testCoreImageExample {
@@ -513,6 +531,34 @@ int FJSSimpleTestsMethodCalled;
     [runtime shutdown];
 }
 
+- (void)testPrintBlockHangingAround {
+    /*
+     This test was because of an autorelease problem with setRuntimeObject:withName:
+     It was fixed, but hey let's keep this around anyway.
+     */
+    
+    FJSRuntime *runtime = [FJSRuntime new];
+    
+    [runtime shutdown];
+    
+    if ([FJSValue countOfLiveInstances]) {
+        
+        debug(@"Still have %ld live instances.", [FJSValue countOfLiveInstances]);
+        
+        NSPointerArray *ar = [FJSValue liveInstancesPointerArray];
+        
+        for (NSUInteger idx = 0; idx < [ar count]; idx++) {
+            
+            FJSValue *v = [ar pointerAtIndex:idx];
+            if (v) {
+                debug(@"v: '%@'", v);
+            }
+        }
+        
+        abort();
+    }
+}
+
 - (void)testBlock {
     
     FJSRuntime *runtime = [FJSRuntime new];
@@ -570,7 +616,7 @@ int FJSSimpleTestsMethodCalled;
     [runtime shutdown];
 }
 
-- (void)testDictonaryAccess {
+- (void)testDictionaryAccess {
     
     NSDictionary *d = @{@"a": @(123.0)};
     

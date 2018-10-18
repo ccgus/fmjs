@@ -27,7 +27,7 @@
 
 // This is used for the unit tests.
 static size_t FJSValueLiveInstances = 0;
-
+static NSPointerArray *FJSValueLiveWeakArray;
 
 @implementation FJSValue
 
@@ -35,6 +35,14 @@ static size_t FJSValueLiveInstances = 0;
     self = [super init];
     if (self) {
         FJSValueLiveInstances++;
+        
+#ifdef DEBUG
+        if (!FJSValueLiveWeakArray) {
+            FJSValueLiveWeakArray = [NSPointerArray pointerArrayWithOptions:NSPointerFunctionsWeakMemory];
+        }
+        [FJSValueLiveWeakArray addPointer:(__bridge void * _Nullable)(self)];
+#endif
+        
     }
     return self;
 }
@@ -69,6 +77,11 @@ static size_t FJSValueLiveInstances = 0;
 
 + (size_t)countOfLiveInstances { // This is used in unit testing.
     return FJSValueLiveInstances;
+}
+
++ (NSPointerArray*)liveInstancesPointerArray {
+    [FJSValueLiveWeakArray compact];
+    return FJSValueLiveWeakArray;
 }
 
 + (instancetype)valueWithNullInRuntime:(FJSRuntime*)runtime {
@@ -216,7 +229,6 @@ static size_t FJSValueLiveInstances = 0;
     
     
     if (block) { // If a null or underfined jsvalue is pushed to native- well, we get here.
-        
         id copyBlock = [(__bridge id)block copy];
         block = (__bridge CFTypeRef _Nullable)(copyBlock);
         CFRetain(block);
@@ -435,7 +447,7 @@ static size_t FJSValueLiveInstances = 0;
         return &ffi_type_pointer;
     }
     
-    if (_cValue.type == _C_ID) {
+    if (_cValue.type == _C_ID || _cValue.type == _FJSC_BLOCK) {
         return &ffi_type_pointer;
     }
     
@@ -502,6 +514,9 @@ static size_t FJSValueLiveInstances = 0;
         return v;
     }
     
+    if (_cValue.type == _FJSC_BLOCK) {
+        return [self instance];
+    }
     
     if (_cValue.value.pointerValue) {
         debug(@"Haven't implemented toObject for %c yet", _cValue.type);

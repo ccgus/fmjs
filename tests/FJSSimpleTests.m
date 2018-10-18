@@ -556,6 +556,46 @@ int FJSSimpleTestsMethodCalled;
     
     XCTAssert(foo == 3);
     
+    [runtime evaluateScript:@"var y = {name:'me'}; function foof() { print('Hello, world')}; y.f = foof; print(y)"];
+    
+    [runtime shutdown];
+}
+
+- (void)testRandomCrasher1 {
+    
+    FJSRuntime *runtime = [FJSRuntime new];
+    
+    [runtime evaluateScript:@"var x = {name:'a'}; print(x); var y = {name:'me'}; function foof() { print('Hello, world')}; y.f = foof; print(y);"];
+    
+    [runtime shutdown];
+}
+
+- (void)testDictonaryAccess {
+    
+    NSDictionary *d = @{@"a": @(123.0)};
+    
+    FJSRuntime *runtime = [FJSRuntime new];
+    
+    [runtime setRuntimeObject:d withName:@"d"];
+    
+    FJSValue *v = [runtime evaluateScript:@"d.a + 1"];
+    
+    XCTAssert([v toLong] == 124, "Got %ld", [v toLong]);
+    
+    [runtime shutdown];
+}
+
+- (void)testStringToNumber {
+    
+    FJSRuntime *runtime = [FJSRuntime new];
+    
+    FJSValue *v = [runtime evaluateScript:@"'Hello'"];
+    
+    XCTAssert([[v toObject] isEqualToString:@"Hello"], @"Got %@", [v toObject]);
+    
+    // FIXME: What should we do in this case? Right now we get a nan.
+    // XCTAssert([v toLong] == 0, "Got %ld", [v toLong]);
+    
     [runtime shutdown];
 }
 

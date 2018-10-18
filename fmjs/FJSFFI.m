@@ -161,7 +161,7 @@ static NSMutableDictionary *FJSFFIStructureLookup;
         functionSymbol = [_f symbol];
         if (!functionSymbol) {
             const char *typeEncoding = FJSTypeEncodingForBlock([_f instance]);
-            functionSymbol = [FJSSymbol symbolForTypeEncoding:typeEncoding];
+            functionSymbol = [FJSSymbol symbolForBlockTypeEncoding:typeEncoding];
             [_f setSymbol:functionSymbol];
         }
         

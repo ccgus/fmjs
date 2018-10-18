@@ -51,6 +51,7 @@ typedef struct {
 - (BOOL)toBOOL;
 - (float)toFloat;
 - (double)toDouble;
+- (int)toInt;
 - (long)toLong;
 - (long long)toLongLong;
 - (nullable void*)pointer NS_RETURNS_INNER_POINTER;

@@ -548,10 +548,15 @@ static bool FJS_hasProperty(JSContextRef ctx, JSObjectRef object, JSStringRef pr
         return nil;
     }
     
-    //debug(@"FJS_hasProperty: '%@'?", propertyName);
-    
     FJSRuntime *runtime   = [FJSRuntime runtimeInContext:ctx];
     FJSValue *objectValue = [FJSValue valueForJSValue:object inRuntime:runtime];
+    
+    // Hey, let's look for keyed subscripts!
+    if ([objectValue isInstance] && [[objectValue instance] respondsToSelector:@selector(objectForKeyedSubscript:)]) {
+        return [[objectValue instance] objectForKeyedSubscript:propertyName] != nil;
+    }
+    
+    
     FJSSymbol *symbol     = [FJSSymbol symbolForName:propertyName inObject:[objectValue instance]];
     
     if (symbol) {
@@ -570,6 +575,8 @@ JSValueRef FJS_getProperty(JSContextRef ctx, JSObjectRef object, JSStringRef pro
         return nil;
     }
     
+    debug(@"propertyName: '%@'", propertyName);
+    
     FJSRuntime *runtime = [FJSRuntime runtimeInContext:ctx];
     
     if ([propertyName isEqualToString:@"toString"] || [propertyName isEqualToString:@"Symbol.toStringTag"]/* || [propertyName isEqualToString:@"Symbol.toPrimitive"]*/) {
@@ -579,6 +586,29 @@ JSValueRef FJS_getProperty(JSContextRef ctx, JSObjectRef object, JSStringRef pro
     }
     
     FJSValue *valueFromJSObject = [FJSValue valueForJSValue:object inRuntime:runtime];
+    
+    // Hey, let's look for keyed subscripts!
+    if ([valueFromJSObject isInstance] && [[valueFromJSObject instance] respondsToSelector:@selector(objectForKeyedSubscript:)]) {
+        
+        JSValueRef subscriptedJSValue = nil;
+        id o = [[valueFromJSObject instance] objectForKeyedSubscript:propertyName];
+        
+        if (o) {
+            
+            subscriptedJSValue = FJSNativeObjectToJSValue(o, ctx); // Check and see if we can convert objc numbers, strings, or NSNulls to native js types.
+            if (!subscriptedJSValue) { //
+                FJSValue *value = [FJSValue valueWithInstance:(__bridge CFTypeRef)(o) inRuntime:runtime];
+                subscriptedJSValue = [runtime newJSValueForWrapper:value];
+            }
+        }
+        
+        return subscriptedJSValue;
+    }
+    
+    
+    
+    
+    
     FJSSymbol *sym = [FJSSymbol symbolForName:propertyName inObject:[valueFromJSObject instance]];
     
     if (sym) {

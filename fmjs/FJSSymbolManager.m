@@ -390,13 +390,13 @@ static FJSSymbolManager *FJSSymbolManagerSharedInstance = nil;
     
 }
 
-+ (FJSSymbol*)symbolForTypeEncoding:(const char*)typeEncoding {
++ (FJSSymbol*)symbolForBlockTypeEncoding:(const char*)typeEncoding {
     
     NSMethodSignature *methodSignature = [NSMethodSignature signatureWithObjCTypes:typeEncoding];
-    #pragma message "FIXME: Refactor symbolForTypeEncoding with methodNamed:(NSString*)methodName isClass:(BOOL)isClassMethod"
+    #pragma message "FIXME: Refactor symbolForBlockTypeEncoding with methodNamed:(NSString*)methodName isClass:(BOOL)isClassMethod"
     FJSSymbol *methodSymbol = [FJSSymbol new];
     [methodSymbol setName:[NSString stringWithFormat:@"%s", typeEncoding]];
-    [methodSymbol setSymbolType:@"method"];
+    [methodSymbol setSymbolType:@"block"];
     
     if ([methodSignature methodReturnType]) {
         FJSSymbol *returnValue = [FJSSymbol new];

@@ -1,6 +1,7 @@
 #import "FJSValue.h"
 #import "FJSSymbolManager.h"
 #import "FJSFFI.h"
+#import "FJSUtil.h"
 
 @interface FJSRuntime (Private)
 - (void)reportNSException:(NSException*)e;

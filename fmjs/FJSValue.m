@@ -216,7 +216,6 @@ static size_t FJSValueLiveInstances = 0;
     
     
     if (block) { // If a null or underfined jsvalue is pushed to native- well, we get here.
-        debug(@"FJSValue retaining %@ currently at %ld", block, CFGetRetainCount(block));
         
         id copyBlock = [(__bridge id)block copy];
         block = (__bridge CFTypeRef _Nullable)(copyBlock);
@@ -633,6 +632,11 @@ static size_t FJSValueLiveInstances = 0;
         return [FJSNativeObjectFromJSValue(_nativeJSValue, @"B", [_runtime contextRef]) boolValue];
     }
     
+    
+    if ([self isInstance] && [[self instance] respondsToSelector:@selector(boolValue)]) {
+        return [[self instance] boolValue];
+    }
+    
     return _cValue.value.boolValue;
 }
 
@@ -640,6 +644,10 @@ static size_t FJSValueLiveInstances = 0;
     
     if (_isJSNative) {
         return [FJSNativeObjectFromJSValue(_nativeJSValue, @"d", [_runtime contextRef]) doubleValue];
+    }
+    
+    if ([self isInstance] && [[self instance] respondsToSelector:@selector(doubleValue)]) {
+        return [[self instance] doubleValue];
     }
     
     FMAssert(_cValue.type);
@@ -651,15 +659,39 @@ static size_t FJSValueLiveInstances = 0;
         return [FJSNativeObjectFromJSValue(_nativeJSValue, @"q", [_runtime contextRef]) longLongValue];
     }
     
+    if ([self isInstance] && [[self instance] respondsToSelector:@selector(longLongValue)]) {
+        return [[self instance] longLongValue];
+    }
+    
     FMAssert(_cValue.type);
     return _cValue.value.longLongValue;
 }
 
 - (long)toLong {
+    
+    
+    if ([self isInstance] && [[self instance] respondsToSelector:@selector(longValue)]) {
+        return [[self instance] longValue];
+    }
+    
     return [self toLongLong];
 }
 
+- (int)toInt {
+    
+    if ([self isInstance] && [[self instance] respondsToSelector:@selector(intValue)]) {
+        return [[self instance] intValue];
+    }
+    
+    return (int)[self toLongLong];
+}
+
 - (float)toFloat {
+    
+    if ([self isInstance] && [[self instance] respondsToSelector:@selector(floatValue)]) {
+        return [[self instance] floatValue];
+    }
+    
     return [self toDouble];
 }
 

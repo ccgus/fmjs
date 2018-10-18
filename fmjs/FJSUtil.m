@@ -180,7 +180,16 @@ id FJSNativeObjectFromJSValue(JSValueRef jsValue, NSString *typeEncoding, JSCont
     
     
     if ([typeEncoding isEqualToString:@"q"]) {
-        long long v = JSValueToNumber(context, jsValue, NULL);
+        //FMAssert(JSValueIsNumber(context, jsValue)); // See testStringToNumber
+        double d = JSValueToNumber(context, jsValue, NULL);
+        
+        if (isnan(d)) {
+            printf("Warning: cast overflow prevented in FJSNativeObjectFromJSValue. Returning 0 for long long\n");
+            return @(0);
+        }
+        
+        long long v = d;
+        
         return @(v);
     }
     

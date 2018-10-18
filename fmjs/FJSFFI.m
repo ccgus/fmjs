@@ -202,29 +202,26 @@ static NSMutableDictionary *FJSFFIStructureLookup;
     
     
     // Build the arguments
-    unsigned int effectiveArgumentCount = (unsigned int)[_args count];
+    unsigned int ffiArgumentCount = (unsigned int)[_args count];
 
     if ([_f isBlock]) {
-        effectiveArgumentCount++;
+        ffiArgumentCount++;
     }
     
-    
-    
-    if (effectiveArgumentCount > 0) {
-        ffiArgs = malloc(sizeof(ffi_type *) * effectiveArgumentCount);
-        ffiValues = malloc(sizeof(void *) * effectiveArgumentCount);
-        NSInteger idx = 0;
+    if (ffiArgumentCount > 0) {
+        ffiArgs = malloc(sizeof(ffi_type *) * ffiArgumentCount);
+        ffiValues = malloc(sizeof(void *) * ffiArgumentCount);
+        NSInteger ffiArgIndex = 0;
         if ([_f isBlock]) {
-            ffiArgs[idx] = &ffi_type_pointer;
-            ffiValues[idx] = [_f objectStorage];
-            idx++;
+            ffiArgs[ffiArgIndex]   = &ffi_type_pointer;
+            ffiValues[ffiArgIndex] = [_f objectStorage];
+            ffiArgIndex++;
         }
         
         
-        for (; idx < [_args count]; idx++) {
-            FJSValue *arg = [_args objectAtIndex:idx];
-            FJSSymbol *argSym = [[[_f symbol] arguments] objectAtIndex:idx];
-            
+        for (NSInteger symbolArgIndex = 0; ffiArgIndex < ffiArgumentCount; ffiArgIndex++, symbolArgIndex++) {
+            FJSValue *arg     = [_args objectAtIndex:symbolArgIndex];
+            FJSSymbol *argSym = [[[_f symbol] arguments] objectAtIndex:symbolArgIndex];
             assert(argSym);
             
             if ([arg isJSNative]) {
@@ -233,10 +230,9 @@ static NSMutableDictionary *FJSFFIStructureLookup;
                 [arg setSymbol:argSym];
             }
             
-            
-            ffi_type *type = [arg FFITypeWithHint:[argSym runtimeType]];
-            ffiArgs[idx]   = type;
-            ffiValues[idx] = [arg objectStorage];
+            ffi_type *type         = [arg FFITypeWithHint:[argSym runtimeType]];
+            ffiArgs[ffiArgIndex]   = type;
+            ffiValues[ffiArgIndex] = [arg objectStorage];
             //[FJSFFI describeFFIType:type];
         }
     }
@@ -245,7 +241,7 @@ static NSMutableDictionary *FJSFFIStructureLookup;
     
     ffi_type *returnType = returnValue ? [returnValue FFIType] : &ffi_type_void;
     
-    ffi_status prep_status = ffi_prep_cif(&cif, FFI_DEFAULT_ABI, effectiveArgumentCount, returnType, ffiArgs);
+    ffi_status prep_status = ffi_prep_cif(&cif, FFI_DEFAULT_ABI, ffiArgumentCount, returnType, ffiArgs);
     
     // Call
     if (prep_status == FFI_OK) {
@@ -264,7 +260,7 @@ static NSMutableDictionary *FJSFFIStructureLookup;
         //[FJSFFI describeFFIType:returnType];
     }
     
-    if (effectiveArgumentCount > 0) {
+    if (ffiArgumentCount > 0) {
         free(ffiArgs);
         free(ffiValues);
     }

@@ -351,6 +351,9 @@ static size_t FJSValueLiveInstances = 0;
             break;
         }
             
+        case _C_VOID:
+            vr = JSValueMakeUndefined([_runtime contextRef]);
+            break;
         default:
             FMAssert(NO);
     

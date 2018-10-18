@@ -533,6 +533,29 @@ int FJSSimpleTestsMethodCalled;
     XCTAssert(calledFunk);
     XCTAssert(foo == 1);
     
+    [runtime setRuntimeObject:^(NSString *what) {
+        foo++;
+        calledFunk = [what isEqualToString:@"funky"];
+    } withName:@"funkItUp"];
+    
+    [runtime evaluateScript:@"funkItUp('funky');"];
+    
+    
+    XCTAssert(calledFunk);
+    XCTAssert(foo == 2);
+    
+    
+    [runtime setRuntimeObject:^(NSUInteger un, NSInteger sn, double dub) {
+        foo++;
+        XCTAssert(un == 3);
+        XCTAssert(sn == -1);
+        XCTAssert(FJSEqualFloats(dub, 123.45));
+    } withName:@"whatWhat"];
+    
+    [runtime evaluateScript:@"whatWhat(3, -1, 123.45);"];
+    
+    XCTAssert(foo == 3);
+    
     [runtime shutdown];
 }
 

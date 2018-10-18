@@ -89,7 +89,8 @@ BOOL FJSObjectIsArray(JSObjectRef jsObject, JSContextRef context) {
 
 id FJSNativeObjectFromJSValue(JSValueRef jsValue, NSString *typeEncoding, JSContextRef context) {
     
-    if ([typeEncoding isEqualToString:@"@"]) {
+    // typeEncoding could be '@"NSString"', thanks to blocks!.
+    if ([typeEncoding hasPrefix:@"@"]) {
         
         if (JSValueIsString(context, jsValue)) {
             JSStringRef resultStringJS = JSValueToStringCopy(context, jsValue, NULL);

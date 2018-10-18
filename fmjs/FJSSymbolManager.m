@@ -358,6 +358,7 @@ static FJSSymbolManager *FJSSymbolManagerSharedInstance = nil;
         if ([methodSignature methodReturnType]) {
             FJSSymbol *returnValue = [FJSSymbol new];
             [returnValue setRuntimeType:[NSString stringWithFormat:@"%s", [methodSignature methodReturnType]]];
+            [returnValue setSymbolType:@"retval"];
             [methodSymbol setReturnValue:returnValue];
         }
         
@@ -397,9 +398,10 @@ static FJSSymbolManager *FJSSymbolManagerSharedInstance = nil;
     [methodSymbol setName:[NSString stringWithFormat:@"%s", typeEncoding]];
     [methodSymbol setSymbolType:@"method"];
     
-    if ([methodSignature methodReturnType] && [methodSignature methodReturnType][0] != _C_VOID) {
+    if ([methodSignature methodReturnType]) {
         FJSSymbol *returnValue = [FJSSymbol new];
         [returnValue setRuntimeType:[NSString stringWithFormat:@"%s", [methodSignature methodReturnType]]];
+        [returnValue setSymbolType:@"retval"];
         [methodSymbol setReturnValue:returnValue];
     }
     

@@ -13,8 +13,6 @@
 #import "FJSRuntime.h"
 #import "FJSPrivate.h"
 
-#pragma message "FIXME: Hey Gus, use https://www.mikeash.com/pyblog/friday-qa-2011-05-06-a-tour-of-mablockclosure.html to get info about a block for automagic runtime functions."
-
 #import <objc/runtime.h>
 #import <dlfcn.h>
 
@@ -87,9 +85,9 @@ static JSValueRef FJS_callAsFunction(JSContextRef ctx, JSObjectRef functionJS, J
             
             NSString *xml =
                 @"<signatures version='1.0'>"
-                    "<function name='print'>"
-                        "<arg type='@'/>"
-                    "</function>"
+                    //"<function name='print'>"
+                    //    "<arg type='@'/>"
+                    //"</function>"
                 "</signatures>";
             
             [[FJSSymbolManager sharedManager] parseBridgeString:xml];
@@ -98,7 +96,8 @@ static JSValueRef FJS_callAsFunction(JSContextRef ctx, JSObjectRef functionJS, J
         
         _evaluateQueue = dispatch_queue_create([[NSString stringWithFormat:@"fmjs.evaluateQueue.%p", self] UTF8String], NULL);
         dispatch_queue_set_specific(_evaluateQueue, kDispatchQueueSpecificKey, (__bridge void *)self, NULL);
-
+        
+        
         [self setupJS];
     }
     
@@ -141,6 +140,27 @@ static JSValueRef FJS_callAsFunction(JSContextRef ctx, JSObjectRef functionJS, J
     
     FMAssert([[self runtimeObjectWithName:FJSRuntimeLookupKey] instance] == self);
     FMAssert([FJSRuntime runtimeInContext:_jsContext]  == self);
+    
+    __weak FJSRuntime *weakSelf = self;
+    id printHandler = ^(id s) {
+        
+        if ([weakSelf printHandler]) {
+            [weakSelf printHandler](weakSelf, [s description]);
+        }
+        else {
+            
+            if (!s) {
+                s = @"<null>";
+            }
+            
+            printf("%s\n", [[s description] UTF8String]);
+        }
+    };
+    
+    [self setRuntimeObject:printHandler withName:@"print"];
+    
+    
+    
 }
 
 - (void)shutdown {
@@ -671,31 +691,6 @@ static void FJS_finalize(JSObjectRef object) {
     }
 }
 
-
-void print(id s) {
-    
-    // FIXME: Use JSValueCreateJSONString in the future if it's a jsnative object?
-    
-    FJSRuntime *rt = [FJSRuntime currentRuntime];
-    FMAssert(rt);
-    if (!rt) {
-        NSLog(@"No runtime found for print.");
-    }
-    
-    
-    if ([rt printHandler]) {
-        [rt printHandler](rt, [s description]);
-    }
-    else {
-        
-        if (!s) {
-            s = @"<null>";
-        }
-        
-        printf("%s\n", [[s description] UTF8String]);
-    }
-    
-}
 
 void FJSAssert(BOOL b) {
     FMAssert(b);

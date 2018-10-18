@@ -43,10 +43,6 @@ static size_t FJSValueLiveInstances = 0;
     
     FJSValueLiveInstances--;
     
-    if ([self isBlock]) {
-        debug(@"what");
-    }
-    
     if (([self isInstance] || [self isBlock]) && _cValue.value.pointerValue && ![[[self symbol] symbolType] isEqualToString:@"constant"]) {
         
         id obj = (__bridge id)(_cValue.value.pointerValue);

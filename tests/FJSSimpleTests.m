@@ -495,6 +495,48 @@ int FJSSimpleTestsMethodCalled;
     
 }
 
+- (void)testFunctionLookup {
+    
+    FJSRuntime *runtime = [FJSRuntime new];
+    
+    NSString *funk = @"function foof() { print('Hello, world')}";
+    
+    [runtime evaluateScript:funk];
+    
+    XCTAssert([runtime hasFunctionNamed:@"foof"]);
+    
+    FJSValue *f = [runtime runtimeObjectWithName:@"foof"];
+    
+    XCTAssert(f);
+    XCTAssert([[f toObject] isEqualToString:funk]);
+    
+    [runtime shutdown];
+}
+
+- (void)testBlock {
+    
+    FJSRuntime *runtime = [FJSRuntime new];
+    
+    __block int foo = 0;
+    __block BOOL calledFunk = NO;
+    debug(@"calledFunk: %p", &calledFunk);
+    id block = ^{
+        debug(@"HELLO THERE");
+        //debug(@"calledFunkx: %p", &calledFunk);
+        foo++;
+        calledFunk = YES;
+    };
+    
+    [runtime setRuntimeObject:block withName:@"funk"];
+    
+    [runtime evaluateScript:@"funk();"];
+    
+    
+    XCTAssert(calledFunk);
+    
+    [runtime shutdown];
+}
+
 - (void)xtestPerformanceExample {
     // This is an example of a performance test case.
     [self measureBlock:^{

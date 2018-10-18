@@ -36,6 +36,9 @@ typedef struct {
     } value;
 } FJSObjCValue;
 
+// Blocks are instances. But blocks are are special yo. So let's keep track of that.
+#define _FJSC_BLOCK '7'
+
 @interface FJSValue : NSObject
 
 // FIXME: These need to be private

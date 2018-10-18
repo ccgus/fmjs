@@ -412,5 +412,43 @@ NSString *FJSDescriptionOfTypeEncodingWithFullEncoding(char typeEncoding, NSStri
     return nil;
 }
 
+// Thanks, clang!
+struct FJSBlock_descriptor {
+    unsigned long reserved;
+    unsigned long size;
+    void *rest[1];
+};
+
+struct FJSBlock_literal {
+    void *isa;
+    int flags;
+    int reserved;
+    void *invoke;
+    struct FJSBlock_descriptor *descriptor;
+};
+
+void *FJSCallAddressForBlock(id block) {
+    FMAssert([block isKindOfClass:NSClassFromString(@"NSBlock")]);
+    return ((__bridge struct FJSBlock_literal *)block)->invoke;
+}
+
+const char *FJSTypeEncodingForBlock(id theBlock) {
+    struct FJSBlock_literal *block = (__bridge struct FJSBlock_literal *)theBlock;
+    struct FJSBlock_descriptor *descriptor = block->descriptor;
+    
+    int copyDisposeFlag = 1 << 25;
+    int signatureFlag = 1 << 30;
+    
+    assert(block->flags & signatureFlag);
+    
+    int index = 0;
+    if (block->flags & copyDisposeFlag) {
+        index += 2;
+    }
+    
+    return descriptor->rest[index];
+}
+
+
 
 

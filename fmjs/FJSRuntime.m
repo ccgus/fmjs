@@ -139,7 +139,7 @@ static JSValueRef FJS_callAsFunction(JSContextRef ctx, JSObjectRef functionJS, J
     JSObjectSetProperty(_jsContext, JSContextGetGlobalObject(_jsContext), jsName, jsValue, kJSPropertyAttributeReadOnly|kJSPropertyAttributeDontEnum, &exception);
     JSStringRelease(jsName);
     
-    FMAssert([self runtimeObjectWithName:FJSRuntimeLookupKey] == self);
+    FMAssert([[self runtimeObjectWithName:FJSRuntimeLookupKey] instance] == self);
     FMAssert([FJSRuntime runtimeInContext:_jsContext]  == self);
 }
 
@@ -299,7 +299,7 @@ static JSValueRef FJS_callAsFunction(JSContextRef ctx, JSObjectRef functionJS, J
             return nil;
         }
         
-        returnValue = [FJSValue valueForJSObject:(JSObjectRef)jsFunctionReturnValue inRuntime:self];
+        returnValue = [FJSValue valueForJSValue:(JSObjectRef)jsFunctionReturnValue inRuntime:self];
     }
     @catch (NSException * e) {
         
@@ -331,8 +331,7 @@ static JSValueRef FJS_callAsFunction(JSContextRef ctx, JSObjectRef functionJS, J
 }
 
 
-
-- (id)runtimeObjectWithName:(NSString *)name {
+- (FJSValue*)runtimeObjectWithName:(NSString *)name {
     
     JSValueRef exception = NULL;
     
@@ -345,9 +344,9 @@ static JSValueRef FJS_callAsFunction(JSContextRef ctx, JSObjectRef functionJS, J
         return NULL;
     }
     
-    FJSValue *w = (__bridge FJSValue *)JSObjectGetPrivate((JSObjectRef)jsValue);
+    FJSValue *w = [FJSValue valueForJSValue:jsValue inRuntime:self];
     
-    return [w instance];
+    return w;
 }
 
 - (FJSValue*)setRuntimeObject:(nullable id)object withName:(NSString *)name {
@@ -357,7 +356,15 @@ static JSValueRef FJS_callAsFunction(JSContextRef ctx, JSObjectRef functionJS, J
         return nil;
     }
     
-    FJSValue *value = [FJSValue valueWithInstance:(__bridge CFTypeRef _Nonnull)(object) inRuntime:self];
+    FJSValue *value = nil;
+    
+    if ([object isKindOfClass:NSClassFromString(@"NSBlock")]) {
+        value = [FJSValue valueWithBlock:(__bridge CFTypeRef _Nonnull)(object) inRuntime:self];
+    }
+    else {
+        value = [FJSValue valueWithInstance:(__bridge CFTypeRef _Nonnull)(object) inRuntime:self];
+    }
+    
     JSValueRef jsValue = [value JSValue];
     
     FMAssert(jsValue);
@@ -422,7 +429,7 @@ static JSValueRef FJS_callAsFunction(JSContextRef ctx, JSObjectRef functionJS, J
                 JSStringRelease(jsScriptPath);
             }
             
-            returnValue = [FJSValue valueForJSObject:(JSObjectRef)result inRuntime:self];
+            returnValue = [FJSValue valueForJSValue:(JSObjectRef)result inRuntime:self];
             
         }
         @catch (NSException *exception) {
@@ -524,7 +531,7 @@ static bool FJS_hasProperty(JSContextRef ctx, JSObjectRef object, JSStringRef pr
     //debug(@"FJS_hasProperty: '%@'?", propertyName);
     
     FJSRuntime *runtime   = [FJSRuntime runtimeInContext:ctx];
-    FJSValue *objectValue = [FJSValue valueForJSObject:object inRuntime:runtime];
+    FJSValue *objectValue = [FJSValue valueForJSValue:object inRuntime:runtime];
     FJSSymbol *symbol     = [FJSSymbol symbolForName:propertyName inObject:[objectValue instance]];
     
     if (symbol) {
@@ -546,12 +553,12 @@ JSValueRef FJS_getProperty(JSContextRef ctx, JSObjectRef object, JSStringRef pro
     FJSRuntime *runtime = [FJSRuntime runtimeInContext:ctx];
     
     if ([propertyName isEqualToString:@"toString"] || [propertyName isEqualToString:@"Symbol.toStringTag"]/* || [propertyName isEqualToString:@"Symbol.toPrimitive"]*/) {
-        FJSValue *w = [FJSValue valueForJSObject:object inRuntime:runtime];
+        FJSValue *w = [FJSValue valueForJSValue:object inRuntime:runtime];
         
         return [w toJSString];
     }
     
-    FJSValue *valueFromJSObject = [FJSValue valueForJSObject:object inRuntime:runtime];
+    FJSValue *valueFromJSObject = [FJSValue valueForJSValue:object inRuntime:runtime];
     FJSSymbol *sym = [FJSSymbol symbolForName:propertyName inObject:[valueFromJSObject instance]];
     
     if (sym) {
@@ -619,13 +626,13 @@ static JSValueRef FJS_callAsFunction(JSContextRef context, JSObjectRef functionJ
     }
     
     
-    FJSValue *objectToCall = [FJSValue valueForJSObject:thisObject inRuntime:runtime];
-    FJSValue *functionToCall = [FJSValue valueForJSObject:functionJS inRuntime:runtime];
+    FJSValue *objectToCall = [FJSValue valueForJSValue:thisObject inRuntime:runtime];
+    FJSValue *functionToCall = [FJSValue valueForJSValue:functionJS inRuntime:runtime];
     
     NSMutableArray *args = [NSMutableArray arrayWithCapacity:argumentCount];
     for (size_t idx = 0; idx < argumentCount; idx++) {
         JSValueRef jsArg = arguments[idx];
-        FJSValue *arg = [FJSValue valueForJSObject:(JSObjectRef)jsArg inRuntime:runtime];
+        FJSValue *arg = [FJSValue valueForJSValue:(JSObjectRef)jsArg inRuntime:runtime];
         assert(arg);
         [args addObject:arg];
     }

@@ -38,6 +38,12 @@ static NSMutableDictionary *FJSFFIStructureLookup;
     return ffi;
 }
 
+- (nullable FJSValue*)blockInvoke {
+    
+    return nil;
+}
+
+
 - (nullable FJSValue*)objcInvoke {
     assert([_caller cValue].value.pointerValue);
     FJSSymbol *functionSymbol = [_f symbol];
@@ -96,7 +102,7 @@ static NSMutableDictionary *FJSFFIStructureLookup;
         JSValueRef returnValue = NULL;
         if (FJSCharEquals(returnType, @encode(void))) {
             returnValue = JSValueMakeUndefined([_runtime contextRef]);
-            returnFValue = [FJSValue valueForJSObject:(JSObjectRef)returnValue inRuntime:_runtime];
+            returnFValue = [FJSValue valueForJSValue:(JSObjectRef)returnValue inRuntime:_runtime];
         }
         // id
         else if (FJSCharEquals(returnType, @encode(id)) || FJSCharEquals(returnType, @encode(Class))) {
@@ -138,17 +144,39 @@ static NSMutableDictionary *FJSFFIStructureLookup;
 
 - (nullable FJSValue*)callFunction {
     
-    assert(_f);
-    assert([_f isFunction] || [_f isClassMethod] || [_f isInstanceMethod]);
+    FMAssert(_f);
+    FMAssert([_f isFunction] || [_f isClassMethod] || [_f isInstanceMethod] || [_f isBlock]);
     
     if ([_f isClassMethod] || [_f isInstanceMethod]) {
         return [self objcInvoke];
     }
     
-    FJSSymbol *functionSymbol = [_f symbol];
-    FMAssert(functionSymbol);
+    void *callAddress = nil;
+    FJSSymbol *functionSymbol = nil;
     
-    void *callAddress = dlsym(RTLD_DEFAULT, [[functionSymbol name] UTF8String]);
+    if ([_f isBlock]) {
+        
+        callAddress = FJSCallAddressForBlock([_f instance]);
+        
+        functionSymbol = [_f symbol];
+        if (!functionSymbol) {
+            const char *typeEncoding = FJSTypeEncodingForBlock([_f instance]);
+            functionSymbol = [FJSSymbol symbolForTypeEncoding:typeEncoding];
+            [_f setSymbol:functionSymbol];
+        }
+        
+        
+        FMAssert(callAddress);
+        FMAssert(functionSymbol);
+    }
+    else {
+        
+        functionSymbol = [_f symbol];
+        FMAssert(functionSymbol);
+        callAddress = dlsym(RTLD_DEFAULT, [[functionSymbol name] UTF8String]);
+    }
+    
+    
 
     if (!callAddress) {
         debug(@"Can't find call address for '%@'", [functionSymbol name]);
@@ -514,18 +542,5 @@ static NSMutableDictionary *FJSFFIStructureLookup;
 }
 
 @end
-
-
-/*
-@implementation FJSFFIStruct
-
-- (int)countOfElements {
-    
-}
-- (NSArray*)elements;
-- (void)addElement:(id)element; // either a string for a simple type, or a FJSFFIStruct for a complex one.
-
-@end
-*/
 
 

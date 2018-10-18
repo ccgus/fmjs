@@ -389,6 +389,40 @@ static FJSSymbolManager *FJSSymbolManagerSharedInstance = nil;
     
 }
 
++ (FJSSymbol*)symbolForTypeEncoding:(const char*)typeEncoding {
+    
+    NSMethodSignature *methodSignature = [NSMethodSignature signatureWithObjCTypes:typeEncoding];
+    #pragma message "FIXME: Refactor symbolForTypeEncoding with methodNamed:(NSString*)methodName isClass:(BOOL)isClassMethod"
+    FJSSymbol *methodSymbol = [FJSSymbol new];
+    [methodSymbol setName:[NSString stringWithFormat:@"%s", typeEncoding]];
+    [methodSymbol setSymbolType:@"method"];
+    
+    if ([methodSignature methodReturnType] && [methodSignature methodReturnType][0] != _C_VOID) {
+        FJSSymbol *returnValue = [FJSSymbol new];
+        [returnValue setRuntimeType:[NSString stringWithFormat:@"%s", [methodSignature methodReturnType]]];
+        [methodSymbol setReturnValue:returnValue];
+    }
+    
+    for (NSUInteger idx = 1; idx < [methodSignature numberOfArguments]; idx++) {
+        
+        if (![methodSymbol arguments]) {
+            [methodSymbol setArguments:[NSMutableArray array]];
+        }
+        
+        FJSSymbol *argument = [FJSSymbol new];
+        [argument setRuntimeType:[NSString stringWithFormat:@"%s", [methodSignature getArgumentTypeAtIndex:idx]]];
+        [[methodSymbol arguments] addObject:argument];
+    }
+    
+    
+    if (![NSThread isMainThread]) {
+        //assert([NSThread isMainThread]); // need to put things in a queue if we're doing this in a background thread.
+        NSLog(@"symbol manager is not thread safe");
+    }
+    
+    return methodSymbol;
+}
+
 - (FJSSymbol*)classMethodNamed:(NSString*)name {
     return [self methodNamed:name isClass:YES];
 }

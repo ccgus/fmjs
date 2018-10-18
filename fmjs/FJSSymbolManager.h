@@ -45,7 +45,7 @@ NS_ASSUME_NONNULL_BEGIN
 - (FJSSymbol*)instanceMethodNamed:(NSString*)name;
 + (FJSSymbol*)symbolForName:(NSString*)name;
 + (FJSSymbol*)symbolForName:(NSString*)name inObject:(nullable id)object;
-
++ (FJSSymbol*)symbolForTypeEncoding:(const char*)typeEncoding;
 - (BOOL)returnsRetained;
 
 @end

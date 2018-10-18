@@ -23,8 +23,9 @@
 @property (weak) FJSRuntime *runtime;
 
 
-+ (instancetype)valueForJSObject:(nullable JSObjectRef)jso inRuntime:(FJSRuntime*)runtime;
++ (instancetype)valueForJSValue:(nullable JSValueRef)jso inRuntime:(FJSRuntime*)runtime;
 + (instancetype)valueWithSymbol:(FJSSymbol*)sym inRuntime:(FJSRuntime*)runtime;
++ (instancetype)valueWithBlock:(CFTypeRef)block inRuntime:(FJSRuntime*)runtime;
 + (instancetype)valueWithInstance:(CFTypeRef)instance inRuntime:(FJSRuntime*)runtime;
 + (instancetype)valueWithWeakInstance:(id)instance inRuntime:(FJSRuntime*)runtime;
 + (instancetype)valueWithConstantPointer:(void*)p ofType:(char)type inRuntime:(FJSRuntime*)runtime;
@@ -36,6 +37,7 @@
 
 - (BOOL)isClass;
 - (BOOL)isInstance;
+- (BOOL)isBlock;
 
 - (BOOL)isSymbol;
 - (BOOL)isFunction;

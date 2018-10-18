@@ -16,7 +16,7 @@
 @interface FJSValue ()
 
 @property (weak) FJSRuntime *runtime;
-@property (assign) JSObjectRef nativeJSObj;
+@property (assign) JSValueRef nativeJSValue;
 
 @property (weak) id weakInstance;
 @property (assign) BOOL madePointerMemory;
@@ -43,7 +43,11 @@ static size_t FJSValueLiveInstances = 0;
     
     FJSValueLiveInstances--;
     
-    if ([self isInstance] && _cValue.value.pointerValue && ![[[self symbol] symbolType] isEqualToString:@"constant"]) {
+    if ([self isBlock]) {
+        debug(@"what");
+    }
+    
+    if (([self isInstance] || [self isBlock]) && _cValue.value.pointerValue && ![[[self symbol] symbolType] isEqualToString:@"constant"]) {
         
         id obj = (__bridge id)(_cValue.value.pointerValue);
         if ([obj isKindOfClass:[NSData class]]) {
@@ -59,7 +63,7 @@ static size_t FJSValueLiveInstances = 0;
     }
     
 #ifdef DEBUG
-    if ([self isInstance] && !_weakInstance && !_isWeakReference && !_cValue.value.pointerValue && !_isJSNative) {
+    if (([self isInstance] || [self isBlock]) && !_weakInstance && !_isWeakReference && !_cValue.value.pointerValue && !_isJSNative) {
         debug(@"Why am I an instance without anything to point to?! %p", self);
         FMAssert(NO);
     }
@@ -72,31 +76,33 @@ static size_t FJSValueLiveInstances = 0;
 }
 
 + (instancetype)valueWithNullInRuntime:(FJSRuntime*)runtime {
-    return [self valueForJSObject:(JSObjectRef)JSValueMakeNull([runtime contextRef]) inRuntime:runtime];
+    return [self valueForJSValue:(JSObjectRef)JSValueMakeNull([runtime contextRef]) inRuntime:runtime];
 }
 
 + (instancetype)valueWithUndefinedInRuntime:(FJSRuntime*)runtime {
-    return [self valueForJSObject:(JSObjectRef)JSValueMakeUndefined([runtime contextRef]) inRuntime:runtime];
+    return [self valueForJSValue:(JSObjectRef)JSValueMakeUndefined([runtime contextRef]) inRuntime:runtime];
 }
 
-+ (instancetype)valueForJSObject:(nullable JSObjectRef)jso inRuntime:(FJSRuntime*)runtime {
++ (instancetype)valueForJSValue:(nullable JSValueRef)jsValue inRuntime:(FJSRuntime*)runtime {
     FMAssert(runtime);
-    if (!jso) {
+    if (!jsValue) {
         return nil;
     }
     
-    if (JSValueIsObject([runtime contextRef], jso)) {
-        FJSValue *wr = (__bridge FJSValue *)(JSObjectGetPrivate(jso));
+    BOOL isObject = JSValueIsObject([runtime contextRef], jsValue);
+    
+    if (isObject) {
+        FJSValue *wr = (__bridge FJSValue *)(JSObjectGetPrivate(JSValueToObject([runtime contextRef], jsValue, nil)));
         if (wr) {
             return wr;
         }
     }
     
     FJSValue *native = [FJSValue new];
-    [native setNativeJSObj:jso];
+    [native setNativeJSValue:jsValue];
     [native setIsJSNative:YES];
     [native setRuntime:runtime];
-    [native setJsValueType:JSValueGetType([runtime contextRef], jso)];
+    [native setJsValueType:JSValueGetType([runtime contextRef], jsValue)];
     return native;
 }
 
@@ -128,6 +134,16 @@ static size_t FJSValueLiveInstances = 0;
     cw->_cValue.type = type;
     cw->_cValue.value.pointerValue = p;
     
+    [cw setRuntime:runtime];
+    
+    return cw;
+}
+
++ (instancetype)valueWithBlock:(CFTypeRef)block inRuntime:(FJSRuntime*)runtime {
+    FMAssert(runtime);
+    FJSValue *cw = [[self alloc] init];
+    
+    [cw setBlock:block];
     [cw setRuntime:runtime];
     
     return cw;
@@ -175,11 +191,15 @@ static size_t FJSValueLiveInstances = 0;
     return _cValue.type == _C_ID;
 }
 
+- (BOOL)isBlock {
+    return _cValue.type == _FJSC_BLOCK;
+}
+
 - (id)instance {
     
 #ifdef DEBUG
     if (_weakInstance || _cValue.value.pointerValue) {
-        FMAssert([self isInstance] || [self isClass]);
+        FMAssert([self isInstance] || [self isClass] || [self isBlock]);
     }
 #endif
     
@@ -194,12 +214,29 @@ static size_t FJSValueLiveInstances = 0;
     return (__bridge Class)_cValue.value.pointerValue;
 }
 
+- (void)setBlock:(nullable CFTypeRef)block {
+    FMAssert(!_weakInstance);
+    FMAssert(!_cValue.value.pointerValue);
+    
+    
+    if (block) { // If a null or underfined jsvalue is pushed to native- well, we get here.
+        debug(@"FJSValue retaining %@ currently at %ld", block, CFGetRetainCount(block));
+        
+        id copyBlock = [(__bridge id)block copy];
+        block = (__bridge CFTypeRef _Nullable)(copyBlock);
+        CFRetain(block);
+    }
+    
+    _cValue.type = _FJSC_BLOCK;
+    _cValue.value.pointerValue = (void*)block;
+}
+
 - (void)setInstance:(nullable CFTypeRef)o {
     FMAssert(!_weakInstance);
     FMAssert(!_cValue.value.pointerValue);
-    //debug(@"FJSValue retaining %@ currently at %ld", o, CFGetRetainCount(o));
     
     if (o) { // If a null or underfined jsvalue is pushed to native- well, we get here.
+        //debug(@"FJSValue retaining %@ currently at %ld", o, CFGetRetainCount(o));
         CFRetain(o);
     }
     _cValue.type = _C_ID;
@@ -249,13 +286,13 @@ static size_t FJSValueLiveInstances = 0;
 
 - (nullable JSValueRef)JSValue {
     
-    if (_nativeJSObj) {
-        return _nativeJSObj;
+    if (_nativeJSValue) {
+        return _nativeJSValue;
     }
     
     JSValueRef vr = nil;
     
-    if ([self isInstance]) {
+    if ([self isInstance] || [self isBlock]) {
         
         vr = FJSNativeObjectToJSValue([self instance], [_runtime contextRef]);
         
@@ -424,7 +461,7 @@ static size_t FJSValueLiveInstances = 0;
         
         if (!type) {
             
-            FMAssert(_nativeJSObj);
+            FMAssert(_nativeJSValue);
             
             switch (_jsValueType) {
                 case kJSTypeUndefined:
@@ -451,7 +488,7 @@ static size_t FJSValueLiveInstances = 0;
             }
         }
         
-        return FJSNativeObjectFromJSValue(_nativeJSObj, [NSString stringWithFormat:@"%c", type], [_runtime contextRef]);
+        return FJSNativeObjectFromJSValue(_nativeJSValue, [NSString stringWithFormat:@"%c", type], [_runtime contextRef]);
     }
     
     if ([self isInstance]) {
@@ -482,79 +519,79 @@ static size_t FJSValueLiveInstances = 0;
     
     if ([type isEqualToString:@"B"]) {
         _cValue.type = _C_BOOL;
-        _cValue.value.boolValue = [FJSNativeObjectFromJSValue(_nativeJSObj, type, [_runtime contextRef]) boolValue];
+        _cValue.value.boolValue = [FJSNativeObjectFromJSValue(_nativeJSValue, type, [_runtime contextRef]) boolValue];
         return YES;
     }
     
     if ([type isEqualToString:@"s"]) {
         _cValue.type = _C_SHT;
-        _cValue.value.shortValue = [FJSNativeObjectFromJSValue(_nativeJSObj, type, [_runtime contextRef]) shortValue];
+        _cValue.value.shortValue = [FJSNativeObjectFromJSValue(_nativeJSValue, type, [_runtime contextRef]) shortValue];
         return YES;
     }
     
     if ([type isEqualToString:@"S"]) {
         _cValue.type = _C_USHT;
-        _cValue.value.ushortValue = [FJSNativeObjectFromJSValue(_nativeJSObj, type, [_runtime contextRef]) unsignedShortValue];
+        _cValue.value.ushortValue = [FJSNativeObjectFromJSValue(_nativeJSValue, type, [_runtime contextRef]) unsignedShortValue];
         return YES;
     }
     
     if ([type isEqualToString:@"c"]) {
         _cValue.type = _C_CHR;
-        _cValue.value.charValue = [FJSNativeObjectFromJSValue(_nativeJSObj, type, [_runtime contextRef]) charValue];
+        _cValue.value.charValue = [FJSNativeObjectFromJSValue(_nativeJSValue, type, [_runtime contextRef]) charValue];
         return YES;
     }
     
     if ([type isEqualToString:@"C"]) {
         _cValue.type = _C_UCHR;
-        _cValue.value.ucharValue = [FJSNativeObjectFromJSValue(_nativeJSObj, type, [_runtime contextRef]) unsignedCharValue];
+        _cValue.value.ucharValue = [FJSNativeObjectFromJSValue(_nativeJSValue, type, [_runtime contextRef]) unsignedCharValue];
         return YES;
     }
     
     if ([type isEqualToString:@"i"]) {
         _cValue.type = _C_INT;
-        _cValue.value.intValue = [FJSNativeObjectFromJSValue(_nativeJSObj, type, [_runtime contextRef]) intValue];
+        _cValue.value.intValue = [FJSNativeObjectFromJSValue(_nativeJSValue, type, [_runtime contextRef]) intValue];
         return YES;
     }
     
     if ([type isEqualToString:@"I"]) {
         _cValue.type = _C_UINT;
-        _cValue.value.uintValue = [FJSNativeObjectFromJSValue(_nativeJSObj, type, [_runtime contextRef]) unsignedIntValue];
+        _cValue.value.uintValue = [FJSNativeObjectFromJSValue(_nativeJSValue, type, [_runtime contextRef]) unsignedIntValue];
         return YES;
     }
     
     if ([type isEqualToString:@"l"]) {
         _cValue.type = _C_LNG;
-        _cValue.value.longValue = [FJSNativeObjectFromJSValue(_nativeJSObj, type, [_runtime contextRef]) longValue];
+        _cValue.value.longValue = [FJSNativeObjectFromJSValue(_nativeJSValue, type, [_runtime contextRef]) longValue];
         return YES;
     }
     
     if ([type isEqualToString:@"L"]) {
         _cValue.type = _C_ULNG;
-        _cValue.value.unsignedLongValue = [FJSNativeObjectFromJSValue(_nativeJSObj, type, [_runtime contextRef]) unsignedLongValue];
+        _cValue.value.unsignedLongValue = [FJSNativeObjectFromJSValue(_nativeJSValue, type, [_runtime contextRef]) unsignedLongValue];
         return YES;
     }
     
     if ([type isEqualToString:@"q"]) {
         _cValue.type = _C_LNG_LNG;
-        _cValue.value.longLongValue = [FJSNativeObjectFromJSValue(_nativeJSObj, type, [_runtime contextRef]) longLongValue];
+        _cValue.value.longLongValue = [FJSNativeObjectFromJSValue(_nativeJSValue, type, [_runtime contextRef]) longLongValue];
         return YES;
     }
     
     if ([type isEqualToString:@"Q"]) {
         _cValue.type = _C_ULNG_LNG;
-        _cValue.value.unsignedLongLongValue = [FJSNativeObjectFromJSValue(_nativeJSObj, type, [_runtime contextRef]) unsignedLongLongValue];
+        _cValue.value.unsignedLongLongValue = [FJSNativeObjectFromJSValue(_nativeJSValue, type, [_runtime contextRef]) unsignedLongLongValue];
         return YES;
     }
     
     if ([type isEqualToString:@"f"]) {
         _cValue.type = _C_FLT;
-        _cValue.value.floatValue = [FJSNativeObjectFromJSValue(_nativeJSObj, type, [_runtime contextRef]) floatValue];
+        _cValue.value.floatValue = [FJSNativeObjectFromJSValue(_nativeJSValue, type, [_runtime contextRef]) floatValue];
         return YES;
     }
     
     if ([type isEqualToString:@"d"]) {
         _cValue.type = _C_DBL;
-        _cValue.value.doubleValue = [FJSNativeObjectFromJSValue(_nativeJSObj, type, [_runtime contextRef]) doubleValue];
+        _cValue.value.doubleValue = [FJSNativeObjectFromJSValue(_nativeJSValue, type, [_runtime contextRef]) doubleValue];
         return YES;
     }
     
@@ -567,8 +604,8 @@ static size_t FJSValueLiveInstances = 0;
     
     if ([type isEqualToString:@":"]) {
         
-        if (JSValueIsString([_runtime contextRef], _nativeJSObj)) {
-            JSStringRef resultStringJS = JSValueToStringCopy([_runtime contextRef], _nativeJSObj, NULL);
+        if (JSValueIsString([_runtime contextRef], _nativeJSValue)) {
+            JSStringRef resultStringJS = JSValueToStringCopy([_runtime contextRef], _nativeJSValue, NULL);
             id o = (NSString *)CFBridgingRelease(JSStringCopyCFString(kCFAllocatorDefault, resultStringJS));
             JSStringRelease(resultStringJS);
             _cValue.type = _C_SEL;
@@ -581,7 +618,7 @@ static size_t FJSValueLiveInstances = 0;
         
     }
     
-    [self setInstance:(__bridge CFTypeRef)(FJSNativeObjectFromJSValue(_nativeJSObj, type, [_runtime contextRef]))];
+    [self setInstance:(__bridge CFTypeRef)(FJSNativeObjectFromJSValue(_nativeJSValue, type, [_runtime contextRef]))];
     
     return [self instance] != nil;
 }
@@ -590,11 +627,11 @@ static size_t FJSValueLiveInstances = 0;
     
     if (_isJSNative) {
         
-        if (JSValueIsBoolean([_runtime contextRef], _nativeJSObj)) {
-            return JSValueToBoolean([_runtime contextRef], _nativeJSObj);
+        if (JSValueIsBoolean([_runtime contextRef], _nativeJSValue)) {
+            return JSValueToBoolean([_runtime contextRef], _nativeJSValue);
         }
         
-        return [FJSNativeObjectFromJSValue(_nativeJSObj, @"B", [_runtime contextRef]) boolValue];
+        return [FJSNativeObjectFromJSValue(_nativeJSValue, @"B", [_runtime contextRef]) boolValue];
     }
     
     return _cValue.value.boolValue;
@@ -603,7 +640,7 @@ static size_t FJSValueLiveInstances = 0;
 - (double)toDouble {
     
     if (_isJSNative) {
-        return [FJSNativeObjectFromJSValue(_nativeJSObj, @"d", [_runtime contextRef]) doubleValue];
+        return [FJSNativeObjectFromJSValue(_nativeJSValue, @"d", [_runtime contextRef]) doubleValue];
     }
     
     FMAssert(_cValue.type);
@@ -612,7 +649,7 @@ static size_t FJSValueLiveInstances = 0;
 
 - (long long)toLongLong {
     if (_isJSNative) {
-        return [FJSNativeObjectFromJSValue(_nativeJSObj, @"q", [_runtime contextRef]) longLongValue];
+        return [FJSNativeObjectFromJSValue(_nativeJSValue, @"q", [_runtime contextRef]) longLongValue];
     }
     
     FMAssert(_cValue.type);

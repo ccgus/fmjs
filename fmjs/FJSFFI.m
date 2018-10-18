@@ -298,11 +298,11 @@ static NSMutableDictionary *FJSFFIStructureLookup;
     return nil;
 }
 
-+ (NSArray *)ffiElementsForTokenizer:(TDTokenizer*)tokenizer {
++ (NSArray *)ffiElementsForTokenizer:(FJSTDTokenizer*)tokenizer {
     
     // {CGRect={CGPoint=dd}{CGSize=dd}}
     
-    TDToken *tok = [tokenizer nextToken]; // name of struct.
+    FJSTDToken *tok = [tokenizer nextToken]; // name of struct.
     FMAssert(![tok isSymbol]);
     if ([tok isSymbol]) {
         return nil;
@@ -319,7 +319,7 @@ static NSMutableDictionary *FJSFFIStructureLookup;
     
     NSMutableArray *elements = [NSMutableArray array];
     
-    while ((tok = [tokenizer nextToken]) != [TDToken EOFToken]) {
+    while ((tok = [tokenizer nextToken]) != [FJSTDToken EOFToken]) {
         
         if ([tok isSymbol]) {
             if ([[tok stringValue] isEqualToString:@"{"]){
@@ -402,14 +402,14 @@ static NSMutableDictionary *FJSFFIStructureLookup;
     
     @synchronized (self) {
         
-        TDTokenizer *tokenizer  = [TDTokenizer tokenizerWithString:structEncoding];
-        TDToken *tok            = [tokenizer nextToken];
+        FJSTDTokenizer *tokenizer  = [FJSTDTokenizer tokenizerWithString:structEncoding];
+        FJSTDToken *tok            = [tokenizer nextToken];
         NSString *sv            = [tok stringValue];
         FMAssert([sv isEqualToString:@"{"]);
         
         NSArray *elements = [self ffiElementsForTokenizer:tokenizer];
         
-        while ((tok = [tokenizer nextToken]) != [TDToken EOFToken]) {
+        while ((tok = [tokenizer nextToken]) != [FJSTDToken EOFToken]) {
             debug(@"remaining in structure, being ignored: '%@'", [tok stringValue]);
         }
         

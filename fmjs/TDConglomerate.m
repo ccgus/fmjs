@@ -11,11 +11,11 @@
 
 
 
-@interface TDParser ()
+@interface FJSTDParser ()
 - (NSSet *)matchAndAssemble:(NSSet *)inAssemblies;
 @end
 
-@implementation TDAlternation
+@implementation FJSTDAlternation
 
 + (id)alternation {
     return [[[self alloc] init] autorelease];
@@ -26,7 +26,7 @@
     NSParameterAssert(inAssemblies);
     NSMutableSet *outAssemblies = [NSMutableSet set];
     
-    for (TDParser *p in subparsers) {
+    for (FJSTDParser *p in subparsers) {
         [outAssemblies unionSet:[p matchAndAssemble:inAssemblies]];
     }
     
@@ -45,7 +45,7 @@
 
 
 
-@implementation TDAny
+@implementation FJSTDAny
 
 + (id)any {
     return [[[self alloc] initWithString:@""] autorelease];
@@ -53,7 +53,7 @@
 
 
 - (BOOL)qualifies:(id)obj {
-    return [obj isKindOfClass:[TDToken class]];
+    return [obj isKindOfClass:[FJSTDToken class]];
 }
 
 @end
@@ -69,14 +69,14 @@
 
 static NSString * const TDAssemblyDefaultDelimiter = @"/";
 
-@interface TDAssembly ()
+@interface FJSTDAssembly ()
 @property (nonatomic, readwrite, retain) NSMutableArray *stack;
 @property (nonatomic) NSUInteger index;
 @property (nonatomic, retain) NSString *string;
 @property (nonatomic, readwrite, retain) NSString *defaultDelimiter;
 @end
 
-@implementation TDAssembly
+@implementation FJSTDAssembly
 
 + (id)assemblyWithString:(NSString *)s {
     return [[[self alloc] initWithString:s] autorelease];
@@ -118,7 +118,7 @@ static NSString * const TDAssemblyDefaultDelimiter = @"/";
 
 // this method diverges from coding standards cuz it is vital to the entire framework's performance
 - (id)copyWithZone:(NSZone *)zone {
-    TDAssembly *a = [[[self class] allocWithZone:zone] _init];
+    FJSTDAssembly *a = [[[self class] allocWithZone:zone] _init];
     a->stack = [stack mutableCopyWithZone:zone];
     a->string = [string retain];
     if (defaultDelimiter) a->defaultDelimiter = [defaultDelimiter retain];
@@ -257,7 +257,7 @@ static NSString * const TDAssemblyDefaultDelimiter = @"/";
 
 
 
-@implementation TDCaseInsensitiveLiteral
+@implementation FJSTDCaseInsensitiveLiteral
 
 - (BOOL)qualifies:(id)obj {
     return NSOrderedSame == [literal.stringValue caseInsensitiveCompare:[obj stringValue]];
@@ -275,7 +275,7 @@ static NSString * const TDAssemblyDefaultDelimiter = @"/";
 
 
 
-@implementation TDChar
+@implementation FJSTDChar
 
 + (id)char {
     return [[[self alloc] initWithString:@""] autorelease];
@@ -298,7 +298,7 @@ static NSString * const TDAssemblyDefaultDelimiter = @"/";
 
 
 
-@implementation TDCharacterAssembly
+@implementation FJSTDCharacterAssembly
 
 - (id)init {
     return [self initWithString:nil];
@@ -320,7 +320,7 @@ static NSString * const TDAssemblyDefaultDelimiter = @"/";
 
 
 - (id)copyWithZone:(NSZone *)zone {
-    TDCharacterAssembly *a = (TDCharacterAssembly *)[super copyWithZone:zone];
+    FJSTDCharacterAssembly *a = (FJSTDCharacterAssembly *)[super copyWithZone:zone];
     return a;
 }
 
@@ -414,11 +414,11 @@ static NSString * const TDAssemblyDefaultDelimiter = @"/";
 
 
 
-@interface TDCollectionParser ()
+@interface FJSTDCollectionParser ()
 @property (nonatomic, readwrite, retain) NSMutableArray *subparsers;
 @end
 
-@implementation TDCollectionParser
+@implementation FJSTDCollectionParser
 
 - (id)init {
     self = [super init];
@@ -435,7 +435,7 @@ static NSString * const TDAssemblyDefaultDelimiter = @"/";
 }
 
 
-- (void)add:(TDParser *)p {
+- (void)add:(FJSTDParser *)p {
     NSParameterAssert(p);
     [subparsers addObject:p];
 }
@@ -453,7 +453,7 @@ static NSString * const TDAssemblyDefaultDelimiter = @"/";
 
 
 
-@implementation TDComment
+@implementation FJSTDComment
 
 + (id)comment {
     return [[[self alloc] initWithString:@""] autorelease];
@@ -461,7 +461,7 @@ static NSString * const TDAssemblyDefaultDelimiter = @"/";
 
 
 - (BOOL)qualifies:(id)obj {
-    TDToken *tok = (TDToken *)obj;
+    FJSTDToken *tok = (FJSTDToken *)obj;
     return tok.isComment;
 }
 
@@ -480,20 +480,20 @@ static NSString * const TDAssemblyDefaultDelimiter = @"/";
 
 
 
-@interface TDCommentState ()
-@property (nonatomic, retain) TDSymbolRootNode *rootNode;
-@property (nonatomic, retain) TDSingleLineCommentState *singleLineState;
-@property (nonatomic, retain) TDMultiLineCommentState *multiLineState;
+@interface FJSTDCommentState ()
+@property (nonatomic, retain) FJSTDSymbolRootNode *rootNode;
+@property (nonatomic, retain) FJSTDSingleLineCommentState *singleLineState;
+@property (nonatomic, retain) FJSTDMultiLineCommentState *multiLineState;
 @end
 
-@interface TDSingleLineCommentState ()
+@interface FJSTDSingleLineCommentState ()
 - (void)addStartSymbol:(NSString *)start;
 - (void)removeStartSymbol:(NSString *)start;
 @property (nonatomic, retain) NSMutableArray *startSymbols;
 @property (nonatomic, retain) NSString *currentStartSymbol;
 @end
 
-@interface TDMultiLineCommentState ()
+@interface FJSTDMultiLineCommentState ()
 - (void)addStartSymbol:(NSString *)start endSymbol:(NSString *)end;
 - (void)removeStartSymbol:(NSString *)start;
 @property (nonatomic, retain) NSMutableArray *startSymbols;
@@ -501,14 +501,14 @@ static NSString * const TDAssemblyDefaultDelimiter = @"/";
 @property (nonatomic, copy) NSString *currentStartSymbol;
 @end
 
-@implementation TDCommentState
+@implementation FJSTDCommentState
 
 - (id)init {
     self = [super init];
     if (self) {
-        self.rootNode = [[[TDSymbolRootNode alloc] init] autorelease];
-        self.singleLineState = [[[TDSingleLineCommentState alloc] init] autorelease];
-        self.multiLineState = [[[TDMultiLineCommentState alloc] init] autorelease];
+        self.rootNode = [[[FJSTDSymbolRootNode alloc] init] autorelease];
+        self.singleLineState = [[[FJSTDSingleLineCommentState alloc] init] autorelease];
+        self.multiLineState = [[[FJSTDMultiLineCommentState alloc] init] autorelease];
     }
     return self;
 }
@@ -552,7 +552,7 @@ static NSString * const TDAssemblyDefaultDelimiter = @"/";
 }
 
 
-- (TDToken *)nextTokenFromReader:(TDReader *)r startingWith:(NSInteger)cin tokenizer:(TDTokenizer *)t {
+- (FJSTDToken *)nextTokenFromReader:(FJSTDReader *)r startingWith:(NSInteger)cin tokenizer:(FJSTDTokenizer *)t {
     NSParameterAssert(r);
     NSParameterAssert(t);
 
@@ -569,7 +569,7 @@ static NSString * const TDAssemblyDefaultDelimiter = @"/";
         for ( ; i < symbol.length - 1; i++) {
             [r unread];
         }
-        return [TDToken tokenWithTokenType:TDTokenTypeSymbol stringValue:[NSString stringWithFormat:@"%C", (unsigned short)cin] floatValue:0.0];
+        return [FJSTDToken tokenWithTokenType:TDTokenTypeSymbol stringValue:[NSString stringWithFormat:@"%C", (unsigned short)cin] floatValue:0.0];
     }
 }
 
@@ -589,7 +589,7 @@ static NSString * const TDAssemblyDefaultDelimiter = @"/";
 
 
 
-@implementation TDDigit
+@implementation FJSTDDigit
 
 + (id)digit {
     return [[[self alloc] initWithString:@""] autorelease];
@@ -612,7 +612,7 @@ static NSString * const TDAssemblyDefaultDelimiter = @"/";
 
 
 
-@implementation TDEmpty
+@implementation FJSTDEmpty
 
 + (id)empty {
     return [[[self alloc] init] autorelease];
@@ -636,7 +636,7 @@ static NSString * const TDAssemblyDefaultDelimiter = @"/";
 
 
 
-@implementation TDLetter
+@implementation FJSTDLetter
 
 + (id)letter {
     return [[[self alloc] initWithString:@""] autorelease];
@@ -660,11 +660,11 @@ static NSString * const TDAssemblyDefaultDelimiter = @"/";
 
 
 
-@interface TDLiteral ()
-@property (nonatomic, retain) TDToken *literal;
+@interface FJSTDLiteral ()
+@property (nonatomic, retain) FJSTDToken *literal;
 @end
 
-@implementation TDLiteral
+@implementation FJSTDLiteral
 
 + (id)literalWithString:(NSString *)s {
     return [[[self alloc] initWithString:s] autorelease];
@@ -675,7 +675,7 @@ static NSString * const TDAssemblyDefaultDelimiter = @"/";
     //NSParameterAssert(s);
     self = [super initWithString:s];
     if (self) {
-        self.literal = [TDToken tokenWithTokenType:TDTokenTypeWord stringValue:s floatValue:0.0];
+        self.literal = [FJSTDToken tokenWithTokenType:TDTokenTypeWord stringValue:s floatValue:0.0];
     }
     return self;
 }
@@ -715,10 +715,10 @@ static NSString * const TDAssemblyDefaultDelimiter = @"/";
 
 
 
-@implementation TDLowercaseWord
+@implementation FJSTDLowercaseWord
 
 - (BOOL)qualifies:(id)obj {
-    TDToken *tok = (TDToken *)obj;
+    FJSTDToken *tok = (FJSTDToken *)obj;
     if (!tok.isWord) {
         return NO;
     }
@@ -743,7 +743,7 @@ static NSString * const TDAssemblyDefaultDelimiter = @"/";
 
 
 
-@interface TDTokenizerState ()
+@interface FJSTDTokenizerState ()
 - (void)reset;
 - (void)append:(NSInteger)c;
 - (void)appendString:(NSString *)s;
@@ -752,13 +752,13 @@ static NSString * const TDAssemblyDefaultDelimiter = @"/";
 
 
 
-@interface TDMultiLineCommentState ()
+@interface FJSTDMultiLineCommentState ()
 - (void)addStartSymbol:(NSString *)start endSymbol:(NSString *)end;
 - (void)removeStartSymbol:(NSString *)start;
 
 @end
 
-@implementation TDMultiLineCommentState
+@implementation FJSTDMultiLineCommentState
 
 - (id)init {
     self = [super init];
@@ -796,7 +796,7 @@ static NSString * const TDAssemblyDefaultDelimiter = @"/";
 }
 
 
-- (void)unreadSymbol:(NSString *)s fromReader:(TDReader *)r {
+- (void)unreadSymbol:(NSString *)s fromReader:(FJSTDReader *)r {
     NSInteger len = s.length;
     NSInteger i = 0;
     for ( ; i < len - 1; i++) {
@@ -805,7 +805,7 @@ static NSString * const TDAssemblyDefaultDelimiter = @"/";
 }
 
 
-- (TDToken *)nextTokenFromReader:(TDReader *)r startingWith:(NSInteger)cin tokenizer:(TDTokenizer *)t {
+- (FJSTDToken *)nextTokenFromReader:(FJSTDReader *)r startingWith:(NSInteger)cin tokenizer:(FJSTDTokenizer *)t {
     NSParameterAssert(r);
     NSParameterAssert(t);
     
@@ -821,7 +821,7 @@ static NSString * const TDAssemblyDefaultDelimiter = @"/";
     NSInteger e = [currentEndSymbol characterAtIndex:0];
     
     // get the definitions of all multi-char comment start and end symbols from the commentState
-    TDSymbolRootNode *rootNode = t.commentState.rootNode;
+    FJSTDSymbolRootNode *rootNode = t.commentState.rootNode;
         
     NSInteger c;
     while (1) {
@@ -863,7 +863,7 @@ static NSString * const TDAssemblyDefaultDelimiter = @"/";
     self.currentStartSymbol = nil;
 
     if (reportTokens) {
-        return [TDToken tokenWithTokenType:TDTokenTypeComment stringValue:[self bufferedString] floatValue:0.0];
+        return [FJSTDToken tokenWithTokenType:TDTokenTypeComment stringValue:[self bufferedString] floatValue:0.0];
     } else {
         return [t nextToken];
     }
@@ -885,20 +885,20 @@ static NSString * const TDAssemblyDefaultDelimiter = @"/";
 
 
 
-@interface TDReservedWord ()
+@interface FJSTDReservedWord ()
 + (NSArray *)reservedWords;
 @end
 
-@implementation TDNonReservedWord
+@implementation FJSTDNonReservedWord
 
 - (BOOL)qualifies:(id)obj {
-    TDToken *tok = (TDToken *)obj;
+    FJSTDToken *tok = (FJSTDToken *)obj;
     if (!tok.isWord) {
         return NO;
     }
     
     NSString *s = tok.stringValue;
-    return s.length && ![[TDReservedWord reservedWords] containsObject:s];
+    return s.length && ![[FJSTDReservedWord reservedWords] containsObject:s];
 }
 
 @end
@@ -913,7 +913,7 @@ static NSString * const TDAssemblyDefaultDelimiter = @"/";
 
 
 
-@implementation TDNum
+@implementation FJSTDNum
 
 + (id)num {
     return [[[self alloc] initWithString:@""] autorelease];
@@ -921,7 +921,7 @@ static NSString * const TDAssemblyDefaultDelimiter = @"/";
 
 
 - (BOOL)qualifies:(id)obj {
-    TDToken *tok = (TDToken *)obj;
+    FJSTDToken *tok = (FJSTDToken *)obj;
     return tok.isNumber;
 }
 
@@ -939,28 +939,28 @@ static NSString * const TDAssemblyDefaultDelimiter = @"/";
 
 
 
-@interface TDTokenizerState ()
+@interface FJSTDTokenizerState ()
 - (void)reset;
 - (void)append:(NSInteger)c;
 - (NSString *)bufferedString;
 @end
 
-@interface TDNumberState ()
-- (CGFloat)absorbDigitsFromReader:(TDReader *)r isFraction:(BOOL)fraction;
+@interface FJSTDNumberState ()
+- (CGFloat)absorbDigitsFromReader:(FJSTDReader *)r isFraction:(BOOL)fraction;
 - (CGFloat)value;
-- (void)parseLeftSideFromReader:(TDReader *)r;
-- (void)parseRightSideFromReader:(TDReader *)r;
+- (void)parseLeftSideFromReader:(FJSTDReader *)r;
+- (void)parseRightSideFromReader:(FJSTDReader *)r;
 - (void)reset:(NSInteger)cin;
 @end
 
-@implementation TDNumberState
+@implementation FJSTDNumberState
 
 - (void)dealloc {
     [super dealloc];
 }
 
 
-- (TDToken *)nextTokenFromReader:(TDReader *)r startingWith:(NSInteger)cin tokenizer:(TDTokenizer *)t {
+- (FJSTDToken *)nextTokenFromReader:(FJSTDReader *)r startingWith:(NSInteger)cin tokenizer:(FJSTDTokenizer *)t {
     NSParameterAssert(r);
     NSParameterAssert(t);
 
@@ -1001,7 +1001,7 @@ static NSString * const TDAssemblyDefaultDelimiter = @"/";
         floatValue = -floatValue;
     }
     
-    return [TDToken tokenWithTokenType:TDTokenTypeNumber stringValue:[self bufferedString] floatValue:[self value]];
+    return [FJSTDToken tokenWithTokenType:TDTokenTypeNumber stringValue:[self bufferedString] floatValue:[self value]];
 }
 
 
@@ -1010,7 +1010,7 @@ static NSString * const TDAssemblyDefaultDelimiter = @"/";
 }
 
 
-- (CGFloat)absorbDigitsFromReader:(TDReader *)r isFraction:(BOOL)isFraction {
+- (CGFloat)absorbDigitsFromReader:(FJSTDReader *)r isFraction:(BOOL)isFraction {
     CGFloat divideBy = 1.0;
     CGFloat v = 0.0;
     
@@ -1036,12 +1036,12 @@ static NSString * const TDAssemblyDefaultDelimiter = @"/";
 }
 
 
-- (void)parseLeftSideFromReader:(TDReader *)r {
+- (void)parseLeftSideFromReader:(FJSTDReader *)r {
     floatValue = [self absorbDigitsFromReader:r isFraction:NO];
 }
 
 
-- (void)parseRightSideFromReader:(TDReader *)r {
+- (void)parseRightSideFromReader:(FJSTDReader *)r {
     if ('.' == c) {
         NSInteger n = [r read];
         BOOL nextIsDigit = isdigit((int)n);
@@ -1079,12 +1079,12 @@ static NSString * const TDAssemblyDefaultDelimiter = @"/";
 
 
 
-@interface TDParser ()
+@interface FJSTDParser ()
 - (NSSet *)matchAndAssemble:(NSSet *)inAssemblies;
-- (TDAssembly *)best:(NSSet *)inAssemblies;
+- (FJSTDAssembly *)best:(NSSet *)inAssemblies;
 @end
 
-@implementation TDParser
+@implementation FJSTDParser
 
 + (id)parser {
     return [[[self alloc] init] autorelease];
@@ -1119,7 +1119,7 @@ static NSString * const TDAssemblyDefaultDelimiter = @"/";
 }
 
 
-- (TDAssembly *)bestMatchFor:(TDAssembly *)a {
+- (FJSTDAssembly *)bestMatchFor:(FJSTDAssembly *)a {
     NSParameterAssert(a);
     NSSet *initialState = [NSSet setWithObject:a];
     NSSet *finalState = [self matchAndAssemble:initialState];
@@ -1127,9 +1127,9 @@ static NSString * const TDAssemblyDefaultDelimiter = @"/";
 }
 
 
-- (TDAssembly *)completeMatchFor:(TDAssembly *)a {
+- (FJSTDAssembly *)completeMatchFor:(FJSTDAssembly *)a {
     NSParameterAssert(a);
-    TDAssembly *best = [self bestMatchFor:a];
+    FJSTDAssembly *best = [self bestMatchFor:a];
     if (best && ![best hasMore]) {
         return best;
     }
@@ -1142,7 +1142,7 @@ static NSString * const TDAssemblyDefaultDelimiter = @"/";
     NSSet *outAssemblies = [self allMatchesFor:inAssemblies];
     if (assembler) {
         NSAssert2([assembler respondsToSelector:selector], @"provided assembler %@ should respond to %@", assembler, NSStringFromSelector(selector));
-        for (TDAssembly *a in outAssemblies) {
+        for (FJSTDAssembly *a in outAssemblies) {
             [assembler performSelector:selector withObject:a];
         }
     }
@@ -1150,11 +1150,11 @@ static NSString * const TDAssemblyDefaultDelimiter = @"/";
 }
 
 
-- (TDAssembly *)best:(NSSet *)inAssemblies {
+- (FJSTDAssembly *)best:(NSSet *)inAssemblies {
     NSParameterAssert(inAssemblies);
-    TDAssembly *best = nil;
+    FJSTDAssembly *best = nil;
     
-    for (TDAssembly *a in inAssemblies) {
+    for (FJSTDAssembly *a in inAssemblies) {
         if (![a hasMore]) {
             best = a;
             break;
@@ -1193,20 +1193,20 @@ static NSString * const TDAssemblyDefaultDelimiter = @"/";
 
 
 
-@interface TDTokenizerState ()
+@interface FJSTDTokenizerState ()
 - (void)reset;
 - (void)append:(NSInteger)c;
 - (NSString *)bufferedString;
 @end
 
-@implementation TDQuoteState
+@implementation FJSTDQuoteState
 
 - (void)dealloc {
     [super dealloc];
 }
 
 
-- (TDToken *)nextTokenFromReader:(TDReader *)r startingWith:(NSInteger)cin tokenizer:(TDTokenizer *)t {
+- (FJSTDToken *)nextTokenFromReader:(FJSTDReader *)r startingWith:(NSInteger)cin tokenizer:(FJSTDTokenizer *)t {
     NSParameterAssert(r);
     [self reset];
     
@@ -1225,7 +1225,7 @@ static NSString * const TDAssemblyDefaultDelimiter = @"/";
         
     } while (c != cin);
     
-    return [TDToken tokenWithTokenType:TDTokenTypeQuotedString stringValue:[self bufferedString] floatValue:0.0];
+    return [FJSTDToken tokenWithTokenType:TDTokenTypeQuotedString stringValue:[self bufferedString] floatValue:0.0];
 }
 
 @synthesize balancesEOFTerminatedQuotes;
@@ -1241,7 +1241,7 @@ static NSString * const TDAssemblyDefaultDelimiter = @"/";
 
 
 
-@implementation TDQuotedString
+@implementation FJSTDQuotedString
 
 + (id)quotedString {
     return [[[self alloc] initWithString:@""] autorelease];
@@ -1249,7 +1249,7 @@ static NSString * const TDAssemblyDefaultDelimiter = @"/";
 
 
 - (BOOL)qualifies:(id)obj {
-    TDToken *tok = (TDToken *)obj;
+    FJSTDToken *tok = (FJSTDToken *)obj;
     return tok.isQuotedString;
 }
 
@@ -1264,7 +1264,7 @@ static NSString * const TDAssemblyDefaultDelimiter = @"/";
 
 
 
-@implementation TDReader
+@implementation FJSTDReader
 
 - (id)init {
     return [self initWithString:nil];
@@ -1327,13 +1327,13 @@ static NSString * const TDAssemblyDefaultDelimiter = @"/";
 
 
 
-@interface TDRepetition ()
-@property (nonatomic, readwrite, retain) TDParser *subparser;
+@interface FJSTDRepetition ()
+@property (nonatomic, readwrite, retain) FJSTDParser *subparser;
 @end
 
-@implementation TDRepetition
+@implementation FJSTDRepetition
 
-+ (id)repetitionWithSubparser:(TDParser *)p {
++ (id)repetitionWithSubparser:(FJSTDParser *)p {
     return [[[self alloc] initWithSubparser:p] autorelease];
 }
 
@@ -1343,7 +1343,7 @@ static NSString * const TDAssemblyDefaultDelimiter = @"/";
 }
 
 
-- (id)initWithSubparser:(TDParser *)p {
+- (id)initWithSubparser:(FJSTDParser *)p {
     //NSParameterAssert(p);
     self = [super init];
     if (self) {
@@ -1371,7 +1371,7 @@ static NSString * const TDAssemblyDefaultDelimiter = @"/";
     NSParameterAssert(inAssemblies);
     if (preassembler) {
         NSAssert2([preassembler respondsToSelector:preassemblerSelector], @"provided preassembler %@ should respond to %@", preassembler, NSStringFromSelector(preassemblerSelector));
-        for (TDAssembly *a in inAssemblies) {
+        for (FJSTDAssembly *a in inAssemblies) {
             [preassembler performSelector:preassemblerSelector withObject:a];
         }
     }
@@ -1405,11 +1405,11 @@ static NSString * const TDAssemblyDefaultDelimiter = @"/";
 
 static NSArray *sTDReservedWords = nil;
 
-@interface TDReservedWord ()
+@interface FJSTDReservedWord ()
 + (NSArray *)reservedWords;
 @end
 
-@implementation TDReservedWord
+@implementation FJSTDReservedWord
 
 + (NSArray *)reservedWords {
     return [[sTDReservedWords retain] autorelease];
@@ -1425,13 +1425,13 @@ static NSArray *sTDReservedWords = nil;
 
 
 - (BOOL)qualifies:(id)obj {
-    TDToken *tok = (TDToken *)obj;
+    FJSTDToken *tok = (FJSTDToken *)obj;
     if (!tok.isWord) {
         return NO;
     }
     
     NSString *s = tok.stringValue;
-    return s.length && [[TDReservedWord reservedWords] containsObject:s];
+    return s.length && [[FJSTDReservedWord reservedWords] containsObject:s];
 }
 
 @end
@@ -1446,14 +1446,14 @@ static NSArray *sTDReservedWords = nil;
 
 
 
-@interface TDTokenizerState ()
+@interface FJSTDTokenizerState ()
 - (void)append:(NSInteger)c;
 @end
 
 
-@implementation TDScientificNumberState
+@implementation FJSTDScientificNumberState
 
-- (void)parseRightSideFromReader:(TDReader *)r {
+- (void)parseRightSideFromReader:(FJSTDReader *)r {
     NSParameterAssert(r);
     [super parseRightSideFromReader:r];
     if ('e' == c || 'E' == c) {
@@ -1520,7 +1520,7 @@ static NSArray *sTDReservedWords = nil;
 
 
 
-@implementation TDSequence
+@implementation FJSTDSequence
 
 + (id)sequence {
     return [[[self alloc] init] autorelease];
@@ -1531,7 +1531,7 @@ static NSArray *sTDReservedWords = nil;
     NSParameterAssert(inAssemblies);
     NSSet *outAssemblies = inAssemblies;
     
-    for (TDParser *p in subparsers) {
+    for (FJSTDParser *p in subparsers) {
         outAssemblies = [p matchAndAssemble:outAssemblies];
         if (!outAssemblies.count) {
             break;
@@ -1555,7 +1555,7 @@ static NSArray *sTDReservedWords = nil;
 
 
 
-@interface TDTokenizerState ()
+@interface FJSTDTokenizerState ()
 - (void)reset;
 - (void)append:(NSInteger)c;
 - (NSString *)bufferedString;
@@ -1577,20 +1577,20 @@ static NSArray *sTDReservedWords = nil;
 
 
 
-@interface TDTokenizerState ()
+@interface FJSTDTokenizerState ()
 - (void)reset;
 - (void)append:(NSInteger)c;
 - (void)appendString:(NSString *)s;
 - (NSString *)bufferedString;
 @end
 
-@interface TDSingleLineCommentState ()
+@interface FJSTDSingleLineCommentState ()
 - (void)addStartSymbol:(NSString *)start;
 - (void)removeStartSymbol:(NSString *)start;
 
 @end
 
-@implementation TDSingleLineCommentState
+@implementation FJSTDSingleLineCommentState
 
 - (id)init {
     self = [super init];
@@ -1620,7 +1620,7 @@ static NSArray *sTDReservedWords = nil;
 }
 
 
-- (TDToken *)nextTokenFromReader:(TDReader *)r startingWith:(NSInteger)cin tokenizer:(TDTokenizer *)t {
+- (FJSTDToken *)nextTokenFromReader:(FJSTDReader *)r startingWith:(NSInteger)cin tokenizer:(FJSTDTokenizer *)t {
     NSParameterAssert(r);
     NSParameterAssert(t);
     
@@ -1650,7 +1650,7 @@ static NSArray *sTDReservedWords = nil;
     self.currentStartSymbol = nil;
     
     if (reportTokens) {
-        return [TDToken tokenWithTokenType:TDTokenTypeComment stringValue:[self bufferedString] floatValue:0.0];
+        return [FJSTDToken tokenWithTokenType:TDTokenTypeComment stringValue:[self bufferedString] floatValue:0.0];
     } else {
         return [t nextToken];
     }
@@ -1669,7 +1669,7 @@ static NSArray *sTDReservedWords = nil;
 
 
 
-@implementation TDSpecificChar
+@implementation FJSTDSpecificChar
 
 + (id)specificCharWithChar:(NSInteger)c {
     return [[[self alloc] initWithSpecificChar:c] autorelease];
@@ -1701,11 +1701,11 @@ static NSArray *sTDReservedWords = nil;
 
 
 
-@interface TDSymbol ()
-@property (nonatomic, retain) TDToken *symbol;
+@interface FJSTDSymbol ()
+@property (nonatomic, retain) FJSTDToken *symbol;
 @end
 
-@implementation TDSymbol
+@implementation FJSTDSymbol
 
 + (id)symbol {
     return [[[self alloc] initWithString:@""] autorelease];
@@ -1721,7 +1721,7 @@ static NSArray *sTDReservedWords = nil;
     self = [super initWithString:s];
     if (self) {
         if (s.length) {
-            self.symbol = [TDToken tokenWithTokenType:TDTokenTypeSymbol stringValue:s floatValue:0.0];
+            self.symbol = [FJSTDToken tokenWithTokenType:TDTokenTypeSymbol stringValue:s floatValue:0.0];
         }
     }
     return self;
@@ -1738,7 +1738,7 @@ static NSArray *sTDReservedWords = nil;
     if (symbol) {
         return [symbol isEqual:obj];
     } else {
-        TDToken *tok = (TDToken *)obj;
+        FJSTDToken *tok = (FJSTDToken *)obj;
         return tok.isSymbol;
     }
 }
@@ -1774,9 +1774,9 @@ static NSArray *sTDReservedWords = nil;
 
 
 
-@interface TDSymbolNode ()
+@interface FJSTDSymbolNode ()
 @property (nonatomic, readwrite, retain) NSString *ancestry;
-@property (nonatomic, assign) TDSymbolNode *parent;  // this must be 'assign' to avoid retain loop leak
+@property (nonatomic, assign) FJSTDSymbolNode *parent;  // this must be 'assign' to avoid retain loop leak
 @property (nonatomic, retain) NSMutableDictionary *children;
 @property (nonatomic) NSInteger character;
 @property (nonatomic, retain) NSString *string;
@@ -1784,9 +1784,9 @@ static NSArray *sTDReservedWords = nil;
 - (void)determineAncestry;
 @end
 
-@implementation TDSymbolNode
+@implementation FJSTDSymbolNode
 
-- (id)initWithParent:(TDSymbolNode *)p character:(NSInteger)c {
+- (id)initWithParent:(FJSTDSymbolNode *)p character:(NSInteger)c {
     self = [super init];
     if (self) {
         self.parent = p;
@@ -1818,7 +1818,7 @@ static NSArray *sTDReservedWords = nil;
     } else {
         NSMutableString *result = [NSMutableString string];
         
-        TDSymbolNode *n = self;
+        FJSTDSymbolNode *n = self;
         while (-1 != n.character) {
             [result insertString:n.string atIndex:0];
             n = n.parent;
@@ -1849,13 +1849,13 @@ static NSArray *sTDReservedWords = nil;
 
 
 
-@interface TDSymbolRootNode ()
-- (void)addWithFirst:(NSInteger)c rest:(NSString *)s parent:(TDSymbolNode *)p;
-- (void)removeWithFirst:(NSInteger)c rest:(NSString *)s parent:(TDSymbolNode *)p;
-- (NSString *)nextWithFirst:(NSInteger)c rest:(TDReader *)r parent:(TDSymbolNode *)p;
+@interface FJSTDSymbolRootNode ()
+- (void)addWithFirst:(NSInteger)c rest:(NSString *)s parent:(FJSTDSymbolNode *)p;
+- (void)removeWithFirst:(NSInteger)c rest:(NSString *)s parent:(FJSTDSymbolNode *)p;
+- (NSString *)nextWithFirst:(NSInteger)c rest:(FJSTDReader *)r parent:(FJSTDSymbolNode *)p;
 @end
 
-@implementation TDSymbolRootNode
+@implementation FJSTDSymbolRootNode
 
 - (id)init {
     self = [super initWithParent:nil character:-1];
@@ -1882,12 +1882,12 @@ static NSArray *sTDReservedWords = nil;
 }
 
 
-- (void)addWithFirst:(NSInteger)c rest:(NSString *)s parent:(TDSymbolNode *)p {
+- (void)addWithFirst:(NSInteger)c rest:(NSString *)s parent:(FJSTDSymbolNode *)p {
     NSParameterAssert(p);
     NSNumber *key = [NSNumber numberWithInteger:c];
-    TDSymbolNode *child = [p.children objectForKey:key];
+    FJSTDSymbolNode *child = [p.children objectForKey:key];
     if (!child) {
-        child = [[TDSymbolNode alloc] initWithParent:p character:c];
+        child = [[FJSTDSymbolNode alloc] initWithParent:p character:c];
         [p.children setObject:child forKey:key];
         [child release];
     }
@@ -1904,10 +1904,10 @@ static NSArray *sTDReservedWords = nil;
 }
 
 
-- (void)removeWithFirst:(NSInteger)c rest:(NSString *)s parent:(TDSymbolNode *)p {
+- (void)removeWithFirst:(NSInteger)c rest:(NSString *)s parent:(FJSTDSymbolNode *)p {
     NSParameterAssert(p);
     NSNumber *key = [NSNumber numberWithInteger:c];
-    TDSymbolNode *child = [p.children objectForKey:key];
+    FJSTDSymbolNode *child = [p.children objectForKey:key];
     if (child) {
         NSString *rest = nil;
         
@@ -1923,13 +1923,13 @@ static NSArray *sTDReservedWords = nil;
 }
 
 
-- (NSString *)nextSymbol:(TDReader *)r startingWith:(NSInteger)cin {
+- (NSString *)nextSymbol:(FJSTDReader *)r startingWith:(NSInteger)cin {
     NSParameterAssert(r);
     return [self nextWithFirst:cin rest:r parent:self];
 }
 
 
-- (NSString *)nextWithFirst:(NSInteger)c rest:(TDReader *)r parent:(TDSymbolNode *)p {
+- (NSString *)nextWithFirst:(NSInteger)c rest:(FJSTDReader *)r parent:(FJSTDSymbolNode *)p {
     NSParameterAssert(p);
     NSString *result = [NSString stringWithFormat:@"%C", (unsigned short)c];
 
@@ -1956,7 +1956,7 @@ static NSArray *sTDReservedWords = nil;
 //    NSLog(@"iso: '%@'", iso);
     
     NSNumber *key = [NSNumber numberWithInteger:c];
-    TDSymbolNode *child = [p.children objectForKey:key];
+    FJSTDSymbolNode *child = [p.children objectForKey:key];
     
     if (!child) {
         if (p == self) {
@@ -1995,17 +1995,17 @@ static NSArray *sTDReservedWords = nil;
 
 
 
-@interface TDSymbolState ()
-@property (nonatomic, retain) TDSymbolRootNode *rootNode;
+@interface FJSTDSymbolState ()
+@property (nonatomic, retain) FJSTDSymbolRootNode *rootNode;
 @property (nonatomic, retain) NSMutableArray *addedSymbols;
 @end
 
-@implementation TDSymbolState
+@implementation FJSTDSymbolState
 
 - (id)init {
     self = [super init];
     if (self) {
-        self.rootNode = [[[TDSymbolRootNode alloc] init] autorelease];
+        self.rootNode = [[[FJSTDSymbolRootNode alloc] init] autorelease];
         self.addedSymbols = [NSMutableArray array];
     }
     return self;
@@ -2019,19 +2019,19 @@ static NSArray *sTDReservedWords = nil;
 }
 
 
-- (TDToken *)nextTokenFromReader:(TDReader *)r startingWith:(NSInteger)cin tokenizer:(TDTokenizer *)t {
+- (FJSTDToken *)nextTokenFromReader:(FJSTDReader *)r startingWith:(NSInteger)cin tokenizer:(FJSTDTokenizer *)t {
     NSParameterAssert(r);
     NSString *symbol = [rootNode nextSymbol:r startingWith:cin];
     NSInteger len = symbol.length;
 
     if (0 == len || (len > 1 && [addedSymbols containsObject:symbol])) {
-        return [TDToken tokenWithTokenType:TDTokenTypeSymbol stringValue:symbol floatValue:0.0];
+        return [FJSTDToken tokenWithTokenType:TDTokenTypeSymbol stringValue:symbol floatValue:0.0];
     } else {
         NSInteger i = 0;
         for ( ; i < len - 1; i++) {
             [r unread];
         }
-        return [TDToken tokenWithTokenType:TDTokenTypeSymbol stringValue:[NSString stringWithFormat:@"%C", (unsigned short)cin] floatValue:0.0];
+        return [FJSTDToken tokenWithTokenType:TDTokenTypeSymbol stringValue:[NSString stringWithFormat:@"%C", (unsigned short)cin] floatValue:0.0];
     }
 }
 
@@ -2064,14 +2064,14 @@ static NSArray *sTDReservedWords = nil;
 
 
 
-@interface TDTerminal ()
-- (TDAssembly *)matchOneAssembly:(TDAssembly *)inAssembly;
+@interface FJSTDTerminal ()
+- (FJSTDAssembly *)matchOneAssembly:(FJSTDAssembly *)inAssembly;
 - (BOOL)qualifies:(id)obj;
 
 @property (nonatomic, readwrite, copy) NSString *string;
 @end
 
-@implementation TDTerminal
+@implementation FJSTDTerminal
 
 - (id)init {
     return [self initWithString:nil];
@@ -2097,8 +2097,8 @@ static NSArray *sTDReservedWords = nil;
     NSParameterAssert(inAssemblies);
     NSMutableSet *outAssemblies = [NSMutableSet set];
     
-    for (TDAssembly *a in inAssemblies) {
-        TDAssembly *b = [self matchOneAssembly:a];
+    for (FJSTDAssembly *a in inAssemblies) {
+        FJSTDAssembly *b = [self matchOneAssembly:a];
         if (b) {
             [outAssemblies addObject:b];
         }
@@ -2108,13 +2108,13 @@ static NSArray *sTDReservedWords = nil;
 }
 
 
-- (TDAssembly *)matchOneAssembly:(TDAssembly *)inAssembly {
+- (FJSTDAssembly *)matchOneAssembly:(FJSTDAssembly *)inAssembly {
     NSParameterAssert(inAssembly);
     if (![inAssembly hasMore]) {
         return nil;
     }
     
-    TDAssembly *outAssembly = nil;
+    FJSTDAssembly *outAssembly = nil;
     
     if ([self qualifies:[inAssembly peek]]) {
         outAssembly = [[inAssembly copy] autorelease];
@@ -2134,7 +2134,7 @@ static NSArray *sTDReservedWords = nil;
 }
 
 
-- (TDTerminal *)discard {
+- (FJSTDTerminal *)discard {
     discardFlag = YES;
     return self;
 }
@@ -2151,7 +2151,7 @@ static NSArray *sTDReservedWords = nil;
 
 
 
-@interface TDTokenEOF : TDToken {}
+@interface TDTokenEOF : FJSTDToken {}
 + (TDTokenEOF *)instance;
 @end
 
@@ -2217,7 +2217,7 @@ static TDTokenEOF *EOFToken = nil;
 
 @end
 
-@interface TDToken ()
+@interface FJSTDToken ()
 - (BOOL)isEqual:(id)rhv ignoringCase:(BOOL)ignoringCase;
 
 @property (nonatomic, readwrite, getter=isNumber) BOOL number;
@@ -2233,9 +2233,9 @@ static TDTokenEOF *EOFToken = nil;
 @property (nonatomic, readwrite, copy) id value;
 @end
 
-@implementation TDToken
+@implementation FJSTDToken
 
-+ (TDToken *)EOFToken {
++ (FJSTDToken *)EOFToken {
     return [TDTokenEOF instance];
 }
 
@@ -2288,11 +2288,11 @@ static TDTokenEOF *EOFToken = nil;
 
 
 - (BOOL)isEqual:(id)rhv ignoringCase:(BOOL)ignoringCase {
-    if (![rhv isMemberOfClass:[TDToken class]]) {
+    if (![rhv isMemberOfClass:[FJSTDToken class]]) {
         return NO;
     }
     
-    TDToken *tok = (TDToken *)rhv;
+    FJSTDToken *tok = (FJSTDToken *)rhv;
     if (tokenType != tok.tokenType) {
         return NO;
     }
@@ -2377,20 +2377,20 @@ static TDTokenEOF *EOFToken = nil;
 
 
 
-@interface TDTokenArraySource ()
-@property (nonatomic, retain) TDTokenizer *tokenizer;
+@interface FJSTDTokenArraySource ()
+@property (nonatomic, retain) FJSTDTokenizer *tokenizer;
 @property (nonatomic, retain) NSString *delimiter;
-@property (nonatomic, retain) TDToken *nextToken;
+@property (nonatomic, retain) FJSTDToken *nextToken;
 @end
 
-@implementation TDTokenArraySource
+@implementation FJSTDTokenArraySource
 
 - (id)init {
     return [self initWithTokenizer:nil delimiter:nil];
 }
 
 
-- (id)initWithTokenizer:(TDTokenizer *)t delimiter:(NSString *)s {
+- (id)initWithTokenizer:(FJSTDTokenizer *)t delimiter:(NSString *)s {
     NSParameterAssert(t);
     NSParameterAssert(s);
     self = [super init];
@@ -2415,7 +2415,7 @@ static TDTokenEOF *EOFToken = nil;
         self.nextToken = [tokenizer nextToken];
     }
 
-    return ([TDToken EOFToken] != nextToken);
+    return ([FJSTDToken EOFToken] != nextToken);
 }
 
 
@@ -2427,8 +2427,8 @@ static TDTokenEOF *EOFToken = nil;
     NSMutableArray *res = [NSMutableArray arrayWithObject:nextToken];
     self.nextToken = nil;
     
-    TDToken *eof = [TDToken EOFToken];
-    TDToken *tok = nil;
+    FJSTDToken *eof = [FJSTDToken EOFToken];
+    FJSTDToken *tok = nil;
 
     while ((tok = [tokenizer nextToken]) != eof) {
         if ([tok.stringValue isEqualToString:delimiter]) {
@@ -2457,23 +2457,23 @@ static TDTokenEOF *EOFToken = nil;
 
 
 
-@interface TDTokenAssembly ()
-- (id)initWithString:(NSString *)s tokenzier:(TDTokenizer *)t tokenArray:(NSArray *)a;
+@interface FJSTDTokenAssembly ()
+- (id)initWithString:(NSString *)s tokenzier:(FJSTDTokenizer *)t tokenArray:(NSArray *)a;
 - (void)tokenize;
 - (NSString *)objectsFrom:(NSInteger)start to:(NSInteger)end separatedBy:(NSString *)delimiter;
 
-@property (nonatomic, retain) TDTokenizer *tokenizer;
+@property (nonatomic, retain) FJSTDTokenizer *tokenizer;
 @property (nonatomic, copy) NSArray *tokens;
 @end
 
-@implementation TDTokenAssembly
+@implementation FJSTDTokenAssembly
 
-+ (id)assemblyWithTokenizer:(TDTokenizer *)t {
++ (id)assemblyWithTokenizer:(FJSTDTokenizer *)t {
     return [[[self alloc] initWithTokenzier:t] autorelease];
 }
 
 
-- (id)initWithTokenzier:(TDTokenizer *)t {
+- (id)initWithTokenzier:(FJSTDTokenizer *)t {
     return [self initWithString:t.string tokenzier:t tokenArray:nil];
 }
 
@@ -2489,12 +2489,12 @@ static TDTokenEOF *EOFToken = nil;
 
 
 - (id)initWithString:(NSString *)s {
-    return [self initWithTokenzier:[[[TDTokenizer alloc] initWithString:s] autorelease]];
+    return [self initWithTokenzier:[[[FJSTDTokenizer alloc] initWithString:s] autorelease]];
 }
 
 
 // designated initializer. this method is private and should not be called from other classes
-- (id)initWithString:(NSString *)s tokenzier:(TDTokenizer *)t tokenArray:(NSArray *)a {
+- (id)initWithString:(NSString *)s tokenzier:(FJSTDTokenizer *)t tokenArray:(NSArray *)a {
     self = [super initWithString:s];
     if (self) {
         if (t) {
@@ -2517,7 +2517,7 @@ static TDTokenEOF *EOFToken = nil;
 
 
 - (id)copyWithZone:(NSZone *)zone {
-    TDTokenAssembly *a = (TDTokenAssembly *)[super copyWithZone:zone];
+    FJSTDTokenAssembly *a = (FJSTDTokenAssembly *)[super copyWithZone:zone];
     a->tokens = [self.tokens copyWithZone:zone];
     a->preservesWhitespaceTokens = preservesWhitespaceTokens;
     return a;
@@ -2533,7 +2533,7 @@ static TDTokenEOF *EOFToken = nil;
 
 
 - (id)peek {
-    TDToken *tok = nil;
+    FJSTDToken *tok = nil;
     
     while (1) {
         if (index >= self.tokens.count) {
@@ -2608,8 +2608,8 @@ static TDTokenEOF *EOFToken = nil;
     
     NSMutableArray *a = [NSMutableArray array];
     
-    TDToken *eof = [TDToken EOFToken];
-    TDToken *tok = nil;
+    FJSTDToken *eof = [FJSTDToken EOFToken];
+    FJSTDToken *tok = nil;
     while ((tok = [tokenizer nextToken]) != eof) {
         [a addObject:tok];
     }
@@ -2623,7 +2623,7 @@ static TDTokenEOF *EOFToken = nil;
 
     NSInteger i = start;
     for ( ; i < end; i++) {
-        TDToken *tok = [self.tokens objectAtIndex:i];
+        FJSTDToken *tok = [self.tokens objectAtIndex:i];
         [s appendString:tok.stringValue];
         if (end - 1 != i) {
             [s appendString:delimiter];
@@ -2648,14 +2648,14 @@ static TDTokenEOF *EOFToken = nil;
 
 
 
-@interface TDTokenizer ()
-- (void)addTokenizerState:(TDTokenizerState *)state from:(NSInteger)start to:(NSInteger)end;
-- (TDTokenizerState *)tokenizerStateFor:(NSInteger)c;
-@property (nonatomic, retain) TDReader *reader;
+@interface FJSTDTokenizer ()
+- (void)addTokenizerState:(FJSTDTokenizerState *)state from:(NSInteger)start to:(NSInteger)end;
+- (FJSTDTokenizerState *)tokenizerStateFor:(NSInteger)c;
+@property (nonatomic, retain) FJSTDReader *reader;
 @property (nonatomic, retain) NSMutableArray *tokenizerStates;
 @end
 
-@implementation TDTokenizer
+@implementation FJSTDTokenizer
 
 + (id)tokenizer {
     return [self tokenizerWithString:nil];
@@ -2676,14 +2676,14 @@ static TDTokenEOF *EOFToken = nil;
     self = [super init];
     if (self) {
         self.string = s;
-        self.reader = [[[TDReader alloc] init] autorelease];
+        self.reader = [[[FJSTDReader alloc] init] autorelease];
         
-        numberState = [[TDNumberState alloc] init];
-        quoteState = [[TDQuoteState alloc] init];
-        commentState = [[TDCommentState alloc] init];
-        symbolState = [[TDSymbolState alloc] init];
-        whitespaceState = [[TDWhitespaceState alloc] init];
-        wordState = [[TDWordState alloc] init];
+        numberState = [[FJSTDNumberState alloc] init];
+        quoteState = [[FJSTDQuoteState alloc] init];
+        commentState = [[FJSTDCommentState alloc] init];
+        symbolState = [[FJSTDSymbolState alloc] init];
+        whitespaceState = [[FJSTDWhitespaceState alloc] init];
+        wordState = [[FJSTDWordState alloc] init];
         
         [symbolState add:@"<="];
         [symbolState add:@">="];
@@ -2732,19 +2732,19 @@ static TDTokenEOF *EOFToken = nil;
 }
 
 
-- (TDToken *)nextToken {
+- (FJSTDToken *)nextToken {
     NSInteger c = [reader read];
     
-    TDToken *result = nil;
+    FJSTDToken *result = nil;
     
     if (-1 == c) {
-        result = [TDToken EOFToken];
+        result = [FJSTDToken EOFToken];
     } else {
-        TDTokenizerState *state = [self tokenizerStateFor:c];
+        FJSTDTokenizerState *state = [self tokenizerStateFor:c];
         if (state) {
             result = [state nextTokenFromReader:reader startingWith:c tokenizer:self];
         } else {
-            result = [TDToken EOFToken];
+            result = [FJSTDToken EOFToken];
         }
     }
     
@@ -2752,7 +2752,7 @@ static TDTokenEOF *EOFToken = nil;
 }
 
 
-- (void)addTokenizerState:(TDTokenizerState *)state from:(NSInteger)start to:(NSInteger)end {
+- (void)addTokenizerState:(FJSTDTokenizerState *)state from:(NSInteger)start to:(NSInteger)end {
     NSParameterAssert(state);
     
     //void (*addObject)(id, SEL, id);
@@ -2766,7 +2766,7 @@ static TDTokenEOF *EOFToken = nil;
 }
 
 
-- (void)setTokenizerState:(TDTokenizerState *)state from:(NSInteger)start to:(NSInteger)end {
+- (void)setTokenizerState:(FJSTDTokenizerState *)state from:(NSInteger)start to:(NSInteger)end {
     NSParameterAssert(state);
 
     //void (*relaceObject)(id, SEL, NSUInteger, id);
@@ -2780,12 +2780,12 @@ static TDTokenEOF *EOFToken = nil;
 }
 
 
-- (TDReader *)reader {
+- (FJSTDReader *)reader {
     return reader;
 }
 
 
-- (void)setReader:(TDReader *)r {
+- (void)setReader:(FJSTDReader *)r {
     if (reader != r) {
         [reader release];
         reader = [r retain];
@@ -2810,7 +2810,7 @@ static TDTokenEOF *EOFToken = nil;
 
 #pragma mark -
 
-- (TDTokenizerState *)tokenizerStateFor:(NSInteger)c {
+- (FJSTDTokenizerState *)tokenizerStateFor:(NSInteger)c {
     if (c < 0 || c > 255) {
         if (c >= 0x19E0 && c <= 0x19FF) { // khmer symbols
             return symbolState;
@@ -2854,7 +2854,7 @@ static TDTokenEOF *EOFToken = nil;
 
 
 
-@interface TDTokenizerState ()
+@interface FJSTDTokenizerState ()
 - (void)reset;
 - (void)append:(NSInteger)c;
 - (void)appendString:(NSString *)s;
@@ -2868,7 +2868,7 @@ static TDTokenEOF *EOFToken = nil;
 #endif
 @end
 
-@implementation TDTokenizerState
+@implementation FJSTDTokenizerState
 
 - (void)dealloc {
 #if TD_USE_MUTABLE_STRING_BUF
@@ -2883,7 +2883,7 @@ static TDTokenEOF *EOFToken = nil;
 }
 
 
-- (TDToken *)nextTokenFromReader:(TDReader *)r startingWith:(NSInteger)cin tokenizer:(TDTokenizer *)t {
+- (FJSTDToken *)nextTokenFromReader:(FJSTDReader *)r startingWith:(NSInteger)cin tokenizer:(FJSTDTokenizer *)t {
     NSAssert(0, @"TDTokenizerState is an Abstract Classs. nextTokenFromStream:at:tokenizer: must be overriden");
     return nil;
 }
@@ -2980,11 +2980,11 @@ static TDTokenEOF *EOFToken = nil;
 
 
 
-@interface TDTrack ()
-- (void)throwTrackExceptionWithPreviousState:(NSSet *)inAssemblies parser:(TDParser *)p;
+@interface FJSTDTrack ()
+- (void)throwTrackExceptionWithPreviousState:(NSSet *)inAssemblies parser:(FJSTDParser *)p;
 @end
 
-@implementation TDTrack
+@implementation FJSTDTrack
 
 + (id)track {
     return [[[self alloc] init] autorelease];
@@ -2997,7 +2997,7 @@ static TDTokenEOF *EOFToken = nil;
     NSSet *lastAssemblies = inAssemblies;
     NSSet *outAssemblies = inAssemblies;
     
-    for (TDParser *p in subparsers) {
+    for (FJSTDParser *p in subparsers) {
         outAssemblies = [p matchAndAssemble:outAssemblies];
         if (!outAssemblies.count) {
             if (inTrack) {
@@ -3012,8 +3012,8 @@ static TDTokenEOF *EOFToken = nil;
     return outAssemblies;
 }
 
-- (void)throwTrackExceptionWithPreviousState:(NSSet *)inAssemblies parser:(TDParser *)p {
-    TDAssembly *best = [self best:inAssemblies];
+- (void)throwTrackExceptionWithPreviousState:(NSSet *)inAssemblies parser:(FJSTDParser *)p {
+    FJSTDAssembly *best = [self best:inAssemblies];
     
     NSString *after = [best consumedObjectsJoinedByString:@" "];
     if (!after.length) {
@@ -3031,7 +3031,7 @@ static TDTokenEOF *EOFToken = nil;
                               expected, @"expected",
                               found, @"found",
                               nil];
-    [[TDTrackException exceptionWithName:TDTrackExceptionName reason:reason userInfo:userInfo] raise];
+    [[FJSTDTrackException exceptionWithName:TDTrackExceptionName reason:reason userInfo:userInfo] raise];
 }
 
 @end
@@ -3047,7 +3047,7 @@ static TDTokenEOF *EOFToken = nil;
 
 NSString * const TDTrackExceptionName = @"Track Exception";
 
-@implementation TDTrackException
+@implementation FJSTDTrackException
 
 @end
 //
@@ -3061,10 +3061,10 @@ NSString * const TDTrackExceptionName = @"Track Exception";
 
 
 
-@implementation TDUppercaseWord
+@implementation FJSTDUppercaseWord
 
 - (BOOL)qualifies:(id)obj {
-    TDToken *tok = (TDToken *)obj;
+    FJSTDToken *tok = (FJSTDToken *)obj;
     if (!tok.isWord) {
         return NO;
     }
@@ -3091,11 +3091,11 @@ NSString * const TDTrackExceptionName = @"Track Exception";
 #define TDFALSE (id)kCFBooleanFalse
 
 
-@interface TDWhitespaceState ()
+@interface FJSTDWhitespaceState ()
 @property (nonatomic, retain) NSMutableArray *whitespaceChars;
 @end
 
-@implementation TDWhitespaceState
+@implementation FJSTDWhitespaceState
 
 - (id)init {
     self = [super init];
@@ -3141,7 +3141,7 @@ NSString * const TDTrackExceptionName = @"Track Exception";
 }
 
 
-- (TDToken *)nextTokenFromReader:(TDReader *)r startingWith:(NSInteger)cin tokenizer:(TDTokenizer *)t {
+- (FJSTDToken *)nextTokenFromReader:(FJSTDReader *)r startingWith:(NSInteger)cin tokenizer:(FJSTDTokenizer *)t {
     NSParameterAssert(r);
     if (reportsWhitespaceTokens) {
         [self reset];
@@ -3159,7 +3159,7 @@ NSString * const TDTrackExceptionName = @"Track Exception";
     }
     
     if (reportsWhitespaceTokens) {
-        return [TDToken tokenWithTokenType:TDTokenTypeWhitespace stringValue:[self bufferedString] floatValue:0.0];
+        return [FJSTDToken tokenWithTokenType:TDTokenTypeWhitespace stringValue:[self bufferedString] floatValue:0.0];
     } else {
         return [t nextToken];
     }
@@ -3180,7 +3180,7 @@ NSString * const TDTrackExceptionName = @"Track Exception";
 
 
 
-@implementation TDWord
+@implementation FJSTDWord
 
 + (id)word {
     return [[[self alloc] initWithString:@""] autorelease];
@@ -3188,7 +3188,7 @@ NSString * const TDTrackExceptionName = @"Track Exception";
 
 
 - (BOOL)qualifies:(id)obj {
-    TDToken *tok = (TDToken *)obj;
+    FJSTDToken *tok = (FJSTDToken *)obj;
     return tok.isWord;
 }
 
@@ -3203,11 +3203,11 @@ NSString * const TDTrackExceptionName = @"Track Exception";
 
 
 
-@interface TDWordOrReservedState ()
+@interface FJSTDWordOrReservedState ()
 @property (nonatomic, retain) NSMutableSet *reservedWords;
 @end
 
-@implementation TDWordOrReservedState
+@implementation FJSTDWordOrReservedState
 
 - (id)init {
     self = [super init];
@@ -3229,7 +3229,7 @@ NSString * const TDTrackExceptionName = @"Track Exception";
 }
 
 
-- (TDToken *)nextTokenFromReader:(TDReader *)r startingWith:(NSInteger)cin tokenizer:(TDTokenizer *)t {
+- (FJSTDToken *)nextTokenFromReader:(FJSTDReader *)r startingWith:(NSInteger)cin tokenizer:(FJSTDTokenizer *)t {
     NSParameterAssert(r);
     return nil;
 }
@@ -3253,13 +3253,13 @@ NSString * const TDTrackExceptionName = @"Track Exception";
 #define TDFALSE (id)kCFBooleanFalse
 
 
-@interface TDWordState () 
+@interface FJSTDWordState () 
 - (BOOL)isWordChar:(NSInteger)c;
 
 @property (nonatomic, retain) NSMutableArray *wordChars;
 @end
 
-@implementation TDWordState
+@implementation FJSTDWordState
 
 - (id)init {
     self = [super init];
@@ -3326,7 +3326,7 @@ NSString * const TDTrackExceptionName = @"Track Exception";
 }
 
 
-- (TDToken *)nextTokenFromReader:(TDReader *)r startingWith:(NSInteger)cin tokenizer:(TDTokenizer *)t {
+- (FJSTDToken *)nextTokenFromReader:(FJSTDReader *)r startingWith:(NSInteger)cin tokenizer:(FJSTDTokenizer *)t {
     NSParameterAssert(r);
     [self reset];
     
@@ -3340,7 +3340,7 @@ NSString * const TDTrackExceptionName = @"Track Exception";
         [r unread];
     }
     
-    return [TDToken tokenWithTokenType:TDTokenTypeWord stringValue:[self bufferedString] floatValue:0.0];
+    return [FJSTDToken tokenWithTokenType:TDTokenTypeWord stringValue:[self bufferedString] floatValue:0.0];
 }
 
 

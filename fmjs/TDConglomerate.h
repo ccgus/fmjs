@@ -1,51 +1,51 @@
 #import <Foundation/Foundation.h>
 
-@class TDParser;
-@class TDCollectionParser;
-@class TDTerminal;
-@class TDLiteral;
-@class TDAlternation;
-@class TDTokenizerState;
-@class TDWhitespaceState;
-@class TDWord;
-@class TDToken;
-@class TDAny;
-@class TDAssembly;
-@class TDCaseInsensitiveLiteral;
-@class TDChar;
-@class TDCharacterAssembly;
-@class TDComment;
-@class TDCommentState;
-@class TDDigit;
-@class TDEmpty;
-@class TDLetter;
-@class TDLowercaseWord;
-@class TDMultiLineCommentState;
-@class TDNonReservedWord;
-@class TDNum;
-@class TDNumberState;
-@class TDParseKit;
-@class TDQuoteState;
-@class TDQuotedString;
-@class TDReader;
-@class TDRepetition;
-@class TDReservedWord;
-@class TDScientificNumberState;
-@class TDSequence;
-@class TDSingleLineCommentState;
-@class TDSpecificChar;
-@class TDSymbol;
-@class TDSymbolNode;
-@class TDSymbolRootNode;
-@class TDSymbolState;
-@class TDTokenArraySource;
-@class TDTokenAssembly;
-@class TDTokenizer;
-@class TDTrack;
-@class TDTrackException;
-@class TDUppercaseWord;
-@class TDWordState;
-@class TDWordOrReservedState;
+@class FJSTDParser;
+@class FJSTDCollectionParser;
+@class FJSTDTerminal;
+@class FJSTDLiteral;
+@class FJSTDAlternation;
+@class FJSTDTokenizerState;
+@class FJSTDWhitespaceState;
+@class FJSTDWord;
+@class FJSTDToken;
+@class FJSTDAny;
+@class FJSTDAssembly;
+@class FJSTDCaseInsensitiveLiteral;
+@class FJSTDChar;
+@class FJSTDCharacterAssembly;
+@class FJSTDComment;
+@class FJSTDCommentState;
+@class FJSTDDigit;
+@class FJSTDEmpty;
+@class FJSTDLetter;
+@class FJSTDLowercaseWord;
+@class FJSTDMultiLineCommentState;
+@class FJSTDNonReservedWord;
+@class FJSTDNum;
+@class FJSTDNumberState;
+@class FJSTDParseKit;
+@class FJSTDQuoteState;
+@class FJSTDQuotedString;
+@class FJSTDReader;
+@class FJSTDRepetition;
+@class FJSTDReservedWord;
+@class FJSTDScientificNumberState;
+@class FJSTDSequence;
+@class FJSTDSingleLineCommentState;
+@class FJSTDSpecificChar;
+@class FJSTDSymbol;
+@class FJSTDSymbolNode;
+@class FJSTDSymbolRootNode;
+@class FJSTDSymbolState;
+@class FJSTDTokenArraySource;
+@class FJSTDTokenAssembly;
+@class FJSTDTokenizer;
+@class FJSTDTrack;
+@class FJSTDTrackException;
+@class FJSTDUppercaseWord;
+@class FJSTDWordState;
+@class FJSTDWordOrReservedState;
 //
 //  TDParser.h
 //  TDParseKit
@@ -56,7 +56,7 @@
 
 
 
-@class TDAssembly;
+@class FJSTDAssembly;
 
 /*!
     @class      TDParser 
@@ -81,7 +81,7 @@
 @endcode
                 <p>The parser does not match directly against a string, it matches against a <tt>TDAssembly</tt>. The resulting assembly shows its stack, with four words on it, along with its sequence of tokens, and the index at the end of these. In practice, parsers will do some work on an assembly, based on the text they recognize.</p>
 */
-@interface TDParser : NSObject {
+@interface FJSTDParser : NSObject {
     id assembler;
     SEL selector;
     NSString *name;
@@ -106,14 +106,14 @@
     @param      inAssembly the assembly for which to find the best match
     @result     an assembly with the greatest possible number of elements consumed by this parser
 */
-- (TDAssembly *)bestMatchFor:(TDAssembly *)inAssembly;
+- (FJSTDAssembly *)bestMatchFor:(FJSTDAssembly *)inAssembly;
 
 /*!
     @brief      Returns either <tt>nil</tt>, or a completely matched version of the supplied assembly.
     @param      inAssembly the assembly for which to find the complete match
     @result     either <tt>nil</tt>, or a completely matched version of the supplied assembly
 */
-- (TDAssembly *)completeMatchFor:(TDAssembly *)inAssembly;
+- (FJSTDAssembly *)completeMatchFor:(FJSTDAssembly *)inAssembly;
 
 /*!
     @brief      Given a set of assemblies, this method matches this parser against all of them, and returns a new set of the assemblies that result from the matches.
@@ -160,7 +160,7 @@
     @class      TDCollectionParser 
     @brief      An Abstract class. This class abstracts the behavior common to parsers that consist of a series of other parsers.
 */
-@interface TDCollectionParser : TDParser {
+@interface FJSTDCollectionParser : FJSTDParser {
     NSMutableArray *subparsers;
 }
 
@@ -168,7 +168,7 @@
     @brief      Adds a parser to the collection.
     @param      p parser to add
 */
-- (void)add:(TDParser *)p;
+- (void)add:(FJSTDParser *)p;
 
 /*!
     @property   subparsers
@@ -187,13 +187,13 @@
 
 
 
-@class TDToken;
+@class FJSTDToken;
 
 /*!
     @class      TDTerminal
     @brief      An Abstract Class. A <tt>TDTerminal</tt> is a parser that is not a composition of other parsers.
 */
-@interface TDTerminal : TDParser {
+@interface FJSTDTerminal : FJSTDParser {
     NSString *string;
     BOOL discardFlag;
 }
@@ -211,7 +211,7 @@
     @details    This method returns this parser as a convenience for chainging-style usage.
     @result     this parser, returned for chaining/convenience
 */
-- (TDTerminal *)discard;
+- (FJSTDTerminal *)discard;
 
 /*!
     @property   string
@@ -230,14 +230,14 @@
 
 
 
-@class TDToken;
+@class FJSTDToken;
 
 /*!
     @class      TDLiteral 
     @brief      A Literal matches a specific word from an assembly.
 */
-@interface TDLiteral : TDTerminal {
-    TDToken *literal;
+@interface FJSTDLiteral : FJSTDTerminal {
+    FJSTDToken *literal;
 }
 
 /*!
@@ -262,7 +262,7 @@
     @class      TDAlternation
     @brief      A <tt>TDAlternation</tt> object is a collection of parsers, any one of which can successfully match against an assembly.
 */
-@interface TDAlternation : TDCollectionParser {
+@interface FJSTDAlternation : FJSTDCollectionParser {
 
 }
 
@@ -284,16 +284,16 @@
 
 #define TD_USE_MUTABLE_STRING_BUF 1
 
-@class TDToken;
-@class TDTokenizer;
-@class TDReader;
+@class FJSTDToken;
+@class FJSTDTokenizer;
+@class FJSTDReader;
 
 /*!
     @class      TDTokenizerState 
     @brief      A <tt>TDTokenizerState</tt> returns a token, given a reader, an initial character read from the reader, and a tokenizer that is conducting an overall tokenization of the reader.
     @details    The tokenizer will typically have a character state table that decides which state to use, depending on an initial character. If a single character is insufficient, a state such as <tt>TDSlashState</tt> will read a second character, and may delegate to another state, such as <tt>TDSlashStarState</tt>. This prospect of delegation is the reason that the <tt>-nextToken</tt> method has a tokenizer argument.
 */
-@interface TDTokenizerState : NSObject {
+@interface FJSTDTokenizerState : NSObject {
 #if TD_USE_MUTABLE_STRING_BUF
     NSMutableString *stringbuf;
 #else
@@ -310,7 +310,7 @@
     @param      t the tokenizer currently powering the tokenization
     @result     a token that represents a logical piece of the reader
 */
-- (TDToken *)nextTokenFromReader:(TDReader *)r startingWith:(NSInteger)cin tokenizer:(TDTokenizer *)t;
+- (FJSTDToken *)nextTokenFromReader:(FJSTDReader *)r startingWith:(NSInteger)cin tokenizer:(FJSTDTokenizer *)t;
 @end
 //
 //  TDWhitespaceState.h
@@ -328,7 +328,7 @@
     @brief      A whitespace state ignores whitespace (such as blanks and tabs), and returns the tokenizer's next token.
     @details    By default, all characters from 0 to 32 are whitespace.
 */
-@interface TDWhitespaceState : TDTokenizerState {
+@interface FJSTDWhitespaceState : FJSTDTokenizerState {
     NSMutableArray *whitespaceChars;
     BOOL reportsWhitespaceTokens;
 }
@@ -369,7 +369,7 @@
     @class      TDWord 
     @brief      A <tt>TDWord</tt> matches a word from a token assembly.
 */
-@interface TDWord : TDTerminal {
+@interface FJSTDWord : FJSTDTerminal {
 
 }
 
@@ -413,7 +413,7 @@ typedef enum {
     @brief      A token represents a logical chunk of a string.
     @details    For example, a typical tokenizer would break the string <tt>"1.23 &lt;= 12.3"</tt> into three tokens: the number <tt>1.23</tt>, a less-than-or-equal symbol, and the number <tt>12.3</tt>. A token is a receptacle, and relies on a tokenizer to decide precisely how to divide a string into tokens.
 */
-@interface TDToken : NSObject {
+@interface FJSTDToken : NSObject {
     CGFloat floatValue;
     NSString *stringValue;
     TDTokenType tokenType;
@@ -432,7 +432,7 @@ typedef enum {
     @brief      Factory method for creating a singleton <tt>TDToken</tt> used to indicate that there are no more tokens.
     @result     A singleton used to indicate that there are no more tokens.
 */
-+ (TDToken *)EOFToken;
++ (FJSTDToken *)EOFToken;
 
 /*!
     @brief      Factory convenience method for creating an autoreleased token.
@@ -541,7 +541,7 @@ typedef enum {
     @class      TDAny 
     @brief      A <tt>TDAny</tt> matches any token from a token assembly.
 */
-@interface TDAny : TDTerminal {
+@interface FJSTDAny : FJSTDTerminal {
 
 }
 
@@ -567,7 +567,7 @@ typedef enum {
     @details    <p>Parsers use assemblers to record progress at recognizing language elements from assembly's string.</p>
                 <p>Note that <tt>TDAssembly</tt> is an abstract class and may not be instantiated directly. Subclasses include <tt>TDTokenAssembly</tt> and <tt>TDCharAssembly</tt>.</p>
 */
-@interface TDAssembly : NSObject <NSCopying> {
+@interface FJSTDAssembly : NSObject <NSCopying> {
     NSMutableArray *stack;
     id target;
     NSUInteger index;
@@ -704,7 +704,7 @@ typedef enum {
     @class      TDCaseInsensitiveLiteral 
     @brief      A <tt>TDCaselessLiteral</tt> matches a specified <tt>NSString</tt> from an assembly, disregarding case.
 */
-@interface TDCaseInsensitiveLiteral : TDLiteral {
+@interface FJSTDCaseInsensitiveLiteral : FJSTDLiteral {
 
 }
 
@@ -724,7 +724,7 @@ typedef enum {
     @brief      A <tt>TDChar</tt> matches a character from a character assembly.
     @details    <tt>-[TDChar qualifies:]</tt> returns true every time, since this class assumes it is working against a <tt>TDCharacterAssembly</tt>.
 */
-@interface TDChar : TDTerminal {
+@interface FJSTDChar : FJSTDTerminal {
 
 }
 
@@ -748,7 +748,7 @@ typedef enum {
     @class      TDCharacterAssembly 
     @brief      A <tt>TDCharacterAssembly</tt> is a <tt>TDAssembly</tt> whose elements are characters.
 */
-@interface TDCharacterAssembly : TDAssembly {
+@interface FJSTDCharacterAssembly : FJSTDAssembly {
 
 }
 
@@ -768,7 +768,7 @@ typedef enum {
     @class      TDComment
     @brief      A Comment matches a comment from a token assembly.
 */
-@interface TDComment : TDTerminal {
+@interface FJSTDComment : FJSTDTerminal {
 
 }
 
@@ -789,19 +789,19 @@ typedef enum {
 
 
 
-@class TDSymbolRootNode;
-@class TDSingleLineCommentState;
-@class TDMultiLineCommentState;
+@class FJSTDSymbolRootNode;
+@class FJSTDSingleLineCommentState;
+@class FJSTDMultiLineCommentState;
 
 /*!
     @class      TDCommentState
     @brief      This state will either delegate to a comment-handling state, or return a <tt>TDSymbol</tt> token with just the first char in it.
     @details    By default, C and C++ style comments. (<tt>//</tt> to end of line and <tt> &0x002A;/</tt>)
 */
-@interface TDCommentState : TDTokenizerState {
-    TDSymbolRootNode *rootNode;
-    TDSingleLineCommentState *singleLineState;
-    TDMultiLineCommentState *multiLineState;
+@interface FJSTDCommentState : FJSTDTokenizerState {
+    FJSTDSymbolRootNode *rootNode;
+    FJSTDSingleLineCommentState *singleLineState;
+    FJSTDMultiLineCommentState *multiLineState;
     BOOL reportsCommentTokens;
     BOOL balancesEOFTerminatedComments;
 }
@@ -864,7 +864,7 @@ typedef enum {
     @brief      A <tt>TDDigit</tt> matches a digit from a character assembly.
     @details    <tt>-[TDDitgit qualifies:]</tt> returns true if an assembly's next element is a digit.
 */
-@interface TDDigit : TDTerminal {
+@interface FJSTDDigit : FJSTDTerminal {
 
 }
 
@@ -890,7 +890,7 @@ typedef enum {
     @brief      A <tt>TDEmpty</tt> parser matches any assembly once, and applies its assembler that one time.
     @details    <p>Language elements often contain empty parts. For example, a language may at some point allow a list of parameters in parentheses, and may allow an empty list. An empty parser makes it easy to match, within the parenthesis, either a list of parameters or "empty".</p>
 */
-@interface TDEmpty : TDParser {
+@interface FJSTDEmpty : FJSTDParser {
 
 }
 
@@ -915,7 +915,7 @@ typedef enum {
     @brief      A <tt>TDLetter</tt> matches any letter from a character assembly.
     @details    <tt>-[TDLetter qualifies:]</tt> returns true if an assembly's next element is a letter.
 */
-@interface TDLetter : TDTerminal {
+@interface FJSTDLetter : FJSTDTerminal {
 
 }
 
@@ -936,7 +936,7 @@ typedef enum {
 
 
 
-@interface TDLowercaseWord : TDWord {
+@interface FJSTDLowercaseWord : FJSTDWord {
 
 }
 
@@ -952,7 +952,7 @@ typedef enum {
 
 
 
-@interface TDMultiLineCommentState : TDTokenizerState {
+@interface FJSTDMultiLineCommentState : FJSTDTokenizerState {
     NSMutableArray *startSymbols;
     NSMutableArray *endSymbols;
     NSString *currentStartSymbol;
@@ -970,7 +970,7 @@ typedef enum {
 
 
 
-@interface TDNonReservedWord : TDWord {
+@interface FJSTDNonReservedWord : FJSTDWord {
 
 }
 
@@ -990,7 +990,7 @@ typedef enum {
     @class      TDNum 
     @brief      A Num matches a number from a token assembly.
 */
-@interface TDNum : TDTerminal {
+@interface FJSTDNum : FJSTDTerminal {
 
 }
 
@@ -1016,7 +1016,7 @@ typedef enum {
     @brief      A number state returns a number from a reader.
     @details    This state's idea of a number allows an optional, initial minus sign, followed by one or more digits. A decimal point and another string of digits may follow these digits.
 */
-@interface TDNumberState : TDTokenizerState {
+@interface FJSTDNumberState : FJSTDTokenizerState {
     BOOL allowsTrailingDot;
     BOOL gotADigit;
     BOOL negative;
@@ -1123,7 +1123,7 @@ typedef enum {
     @brief      A quote state returns a quoted string token from a reader
     @details    This state will collect characters until it sees a match to the character that the tokenizer used to switch to this state. For example, if a tokenizer uses a double- quote character to enter this state, then <tt>-nextToken</tt> will search for another double-quote until it finds one or finds the end of the reader.
 */
-@interface TDQuoteState : TDTokenizerState {
+@interface FJSTDQuoteState : FJSTDTokenizerState {
     BOOL balancesEOFTerminatedQuotes;
 }
 
@@ -1148,7 +1148,7 @@ typedef enum {
     @class      TDQuotedString 
     @brief      A <tt>TDQuotedString</tt> matches a quoted string, like "this one" from a token assembly.
 */
-@interface TDQuotedString : TDTerminal {
+@interface FJSTDQuotedString : FJSTDTerminal {
 
 }
 
@@ -1172,7 +1172,7 @@ typedef enum {
     @class      TDReader 
     @brief      A character-stream reader that allows characters to be pushed back into the stream.
 */
-@interface TDReader : NSObject {
+@interface FJSTDReader : NSObject {
     NSString *string;
     NSUInteger cursor;
     NSUInteger length;
@@ -1219,8 +1219,8 @@ typedef enum {
     @class      TDRepetition 
     @brief      A <tt>TDRepetition</tt> matches its underlying parser repeatedly against a assembly.
 */
-@interface TDRepetition : TDParser {
-    TDParser *subparser;
+@interface FJSTDRepetition : FJSTDParser {
+    FJSTDParser *subparser;
     id preassembler;
     SEL preassemblerSelector;
 }
@@ -1230,7 +1230,7 @@ typedef enum {
     @param      p the subparser against wich to repeatedly match
     @result     an initialized autoreleased <tt>TDRepetition</tt> parser.
 */
-+ (id)repetitionWithSubparser:(TDParser *)p;
++ (id)repetitionWithSubparser:(FJSTDParser *)p;
 
 /*!
     @brief      Designated Initializer. Initialize a <tt>TDRepetition</tt> parser to repeatedly match against subparser <tt>p</tt>.
@@ -1238,7 +1238,7 @@ typedef enum {
     @param      p the subparser against wich to repeatedly match
     @result     an initialized <tt>TDRepetition</tt> parser.
 */
-- (id)initWithSubparser:(TDParser *)p;
+- (id)initWithSubparser:(FJSTDParser *)p;
 
 /*!
     @brief      Sets the object that will work on every assembly before matching against it.
@@ -1252,7 +1252,7 @@ typedef enum {
     @property   subparser
     @brief      this parser's subparser against which it repeatedly matches
 */
-@property (nonatomic, readonly, retain) TDParser *subparser;
+@property (nonatomic, readonly, retain) FJSTDParser *subparser;
 
 /*!
     @property   preassembler
@@ -1279,7 +1279,7 @@ typedef enum {
 
 
 
-@interface TDReservedWord : TDWord {
+@interface FJSTDReservedWord : FJSTDWord {
 
 }
 
@@ -1301,7 +1301,7 @@ typedef enum {
     @details    <p>This state's idea of a number expands on its superclass, allowing an 'e' followed by an integer to represent 10 to the indicated power. For example, this state will recognize <tt>1e2</tt> as equaling <tt>100</tt>.</p>
                 <p>This class exists primarily to show how to introduce a new tokenizing state.</p>
 */
-@interface TDScientificNumberState : TDNumberState {
+@interface FJSTDScientificNumberState : FJSTDNumberState {
     CGFloat exp;
     BOOL negativeExp;
 }
@@ -1322,7 +1322,7 @@ typedef enum {
     @class      TDSequence 
     @brief      A <tt>TDSequence</tt> object is a collection of parsers, all of which must in turn match against an assembly for this parser to successfully match.
 */
-@interface TDSequence : TDCollectionParser {
+@interface FJSTDSequence : FJSTDCollectionParser {
 
 }
 
@@ -1343,7 +1343,7 @@ typedef enum {
 
 
 
-@interface TDSingleLineCommentState : TDTokenizerState {
+@interface FJSTDSingleLineCommentState : FJSTDTokenizerState {
     NSMutableArray *startSymbols;
     NSString *currentStartSymbol;
 }
@@ -1364,7 +1364,7 @@ typedef enum {
     @brief      A <tt>TDSpecificChar</tt> matches a specified character from a character assembly.
     @details    <tt>-[TDSpecificChar qualifies:]</tt> returns true if an assembly's next element is equal to the character this object was constructed with.
 */
-@interface TDSpecificChar : TDTerminal {
+@interface FJSTDSpecificChar : FJSTDTerminal {
 }
 
 /*!
@@ -1392,14 +1392,14 @@ typedef enum {
 
 
 
-@class TDToken;
+@class FJSTDToken;
 
 /*!
     @class      TDSymbol 
     @brief      A <tt>TDSymbol</tt> matches a specific sequence, such as <tt>&lt;</tt>, or <tt>&lt;=</tt> that a tokenizer returns as a symbol.
 */
-@interface TDSymbol : TDTerminal {
-    TDToken *symbol;
+@interface FJSTDSymbol : FJSTDTerminal {
+    FJSTDToken *symbol;
 }
 
 /*!
@@ -1430,9 +1430,9 @@ typedef enum {
     @brief      A <tt>TDSymbolNode</tt> object is a member of a tree that contains all possible prefixes of allowable symbols.
     @details    A <tt>TDSymbolNode</tt> object is a member of a tree that contains all possible prefixes of allowable symbols. Multi-character symbols appear in a <tt>TDSymbolNode</tt> tree with one node for each character. For example, the symbol <tt>=:~</tt> will appear in a tree as three nodes. The first node contains an equals sign, and has a child; that child contains a colon and has a child; this third child contains a tilde, and has no children of its own. If the colon node had another child for a dollar sign character, then the tree would contain the symbol <tt>=:$</tt>. A tree of <tt>TDSymbolNode</tt> objects collaborate to read a (potentially multi-character) symbol from an input stream. A root node with no character of its own finds an initial node that represents the first character in the input. This node looks to see if the next character in the stream matches one of its children. If so, the node delegates its reading task to its child. This approach walks down the tree, pulling symbols from the input that match the path down the tree. When a node does not have a child that matches the next character, we will have read the longest possible symbol prefix. This prefix may or may not be a valid symbol. Consider a tree that has had <tt>=:~</tt> added and has not had <tt>=:</tt> added. In this tree, of the three nodes that contain =:~, only the first and third contain complete symbols. If, say, the input contains <tt>=:a</tt>, the colon node will not have a child that matches the <tt>'a'</tt> and so it will stop reading. The colon node has to "unread": it must push back its character, and ask its parent to unread. Unreading continues until it reaches an ancestor that represents a valid symbol.
 */
-@interface TDSymbolNode : NSObject {
+@interface FJSTDSymbolNode : NSObject {
     NSString *ancestry;
-    TDSymbolNode *parent;
+    FJSTDSymbolNode *parent;
     NSMutableDictionary *children;
     NSInteger character;
     NSString *string;
@@ -1444,7 +1444,7 @@ typedef enum {
     @param      c the character for this node
     @result     An initialized <tt>TDSymbolNode</tt>
 */
-- (id)initWithParent:(TDSymbolNode *)p character:(NSInteger)c;
+- (id)initWithParent:(FJSTDSymbolNode *)p character:(NSInteger)c;
 
 /*!
     @property   ancestry
@@ -1463,14 +1463,14 @@ typedef enum {
 
 
 
-@class TDReader;
+@class FJSTDReader;
 
 /*!
     @class      TDSymbolRootNode 
     @brief      This class is a special case of a <tt>TDSymbolNode</tt>.
     @details    This class is a special case of a <tt>TDSymbolNode</tt>. A <tt>TDSymbolRootNode</tt> object has no symbol of its own, but has children that represent all possible symbols.
 */
-@interface TDSymbolRootNode : TDSymbolNode {
+@interface FJSTDSymbolRootNode : FJSTDSymbolNode {
 }
 
 /*!
@@ -1492,7 +1492,7 @@ typedef enum {
     @param      cin the character from witch to start
     @result     a symbol string from a reader
 */
-- (NSString *)nextSymbol:(TDReader *)r startingWith:(NSInteger)cin;
+- (NSString *)nextSymbol:(FJSTDReader *)r startingWith:(NSInteger)cin;
 @end
 //
 //  TDSymbolState.h
@@ -1505,7 +1505,7 @@ typedef enum {
 
 
 
-@class TDSymbolRootNode;
+@class FJSTDSymbolRootNode;
 
 /*!
     @class      TDSymbolState 
@@ -1514,8 +1514,8 @@ typedef enum {
                 <p>Multi-character symbols are an exception to the rule that a symbol is a standalone character. For example, a tokenizer may want less-than-or-equals to tokenize as a single token. This class provides a method for establishing which multi-character symbols an object of this class should treat as single symbols. This allows, for example, "cat <= dog" to tokenize as three tokens, rather than splitting the less-than and equals symbols into separate tokens.</p>
                 <p>By default, this state recognizes the following multi- character symbols: <tt>!=</tt>, <tt>:-</tt>, <tt><=</tt>, <tt>>=</tt></p>
 */
-@interface TDSymbolState : TDTokenizerState {
-    TDSymbolRootNode *rootNode;
+@interface FJSTDSymbolState : FJSTDTokenizerState {
+    FJSTDSymbolRootNode *rootNode;
     NSMutableArray *addedSymbols;
 }
 
@@ -1542,8 +1542,8 @@ typedef enum {
 
 
 
-@class TDTokenizer;
-@class TDToken;
+@class FJSTDTokenizer;
+@class FJSTDToken;
 
 /*!
     @class      TDTokenArraySource
@@ -1569,15 +1569,15 @@ typedef enum {
     I left in peace
 @endcode
 */
-@interface TDTokenArraySource : NSObject {
-    TDTokenizer *tokenizer;
+@interface FJSTDTokenArraySource : NSObject {
+    FJSTDTokenizer *tokenizer;
     NSString *delimiter;
-    TDToken *nextToken;
+    FJSTDToken *nextToken;
 }
 
 /*
 */
-- (id)initWithTokenizer:(TDTokenizer *)t delimiter:(NSString *)s;
+- (id)initWithTokenizer:(FJSTDTokenizer *)t delimiter:(NSString *)s;
 
 /*!
     @brief      true if the source has more arrays of tokens.
@@ -1601,15 +1601,15 @@ typedef enum {
 
 
 
-@class TDTokenizer;
+@class FJSTDTokenizer;
 
 /*!
     @class      TDTokenAssembly 
     @brief      A <tt>TDTokenAssembly</tt> is a <tt>TDAssembly</tt> whose elements are <tt>TDToken</tt>s.
     @details    <tt>TDToken</tt>s are, roughly, the chunks of text that a <tt>TDTokenizer</tt> returns.
 */
-@interface TDTokenAssembly : TDAssembly <NSCopying> {
-    TDTokenizer *tokenizer;
+@interface FJSTDTokenAssembly : FJSTDAssembly <NSCopying> {
+    FJSTDTokenizer *tokenizer;
     NSArray *tokens;
     BOOL preservesWhitespaceTokens;
 }
@@ -1619,14 +1619,14 @@ typedef enum {
     @param      t tokenizer whose string will be worked on
     @result     an initialized autoreleased assembly
 */
-+ (id)assemblyWithTokenizer:(TDTokenizer *)t;
++ (id)assemblyWithTokenizer:(FJSTDTokenizer *)t;
 
 /*!
     @brief      Initializes an assembly with the tokenizer <tt>t</tt> and its string
     @param      t tokenizer whose string will be worked on
     @result     an initialized assembly
 */
-- (id)initWithTokenzier:(TDTokenizer *)t;
+- (id)initWithTokenzier:(FJSTDTokenizer *)t;
 
 /*!
     @brief      Convenience factory method for initializing an autoreleased assembly with the token array <tt>a</tt> and its string
@@ -1658,16 +1658,16 @@ typedef enum {
 
 
 
-@class TDToken;
-@class TDTokenizerState;
-@class TDNumberState;
-@class TDQuoteState;
+@class FJSTDToken;
+@class FJSTDTokenizerState;
+@class FJSTDNumberState;
+@class FJSTDQuoteState;
 @class TDSlashState;
-@class TDCommentState;
-@class TDSymbolState;
-@class TDWhitespaceState;
-@class TDWordState;
-@class TDReader;
+@class FJSTDCommentState;
+@class FJSTDSymbolState;
+@class FJSTDWhitespaceState;
+@class FJSTDWordState;
+@class FJSTDReader;
 
 /*!
     @class      TDTokenizer
@@ -1691,18 +1691,18 @@ typedef enum {
 @endcode
                 <p>In addition to allowing modification of the state table, this class makes each of the states above available. Some of these states are customizable. For example, wordState allows customization of what characters can be part of a word, after the first character.</p>
 */
-@interface TDTokenizer : NSObject {
+@interface FJSTDTokenizer : NSObject {
     NSString *string;
-    TDReader *reader;
+    FJSTDReader *reader;
     
     NSMutableArray *tokenizerStates;
     
-    TDNumberState *numberState;
-    TDQuoteState *quoteState;
-    TDCommentState *commentState;
-    TDSymbolState *symbolState;
-    TDWhitespaceState *whitespaceState;
-    TDWordState *wordState;
+    FJSTDNumberState *numberState;
+    FJSTDQuoteState *quoteState;
+    FJSTDCommentState *commentState;
+    FJSTDSymbolState *symbolState;
+    FJSTDWhitespaceState *whitespaceState;
+    FJSTDWordState *wordState;
 }
 
 /*!
@@ -1729,7 +1729,7 @@ typedef enum {
     @brief      Returns the next token.
     @result     the next token.
 */
-- (TDToken *)nextToken;
+- (FJSTDToken *)nextToken;
 
 /*!
     @brief      Change the state the tokenizer will enter upon reading any character between "start" and "end".
@@ -1737,7 +1737,7 @@ typedef enum {
     @param      start the "start" character. e.g. <tt>'a'</tt> or <tt>65</tt>.
     @param      end the "end" character. <tt>'z'</tt> or <tt>90</tt>.
 */
-- (void)setTokenizerState:(TDTokenizerState *)state from:(NSInteger)start to:(NSInteger)end;
+- (void)setTokenizerState:(FJSTDTokenizerState *)state from:(NSInteger)start to:(NSInteger)end;
 
 /*!
     @property   string
@@ -1749,37 +1749,37 @@ typedef enum {
     @property    numberState
     @brief       The state this tokenizer uses to build numbers.
 */
-@property (nonatomic, retain) TDNumberState *numberState;
+@property (nonatomic, retain) FJSTDNumberState *numberState;
 
 /*!
     @property   quoteState
     @brief      The state this tokenizer uses to build quoted strings.
 */
-@property (nonatomic, retain) TDQuoteState *quoteState;
+@property (nonatomic, retain) FJSTDQuoteState *quoteState;
 
 /*!
     @property   commentState
     @brief      The state this tokenizer uses to recognize (and possibly ignore) comments.
 */
-@property (nonatomic, retain) TDCommentState *commentState;
+@property (nonatomic, retain) FJSTDCommentState *commentState;
 
 /*!
     @property   symbolState
     @brief      The state this tokenizer uses to recognize symbols.
 */
-@property (nonatomic, retain) TDSymbolState *symbolState;
+@property (nonatomic, retain) FJSTDSymbolState *symbolState;
 
 /*!
     @property   whitespaceState
     @brief      The state this tokenizer uses to recognize (and possibly ignore) whitespace.
 */
-@property (nonatomic, retain) TDWhitespaceState *whitespaceState;
+@property (nonatomic, retain) FJSTDWhitespaceState *whitespaceState;
 
 /*!
     @property   wordState
     @brief      The state this tokenizer uses to build words.
 */
-@property (nonatomic, retain) TDWordState *wordState;
+@property (nonatomic, retain) FJSTDWordState *wordState;
 @end
 //
 //  TDTrack.h
@@ -1797,7 +1797,7 @@ typedef enum {
     @brief      A <tt>TDTrack</tt> is a sequence that throws a <tt>TDTrackException</tt> if the sequence begins but does not complete.
     @details    If <tt>-[TDTrack allMatchesFor:]</tt> begins but does not complete, it throws a <tt>TDTrackException</tt>.
 */
-@interface TDTrack : TDSequence {
+@interface FJSTDTrack : FJSTDSequence {
 
 }
 
@@ -1827,7 +1827,7 @@ extern NSString * const TDTrackExceptionName;
             <tt>expected</tt> (<tt>NSString *</tt>) - some indication of what kind of thing was expected, such as a ')' token
             <tt>found</tt> (<tt>NSString *</tt>) - the text element the thrower actually found when it expected something else</pre>
 */
-@interface TDTrackException : NSException {
+@interface FJSTDTrackException : NSException {
 
 }
 
@@ -1843,7 +1843,7 @@ extern NSString * const TDTrackExceptionName;
 
 
 
-@interface TDUppercaseWord : TDWord {
+@interface FJSTDUppercaseWord : FJSTDWord {
 
 }
 
@@ -1872,7 +1872,7 @@ extern NSString * const TDTrackExceptionName;
 @endcode
                 <p>as well as: minus sign <tt>-</tt>, underscore <tt>_</tt>, and apostrophe <tt>'</tt>.</p>
 */
-@interface TDWordState : TDTokenizerState {
+@interface FJSTDWordState : FJSTDTokenizerState {
     NSMutableArray *wordChars;
 }
 
@@ -1902,7 +1902,7 @@ extern NSString * const TDTrackExceptionName;
     @class      TDWordOrReservedState 
     @brief      Override <tt>TDWordState</tt> to return known reserved words as tokens of type <tt>TDTT_RESERVED</tt>.
 */
-@interface TDWordOrReservedState : TDWordState {
+@interface FJSTDWordOrReservedState : FJSTDWordState {
     NSMutableSet *reservedWords;
 }
 

@@ -16,6 +16,14 @@ BOOL FJSCharEquals(const char *__s1, const char *__s2) {
     return (strcmp(__s1, __s2) == 0);
 }
 
+BOOL FJSStringIsNumber(NSString *s) {
+    
+    #pragma message "FIXME: we need a much better way to see if a string is a number. This is for looking up indexes on arrays and such."
+    
+    return [[NSString stringWithFormat:@"%ld", [s integerValue]] isEqualToString:s];
+    
+}
+
 NSArray *FJSNativeArrayFromJSObject(JSObjectRef arrayValue, JSContextRef ctx) {
     
     JSValueRef exception = NULL;

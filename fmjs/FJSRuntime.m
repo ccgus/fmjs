@@ -344,7 +344,6 @@ static JSValueRef FJS_callAsFunction(JSContextRef ctx, JSObjectRef functionJS, J
 
 
 - (void)deleteRuntimeObjectWithName:(NSString*)name {
-    debug(@"removing name: '%@'", name);
     JSValueRef exception = NULL;
     JSStringRef jsName = JSStringCreateWithUTF8CString([name UTF8String]);
     JSObjectDeleteProperty(_jsContext, JSContextGetGlobalObject(_jsContext), jsName, &exception);
@@ -557,12 +556,23 @@ static bool FJS_hasProperty(JSContextRef ctx, JSObjectRef object, JSStringRef pr
     FJSValue *objectValue = [FJSValue valueForJSValue:object inRuntime:runtime];
     
     // Hey, let's look for keyed subscripts!
-    if ([objectValue isInstance] && [[objectValue instance] respondsToSelector:@selector(objectForKeyedSubscript:)]) {
-        return [[objectValue instance] objectForKeyedSubscript:propertyName] != nil;
+    if ([objectValue isInstance]) {
+        
+        // Only return true on finds, because otherwise we'll miss things like objectForKey: and objectAtIndex:
+        if ([[objectValue instance] respondsToSelector:@selector(objectForKeyedSubscript:)]) {
+            if ([[objectValue instance] objectForKeyedSubscript:propertyName]) {
+                return YES;
+            }
+        }
+        else if (FJSStringIsNumber(propertyName) && [[objectValue instance] respondsToSelector:@selector(objectAtIndexedSubscript:)]) {
+            if ([[objectValue instance] objectAtIndexedSubscript:[propertyName integerValue]]) {
+                return YES;
+            }
+        }
     }
     
     
-    FJSSymbol *symbol     = [FJSSymbol symbolForName:propertyName inObject:[objectValue instance]];
+    FJSSymbol *symbol = [FJSSymbol symbolForName:propertyName inObject:[objectValue instance]];
     
     if (symbol) {
         return YES;
@@ -590,22 +600,29 @@ JSValueRef FJS_getProperty(JSContextRef ctx, JSObjectRef object, JSStringRef pro
     
     FJSValue *valueFromJSObject = [FJSValue valueForJSValue:object inRuntime:runtime];
     
+    // FIXME: package this up in FJSValue, or maybe some other function?
     // Hey, let's look for keyed subscripts!
-    if ([valueFromJSObject isInstance] && [[valueFromJSObject instance] respondsToSelector:@selector(objectForKeyedSubscript:)]) {
+    if ([valueFromJSObject isInstance]) {
         
-        JSValueRef subscriptedJSValue = nil;
-        id o = [[valueFromJSObject instance] objectForKeyedSubscript:propertyName];
+        id objcSubscriptedObject = nil;
         
-        if (o) {
-            
-            subscriptedJSValue = FJSNativeObjectToJSValue(o, ctx); // Check and see if we can convert objc numbers, strings, or NSNulls to native js types.
-            if (!subscriptedJSValue) { //
-                FJSValue *value = [FJSValue valueWithInstance:(__bridge CFTypeRef)(o) inRuntime:runtime];
-                subscriptedJSValue = [runtime newJSValueForWrapper:value];
-            }
+        if ([[valueFromJSObject instance] respondsToSelector:@selector(objectForKeyedSubscript:)]) {
+            objcSubscriptedObject = [[valueFromJSObject instance] objectForKeyedSubscript:propertyName];
+        }
+        else if (FJSStringIsNumber(propertyName) && [[valueFromJSObject instance] respondsToSelector:@selector(objectAtIndexedSubscript:)]) {
+            objcSubscriptedObject = [[valueFromJSObject instance] objectAtIndexedSubscript:[propertyName integerValue]];
         }
         
-        return subscriptedJSValue;
+        if (objcSubscriptedObject) {
+            
+            JSValueRef subscriptedJSValue = nil;
+            subscriptedJSValue = FJSNativeObjectToJSValue(objcSubscriptedObject, ctx); // Check and see if we can convert objc numbers, strings, or NSNulls to native js types.
+            if (!subscriptedJSValue) { //
+                FJSValue *value = [FJSValue valueWithInstance:(__bridge CFTypeRef)(objcSubscriptedObject) inRuntime:runtime];
+                subscriptedJSValue = [runtime newJSValueForWrapper:value];
+            }
+            return subscriptedJSValue;
+        }
     }
     
     

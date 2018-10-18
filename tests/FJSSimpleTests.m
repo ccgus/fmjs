@@ -618,7 +618,7 @@ int FJSSimpleTestsMethodCalled;
 
 - (void)testDictionaryAccess {
     
-    NSDictionary *d = @{@"a": @(123.0)};
+    NSDictionary *d = @{@"a": @(123.0), @"b": @"FMJSYo"};
     
     FJSRuntime *runtime = [FJSRuntime new];
     
@@ -627,6 +627,37 @@ int FJSSimpleTestsMethodCalled;
     FJSValue *v = [runtime evaluateScript:@"d.a + 1"];
     
     XCTAssert([v toLong] == 124, "Got %ld", [v toLong]);
+    
+    v = [runtime evaluateScript:@"d.objectForKey_('b');"];
+    XCTAssert([[v toObject] isEqualToString:@"FMJSYo"], "Got %@", [v toObject]);
+    
+    [runtime shutdown];
+}
+
+
+- (void)testArrayAccess {
+    
+    FJSRuntime *runtime = [FJSRuntime new];
+    
+    [runtime setRuntimeObject:@[@(7), @(65), @(72), @(84), @"Hello"] withName:@"a"];
+    
+    FJSValue *v = [runtime evaluateScript:@"a[0];"];
+    XCTAssert([v toLong] == 7, "Got %ld", [v toLong]);
+    
+    v = [runtime evaluateScript:@"a[1];"];
+    XCTAssert([v toLong] == 65, "Got %ld", [v toLong]);
+    
+    v = [runtime evaluateScript:@"a[2];"];
+    XCTAssert([v toLong] == 72, "Got %ld", [v toLong]);
+    
+    v = [runtime evaluateScript:@"a[3] + 1;"];
+    XCTAssert([v toLong] == 85, "Got %ld", [v toLong]);
+    
+    v = [runtime evaluateScript:@"a[4];"];
+    XCTAssert([[v toObject] isEqualToString:@"Hello"], "Got %@", [v toObject]);
+    
+    v = [runtime evaluateScript:@"a.objectAtIndex_(1);"];
+    XCTAssert([v toLong] == 65, "Got %ld", [v toLong]);
     
     [runtime shutdown];
 }

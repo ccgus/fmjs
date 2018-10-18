@@ -519,10 +519,8 @@ int FJSSimpleTestsMethodCalled;
     
     __block int foo = 0;
     __block BOOL calledFunk = NO;
-    debug(@"calledFunk: %p", &calledFunk);
+    
     id block = ^{
-        debug(@"HELLO THERE");
-        //debug(@"calledFunkx: %p", &calledFunk);
         foo++;
         calledFunk = YES;
     };
@@ -533,6 +531,7 @@ int FJSSimpleTestsMethodCalled;
     
     
     XCTAssert(calledFunk);
+    XCTAssert(foo == 1);
     
     [runtime shutdown];
 }

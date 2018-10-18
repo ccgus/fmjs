@@ -204,11 +204,24 @@ static NSMutableDictionary *FJSFFIStructureLookup;
     // Build the arguments
     unsigned int effectiveArgumentCount = (unsigned int)[_args count];
 
+    if ([_f isBlock]) {
+        effectiveArgumentCount++;
+    }
+    
+    
+    
     if (effectiveArgumentCount > 0) {
         ffiArgs = malloc(sizeof(ffi_type *) * effectiveArgumentCount);
         ffiValues = malloc(sizeof(void *) * effectiveArgumentCount);
+        NSInteger idx = 0;
+        if ([_f isBlock]) {
+            ffiArgs[idx] = &ffi_type_pointer;
+            ffiValues[idx] = [_f objectStorage];
+            idx++;
+        }
         
-        for (NSInteger idx = 0; idx < [_args count]; idx++) {
+        
+        for (; idx < [_args count]; idx++) {
             FJSValue *arg = [_args objectAtIndex:idx];
             FJSSymbol *argSym = [[[_f symbol] arguments] objectAtIndex:idx];
             

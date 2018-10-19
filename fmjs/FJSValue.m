@@ -362,7 +362,7 @@ static NSPointerArray *FJSValueLiveWeakArray;
             break;
         }
         
-            
+        case _C_CLASS:
         case _C_STRUCT_B: {
             vr = [_runtime newJSValueForWrapper:self];
             break;

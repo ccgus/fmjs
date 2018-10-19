@@ -670,7 +670,6 @@ JSValueRef FJS_getProperty(JSContextRef ctx, JSObjectRef object, JSStringRef pro
             
             FJSValue *value = [FJSValue valueWithSymbol:sym inRuntime:runtime];
             
-            #pragma message "FIXME: Use [value JSValue] here?"
             JSValueRef jsValue = [runtime newJSValueForWrapper:value];
             
             return jsValue;
@@ -681,13 +680,10 @@ JSValueRef FJS_getProperty(JSContextRef ctx, JSObjectRef object, JSStringRef pro
             assert(class);
             
             FJSValue *value = [FJSValue valueWithSymbol:sym inRuntime:runtime];
-#pragma message "FIXME: Use [value JSValue] here?"
             
             [value setClass:class];
             
-            JSValueRef jsValue = [runtime newJSValueForWrapper:value];
-            
-            return jsValue;
+            return [value JSValue];
         }
         else if ([[sym symbolType] isEqualToString:@"enum"]) {
             return JSValueMakeNumber(ctx, [[sym runtimeValue] doubleValue]);
@@ -704,8 +700,6 @@ JSValueRef FJS_getProperty(JSContextRef ctx, JSObjectRef object, JSStringRef pro
                 
                 // This is all wrong I just know it.
                 void *p = type == _C_STRUCT_B ? dlsymbol : (*(void**)dlsymbol);
-                
-#pragma message "FIXME: Use [value JSValue] here?"
                 
                 FJSValue *value = [FJSValue valueWithConstantPointer:p ofType:type inRuntime:runtime];
                 [value setSymbol:sym];

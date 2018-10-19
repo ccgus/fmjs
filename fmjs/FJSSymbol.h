@@ -49,4 +49,5 @@
 @property (assign) size_t size;
 @property (assign) char type;
 @property (strong) NSString *name;
+@property (strong) NSString *structName;
 @end

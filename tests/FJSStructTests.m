@@ -431,17 +431,33 @@ APPKIT_EXTERN const CGRect FJSRuntimeTestCGRect;
 
 - (void)testCGRectAccess {
     
-    FJSRuntime *rt = [FJSRuntime new];
     
     FJSSymbol *CGRectMakeSym = [FJSSymbol symbolForName:@"CGRectMake"];
     XCTAssert(CGRectMakeSym);
     
+    
+    
+    NSString *name = FJSStructNameFromRuntimeType(@"{CGRect={CGPoint=dd}{CGSize=dd}}");
+    XCTAssert([name isEqualToString:@"CGRect"], @"Got '%@'", name);
+    
+    FJSSymbol *structSym = [FJSSymbol symbolForName:name];
+    
+    XCTAssert([structSym structFieldNamed:@"size"]);
+    XCTAssert([structSym structFieldNamed:@"origin"]);
+    XCTAssert(![structSym structFieldNamed:@"x"]);
+    
+    XCTAssert([[structSym structFieldNamed:@"size"] size] == 16);
+    XCTAssert([[structSym structFieldNamed:@"origin"] size] == 16);
+    
+    XCTAssert([[structSym structFields] count] == 2);
+    
+    FJSRuntime *rt = [FJSRuntime new];
     [rt evaluateScript:@"var r = CGRectMake(1, 2, 3, 4);"];
-    
+
     FJSValue *v = [rt evaluateScript:@"r.size.width;"];
-    
+
     XCTAssert([v toInt] == 3, @"Got %d", [v toInt]);
-    
+
     [rt shutdown];
     
 }

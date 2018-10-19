@@ -32,6 +32,7 @@
     if (!_structSymbols) {
         
         // _runtimeType is in the format of {CGPoint="x"d"y"d}
+        //                               or {CGRect="origin"{CGPoint}"size"{CGSize}}
         
         if (![_runtimeType hasPrefix:@"{"]) {
             printf("Trying to parse a struct in an invalid format: '%s'\n", [_runtimeType UTF8String]);
@@ -54,9 +55,11 @@
         sv             = [tok stringValue];
         FMAssert([sv isEqualToString:@"="]);
         
+        //debug(@"_runtimeType: '%@'", _runtimeType);
+        
         // Alright. Now we're into the meat of it I guess.
         while ((tok = [tokenizer nextToken]) != [FJSTDToken EOFToken]) {
-            debug(@"remaining in structure, being ignored: '%@'", [tok stringValue]);
+            //debug(@"[tok stringValue]: '%@'", [tok stringValue]);
             
             if ([[tok stringValue] hasPrefix:@"\""]) { // Sweet. It's the name.
                 FMAssert([[tok stringValue] hasSuffix:@"\""]);
@@ -73,14 +76,50 @@
                 [sym setName:name];
                 [sym setType:[type characterAtIndex:0]];
                 
-                size_t symbolSize;
-                if (FJSGetSizeOfTypeEncoding(&symbolSize, [sym type])) {
-                    [sym setSize:symbolSize];
+                if ([type characterAtIndex:0] == _C_STRUCT_B) {
+                    // Well, shit.
+                    NSString *structName = [[tokenizer nextToken] stringValue];
+                    [sym setStructName:structName];
+                    NSString *structEnd = [[tokenizer nextToken] stringValue];
+                    
+                    FMAssert([structEnd isEqualToString:@"}"]);
+                }
+                
+                if ([sym type] == _C_STRUCT_B) {
+                    
+                    // Need to look up the struct type, and then figure out the size of that.
+                    FMAssert([sym structName]);
+                    FJSSymbol *subStructSymbol = [FJSSymbol symbolForName:[sym structName]];
+                    FMAssert(subStructSymbol);
+                    if (!subStructSymbol) {
+                        printf("%s:%d Could not find symbol for %s. Aborting.\n", __FUNCTION__, __LINE__, [[sym structName] UTF8String]);
+                        return;
+                    }
+                    
+                    
+                    size_t size = 0;
+                    for (FJSStructSymbol *subStructSym in [subStructSymbol structFields]) {
+                        size += [subStructSym size];
+                    }
+                    
+                    FMAssert(size);
+                    
+                    [sym setSize:size];
                     [symbols addObject:sym];
+                    
+                    
                 }
                 else {
-                    printf("Could not determine size for type '%c'. Ending parse.\n", [sym type]);
-                    return;
+                    
+                    size_t symbolSize;
+                    if (FJSGetSizeOfTypeEncoding(&symbolSize, [sym type])) {
+                        [sym setSize:symbolSize];
+                        [symbols addObject:sym];
+                    }
+                    else {
+                        printf("Could not determine size for type '%c'. Ending parse.\n", [sym type]);
+                        return;
+                    }
                 }
                 
                 

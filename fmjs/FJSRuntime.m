@@ -583,12 +583,15 @@ static bool FJS_hasProperty(JSContextRef ctx, JSObjectRef object, JSStringRef pr
     
     if ([objectValue isStruct]) {
         
+        debug(@"propertyName: '%@'?", propertyName);
+        
         FJSSymbol *structSym = [objectValue symbol];
         FMAssert(structSym);
         
         NSString *name = [structSym structName];
         
         FJSSymbol *structInfoSym = [FJSSymbol symbolForName:name];
+        
         
         return [structInfoSym structFieldNamed:propertyName] != nil;
     }

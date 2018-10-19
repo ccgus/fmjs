@@ -500,6 +500,12 @@ static NSPointerArray *FJSValueLiveWeakArray;
         case _C_ULNG_LNG:
             cv.value.unsignedLongLongValue = *((unsigned long long *)loc);
             break;
+        
+        case _C_STRUCT_B: {
+            // Whoa cool. We found a struct in a struct. CGRect maybe?
+            cv.value.pointerValue = loc;
+        }
+            break;
             
         default:
             FMAssert(NO);
@@ -509,6 +515,12 @@ static NSPointerArray *FJSValueLiveWeakArray;
     
     FJSValue *v = [FJSValue valueWithCValue:cv inRuntime:_runtime];
     
+    if ([foundType structName]) {
+        FJSSymbol *subStructSymbol = [FJSSymbol symbolForName:[foundType structName]];
+        FMAssert(subStructSymbol);
+        [v setSymbol:subStructSymbol];
+        
+    }
     
     return v;
 }

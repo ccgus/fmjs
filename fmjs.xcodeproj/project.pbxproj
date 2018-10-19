@@ -43,6 +43,9 @@
 		CCB18573214D7B3000346D2F /* FJSUtil.m in Sources */ = {isa = PBXBuildFile; fileRef = CCB18565214D7B3000346D2F /* FJSUtil.m */; };
 		CCB18574214D7B3000346D2F /* FJSValue.h in Headers */ = {isa = PBXBuildFile; fileRef = CCB18566214D7B3000346D2F /* FJSValue.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		CCB18575214D7B3000346D2F /* FJSValue.m in Sources */ = {isa = PBXBuildFile; fileRef = CCB18567214D7B3000346D2F /* FJSValue.m */; };
+		CCC0EE2A217A6BDB00527B23 /* FJSSymbol.h in Headers */ = {isa = PBXBuildFile; fileRef = CCC0EE28217A6BDB00527B23 /* FJSSymbol.h */; };
+		CCC0EE2B217A6BDB00527B23 /* FJSSymbol.m in Sources */ = {isa = PBXBuildFile; fileRef = CCC0EE29217A6BDB00527B23 /* FJSSymbol.m */; };
+		CCC0EE2C217A6BDB00527B23 /* FJSSymbol.m in Sources */ = {isa = PBXBuildFile; fileRef = CCC0EE29217A6BDB00527B23 /* FJSSymbol.m */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -105,6 +108,8 @@
 		CCB18565214D7B3000346D2F /* FJSUtil.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = FJSUtil.m; sourceTree = "<group>"; };
 		CCB18566214D7B3000346D2F /* FJSValue.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = FJSValue.h; sourceTree = "<group>"; };
 		CCB18567214D7B3000346D2F /* FJSValue.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = FJSValue.m; sourceTree = "<group>"; };
+		CCC0EE28217A6BDB00527B23 /* FJSSymbol.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = FJSSymbol.h; sourceTree = "<group>"; };
+		CCC0EE29217A6BDB00527B23 /* FJSSymbol.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = FJSSymbol.m; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -187,6 +192,8 @@
 				CC5DAA8A2157095A0089A633 /* TDConglomerate.h */,
 				CC5DAA8B2157095A0089A633 /* TDConglomerate.m */,
 				CC2F20A7214D7A3700F38D03 /* Info.plist */,
+				CCC0EE28217A6BDB00527B23 /* FJSSymbol.h */,
+				CCC0EE29217A6BDB00527B23 /* FJSSymbol.m */,
 			);
 			path = fmjs;
 			sourceTree = "<group>";
@@ -246,6 +253,7 @@
 				CCB1856E214D7B3000346D2F /* FJSRuntime.h in Headers */,
 				CCB1856A214D7B3000346D2F /* FJSSymbolManager.h in Headers */,
 				CCB18574214D7B3000346D2F /* FJSValue.h in Headers */,
+				CCC0EE2A217A6BDB00527B23 /* FJSSymbol.h in Headers */,
 				CC1A28152154245F003B72BF /* FJSPrivate.h in Headers */,
 				CCB18572214D7B3000346D2F /* FJSUtil.h in Headers */,
 				CC5DAA8C2157095A0089A633 /* TDConglomerate.h in Headers */,
@@ -411,6 +419,7 @@
 			files = (
 				CCB1856F214D7B3000346D2F /* FJSRuntime.m in Sources */,
 				CCB1856B214D7B3000346D2F /* FJSSymbolManager.m in Sources */,
+				CCC0EE2B217A6BDB00527B23 /* FJSSymbol.m in Sources */,
 				CCB1856D214D7B3000346D2F /* FJSFFI.m in Sources */,
 				CC5DAA8D2157095A0089A633 /* TDConglomerate.m in Sources */,
 				CCB18573214D7B3000346D2F /* FJSUtil.m in Sources */,
@@ -447,6 +456,7 @@
 				CC92AE2E21618506001F0CA4 /* FJSUtil.m in Sources */,
 				CC92AE2F21618506001F0CA4 /* FJSValue.m in Sources */,
 				CC92AE3021618506001F0CA4 /* TDConglomerate.m in Sources */,
+				CCC0EE2C217A6BDB00527B23 /* FJSSymbol.m in Sources */,
 				CC92AE2721618497001F0CA4 /* main.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

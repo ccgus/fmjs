@@ -555,7 +555,6 @@ static bool FJS_hasProperty(JSContextRef ctx, JSObjectRef object, JSStringRef pr
     FJSRuntime *runtime   = [FJSRuntime runtimeInContext:ctx];
     FJSValue *objectValue = [FJSValue valueForJSValue:object inRuntime:runtime];
     
-    // Hey, let's look for keyed subscripts!
     if ([objectValue isInstance]) {
         
         // Only return true on finds, because otherwise we'll miss things like objectForKey: and objectAtIndex:
@@ -569,16 +568,47 @@ static bool FJS_hasProperty(JSContextRef ctx, JSObjectRef object, JSStringRef pr
                 return YES;
             }
         }
+        
+    }
+    
+    if ([objectValue isInstance] || [objectValue isClass]) {
+        
+        FJSSymbol *symbol = [FJSSymbol symbolForName:propertyName inObject:[objectValue instance]];
+        
+        if (symbol) {
+            return YES;
+        }
     }
     
     
-    FJSSymbol *symbol = [FJSSymbol symbolForName:propertyName inObject:[objectValue instance]];
+    if ([objectValue isStruct]) {
+        
+        FJSSymbol *structSym = [objectValue symbol];
+        FMAssert(structSym);
+        
+        NSString *name = [structSym structName];
+        
+        FJSSymbol *structInfoSym = [FJSSymbol symbolForName:name];
+        
+        FMAssert(structInfoSym);
+        
+        debug(@"name: '%@'", name);
+        debug(@"structSym: '%@'", structSym);
+        
+        debug(@"Need to lookup %@ on struct %@", propertyName, objectValue);
+        
+        abort();
+        
+        return NO;
+    }
+    
+    FJSSymbol *symbol = [FJSSymbol symbolForName:propertyName];
     
     if (symbol) {
         return YES;
     }
     
-    //debug(@"No property for %@", propertyName);
+    // debug(@"No property for %@ on %@", propertyName, objectValue);
     
     return NO;
 }

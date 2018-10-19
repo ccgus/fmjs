@@ -10,6 +10,7 @@
 #import "FJSValue.h"
 #import "FJSFFI.h"
 #import "FJSUtil.h"
+#import "FJSSymbol.h"
 
 #import <objc/runtime.h>
 
@@ -202,6 +203,10 @@ static NSPointerArray *FJSValueLiveWeakArray;
 
 - (BOOL)isBlock {
     return _cValue.type == _FJSC_BLOCK;
+}
+
+- (BOOL)isStruct {
+    return _cValue.type == _C_STRUCT_B;
 }
 
 - (id)instance {

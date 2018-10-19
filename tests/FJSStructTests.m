@@ -1,6 +1,7 @@
 #import <XCTest/XCTest.h>
 #import "FJSSimpleTests.h" // For some inline test functions.
 #import "FJSFFI.h"
+#import "FJSUtil.h"
 #import <FMJS/FJS.h>
 #import <dlfcn.h>
 
@@ -387,6 +388,53 @@ APPKIT_EXTERN const CGRect FJSRuntimeTestCGRect;
     
 }
 
+
+- (void)testCGPointAccess {
+    
+    
+    XCTAssert(!FJSStructNameFromRuntimeType(@"{=}"), @"Got '%@'", FJSStructNameFromRuntimeType(@"{=}"));
+    
+    
+    NSString *name = FJSStructNameFromRuntimeType(@"{CGPoint=dd}");
+    XCTAssert([name isEqualToString:@"CGPoint"], @"Got '%@'", name);
+    
+    FJSSymbol *structSym = [FJSSymbol symbolForName:name];
+    
+    XCTAssert([structSym hasStructFieldNamed:@"x"]);
+    XCTAssert([structSym hasStructFieldNamed:@"y"]);
+    
+    
+    FJSRuntime *rt = [FJSRuntime new];
+    
+//    FJSSymbol *CGPointMakeSym = [FJSSymbol symbolForName:@"CGPointMake"];
+//    XCTAssert(CGPointMakeSym);
+//
+//    [rt evaluateScript:@"var p = CGPointMake(3, 4);"];
+//
+//    FJSValue *v = [rt evaluateScript:@"p.x"];
+//
+//    XCTAssert([v toInt] == 3, @"Got %d", [v toInt]);
+//
+//    [rt shutdown];
+    
+}
+
+- (void)testCGRectAccess {
+    
+    FJSRuntime *rt = [FJSRuntime new];
+    
+    FJSSymbol *CGRectMakeSym = [FJSSymbol symbolForName:@"CGRectMake"];
+    XCTAssert(CGRectMakeSym);
+    
+    [rt evaluateScript:@"var r = CGRectMake(1, 2, 3, 4);"];
+    
+    FJSValue *v = [rt evaluateScript:@"r.size.width;"];
+    
+    XCTAssert([v toInt] == 3, @"Got %d", [v toInt]);
+    
+    [rt shutdown];
+    
+}
 
 @end
 

@@ -24,6 +24,27 @@ BOOL FJSStringIsNumber(NSString *s) {
     
 }
 
+NSString *FJSStructNameFromRuntimeType(NSString *runtimeType) {
+    
+    if (![runtimeType hasPrefix:@"{"]) {
+        FMAssert(NO);
+        return nil;
+    }
+    
+    NSRange r = [runtimeType rangeOfString:@"="];
+    if (r.location == NSNotFound) {
+        FMAssert(NO);
+        return nil;
+    }
+    
+    if  (r.location < 3) {
+        return nil;
+    }
+    
+    
+    return [runtimeType substringWithRange:NSMakeRange(1, r.location - 1)];
+}
+
 NSArray *FJSNativeArrayFromJSObject(JSObjectRef arrayValue, JSContextRef ctx) {
     
     JSValueRef exception = NULL;

@@ -12,6 +12,8 @@
 BOOL FJSCharEquals(const char *__s1, const char *__s2);
 BOOL FJSStringIsNumber(NSString *s);
 
+NSString *FJSStructNameFromRuntimeType(NSString *runtimeType);
+
 id FJSNativeObjectFromJSValue(JSValueRef jsValue, NSString *typeEncoding, JSContextRef context);
 JSValueRef FJSNativeObjectToJSValue(id o, JSContextRef context);
 

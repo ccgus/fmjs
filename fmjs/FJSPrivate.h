@@ -1,5 +1,6 @@
 #import "FJSValue.h"
 #import "FJSSymbolManager.h"
+#import "FJSSymbol.h"
 #import "FJSFFI.h"
 #import "FJSUtil.h"
 
@@ -39,7 +40,7 @@
 - (BOOL)isClass;
 - (BOOL)isInstance;
 - (BOOL)isBlock;
-
+- (BOOL)isStruct;
 - (BOOL)isSymbol;
 - (BOOL)isFunction;
 - (BOOL)isInstanceMethod;

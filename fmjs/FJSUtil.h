@@ -19,3 +19,6 @@ JSValueRef FJSNativeObjectToJSValue(id o, JSContextRef context);
 
 void *FJSCallAddressForBlock(id block);
 const char *FJSTypeEncodingForBlock(id theBlock);
+
+BOOL FJSGetSizeOfTypeEncoding(size_t *sizePtr, char encoding);
+

@@ -66,6 +66,7 @@ typedef struct {
 - (ffi_type*)FFIType;
 - (ffi_type*)FFITypeWithHint:(nullable NSString*)typeEncoding;
 
+- (FJSValue*)valueFromStructFieldNamed:(NSString*)structFieldName;
 
 @end
 

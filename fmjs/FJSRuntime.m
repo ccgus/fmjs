@@ -590,16 +590,7 @@ static bool FJS_hasProperty(JSContextRef ctx, JSObjectRef object, JSStringRef pr
         
         FJSSymbol *structInfoSym = [FJSSymbol symbolForName:name];
         
-        FMAssert(structInfoSym);
-        
-        debug(@"name: '%@'", name);
-        debug(@"structSym: '%@'", structSym);
-        
-        debug(@"Need to lookup %@ on struct %@", propertyName, objectValue);
-        
-        abort();
-        
-        return NO;
+        return [structInfoSym structFieldNamed:propertyName] != nil;
     }
     
     FJSSymbol *symbol = [FJSSymbol symbolForName:propertyName];
@@ -655,11 +646,20 @@ JSValueRef FJS_getProperty(JSContextRef ctx, JSObjectRef object, JSStringRef pro
         }
     }
     
+    if ([valueFromJSObject isStruct]) {
+        
+        FJSValue *value = [valueFromJSObject valueFromStructFieldNamed:propertyName];
+        
+        return [value JSValue];
+    }
     
     
     
     
-    FJSSymbol *sym = [FJSSymbol symbolForName:propertyName inObject:[valueFromJSObject instance]];
+    
+    id objectLookup = ([valueFromJSObject isInstance] || [valueFromJSObject isClass]) ? [valueFromJSObject instance] : nil;
+    
+    FJSSymbol *sym = [FJSSymbol symbolForName:propertyName inObject:objectLookup];
     
     if (sym) {
         
@@ -667,6 +667,7 @@ JSValueRef FJS_getProperty(JSContextRef ctx, JSObjectRef object, JSStringRef pro
             
             FJSValue *value = [FJSValue valueWithSymbol:sym inRuntime:runtime];
             
+            #pragma message "FIXME: Use [value JSValue] here?"
             JSValueRef jsValue = [runtime newJSValueForWrapper:value];
             
             return jsValue;
@@ -677,6 +678,7 @@ JSValueRef FJS_getProperty(JSContextRef ctx, JSObjectRef object, JSStringRef pro
             assert(class);
             
             FJSValue *value = [FJSValue valueWithSymbol:sym inRuntime:runtime];
+#pragma message "FIXME: Use [value JSValue] here?"
             
             [value setClass:class];
             
@@ -699,6 +701,8 @@ JSValueRef FJS_getProperty(JSContextRef ctx, JSObjectRef object, JSStringRef pro
                 
                 // This is all wrong I just know it.
                 void *p = type == _C_STRUCT_B ? dlsymbol : (*(void**)dlsymbol);
+                
+#pragma message "FIXME: Use [value JSValue] here?"
                 
                 FJSValue *value = [FJSValue valueWithConstantPointer:p ofType:type inRuntime:runtime];
                 [value setSymbol:sym];

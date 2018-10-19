@@ -8,8 +8,7 @@
 
 #import <Foundation/Foundation.h>
 
-NS_ASSUME_NONNULL_BEGIN
-
+@class FJSStructSymbol;
 
 @interface FJSSymbol : NSObject {
     
@@ -39,9 +38,15 @@ NS_ASSUME_NONNULL_BEGIN
 - (BOOL)returnsRetained;
 
 - (NSString*)structName;
-- (BOOL)hasStructFieldNamed:(NSString*)name;
+- (NSArray*)structFields;
+- (FJSStructSymbol*)structFieldNamed:(NSString*)name;
+
+
 
 @end
 
-
-NS_ASSUME_NONNULL_END
+@interface FJSStructSymbol : NSObject
+@property (assign) size_t size;
+@property (assign) char type;
+@property (strong) NSString *name;
+@end

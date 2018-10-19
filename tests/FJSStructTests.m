@@ -2,6 +2,7 @@
 #import "FJSSimpleTests.h" // For some inline test functions.
 #import "FJSFFI.h"
 #import "FJSUtil.h"
+#import "FJSSymbol.h"
 #import <FMJS/FJS.h>
 #import <dlfcn.h>
 
@@ -400,22 +401,31 @@ APPKIT_EXTERN const CGRect FJSRuntimeTestCGRect;
     
     FJSSymbol *structSym = [FJSSymbol symbolForName:name];
     
-    XCTAssert([structSym hasStructFieldNamed:@"x"]);
-    XCTAssert([structSym hasStructFieldNamed:@"y"]);
+    XCTAssert([structSym structFieldNamed:@"x"]);
+    XCTAssert([structSym structFieldNamed:@"y"]);
+    XCTAssert(![structSym structFieldNamed:@"n"]);
     
+    XCTAssert([[structSym structFieldNamed:@"x"] size] == 8);
+    XCTAssert([[structSym structFieldNamed:@"y"] size] == 8);
+    
+    XCTAssert([[structSym structFields] count] == 2);
     
     FJSRuntime *rt = [FJSRuntime new];
     
-//    FJSSymbol *CGPointMakeSym = [FJSSymbol symbolForName:@"CGPointMake"];
-//    XCTAssert(CGPointMakeSym);
-//
-//    [rt evaluateScript:@"var p = CGPointMake(3, 4);"];
-//
-//    FJSValue *v = [rt evaluateScript:@"p.x"];
-//
-//    XCTAssert([v toInt] == 3, @"Got %d", [v toInt]);
-//
-//    [rt shutdown];
+    FJSSymbol *CGPointMakeSym = [FJSSymbol symbolForName:@"CGPointMake"];
+    XCTAssert(CGPointMakeSym);
+
+    [rt evaluateScript:@"var p = CGPointMake(3, 4);"];
+
+    FJSValue *v = [rt evaluateScript:@"p.y"];
+    
+    XCTAssert([v toInt] == 4, @"Got %d", [v toInt]);
+
+    v = [rt evaluateScript:@"p.x"];
+    
+    XCTAssert([v toInt] == 3, @"Got %d", [v toInt]);
+    
+    [rt shutdown];
     
 }
 
@@ -431,6 +441,27 @@ APPKIT_EXTERN const CGRect FJSRuntimeTestCGRect;
     FJSValue *v = [rt evaluateScript:@"r.size.width;"];
     
     XCTAssert([v toInt] == 3, @"Got %d", [v toInt]);
+    
+    [rt shutdown];
+    
+}
+
+
+- (void)testNSRangeAccess {
+    
+    FJSRuntime *rt = [FJSRuntime new];
+    
+    FJSSymbol *CGRectMakeSym = [FJSSymbol symbolForName:@"NSMakeRange"];
+    XCTAssert(CGRectMakeSym);
+    
+    [rt evaluateScript:@"var r = NSMakeRange(13, 14);"];
+    
+    FJSValue *v = [rt evaluateScript:@"r.location;"];
+    
+    XCTAssert([v toInt] == 13, @"Got %d", [v toInt]);
+    v = [rt evaluateScript:@"r.length;"];
+    
+    XCTAssert([v toInt] == 14, @"Got %d", [v toInt]);
     
     [rt shutdown];
     

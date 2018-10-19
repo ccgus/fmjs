@@ -154,6 +154,10 @@ static FJSSymbolManager *FJSSymbolManagerSharedInstance = nil;
     if (type) {
         type = [type stringByRemovingPercentEncoding];
         
+        while ([type rangeOfString:@"{_"].location != NSNotFound) {
+            type = [type stringByReplacingOccurrencesOfString:@"{_" withString:@"{"];
+        }
+        
         [sym setRuntimeType:type];
     }
     

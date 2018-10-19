@@ -301,7 +301,8 @@ static NSMutableDictionary *FJSFFIStructureLookup;
 + (NSArray *)ffiElementsForTokenizer:(FJSTDTokenizer*)tokenizer {
     
     // {CGRect={CGPoint=dd}{CGSize=dd}}
-    
+    // {_NSRange=QQ}
+
     FJSTDToken *tok = [tokenizer nextToken]; // name of struct.
     FMAssert(![tok isSymbol]);
     if ([tok isSymbol]) {
@@ -404,7 +405,7 @@ static NSMutableDictionary *FJSFFIStructureLookup;
         
         FJSTDTokenizer *tokenizer  = [FJSTDTokenizer tokenizerWithString:structEncoding];
         FJSTDToken *tok            = [tokenizer nextToken];
-        NSString *sv            = [tok stringValue];
+        NSString *sv               = [tok stringValue];
         FMAssert([sv isEqualToString:@"{"]);
         
         NSArray *elements = [self ffiElementsForTokenizer:tokenizer];

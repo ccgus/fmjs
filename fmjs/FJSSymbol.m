@@ -19,9 +19,84 @@
 - (void)addSymbol:(FJSSymbol*)symbol;
 @end
 
+@interface FJSSymbol ()
 
+@property (strong) NSArray *structSymbols;
+
+@end
 
 @implementation FJSSymbol
+
+- (void)parseStruct {
+    
+    if (!_structSymbols) {
+        
+        // _runtimeType is in the format of {CGPoint="x"d"y"d}
+        
+        if (![_runtimeType hasPrefix:@"{"]) {
+            printf("Trying to parse a struct in an invalid format: '%s'\n", [_runtimeType UTF8String]);
+            return;
+        }
+        
+        NSMutableArray *symbols = [NSMutableArray array];
+        
+        
+        FJSTDTokenizer *tokenizer  = [FJSTDTokenizer tokenizerWithString:_runtimeType];
+        FJSTDToken *tok            = [tokenizer nextToken];
+        NSString *sv               = [tok stringValue];
+        FMAssert([sv isEqualToString:@"{"]);
+        
+        tok            = [tokenizer nextToken];
+        sv             = [tok stringValue];
+        FMAssert([sv isEqualToString:_name]);
+        
+        tok            = [tokenizer nextToken];
+        sv             = [tok stringValue];
+        FMAssert([sv isEqualToString:@"="]);
+        
+        // Alright. Now we're into the meat of it I guess.
+        while ((tok = [tokenizer nextToken]) != [FJSTDToken EOFToken]) {
+            debug(@"remaining in structure, being ignored: '%@'", [tok stringValue]);
+            
+            if ([[tok stringValue] hasPrefix:@"\""]) { // Sweet. It's the name.
+                FMAssert([[tok stringValue] hasSuffix:@"\""]);
+                FJSTDToken *typeToken = [tokenizer nextToken];
+                if (typeToken == [FJSTDToken EOFToken]) {
+                    printf("Unexpected end to struct symbols. Ending parse.\n");
+                    return;
+                }
+                
+                NSString *name = [[tok stringValue] substringWithRange:NSMakeRange(1, [[tok stringValue] length] - 2)];
+                NSString *type = [typeToken stringValue];
+                
+                FJSStructSymbol *sym = [FJSStructSymbol new];
+                [sym setName:name];
+                [sym setType:[type characterAtIndex:0]];
+                
+                size_t symbolSize;
+                if (FJSGetSizeOfTypeEncoding(&symbolSize, [sym type])) {
+                    [sym setSize:symbolSize];
+                    [symbols addObject:sym];
+                }
+                else {
+                    printf("Could not determine size for type '%c'. Ending parse.\n", [sym type]);
+                    return;
+                }
+                
+                
+                #pragma message "FIXME: Need to fill in the size."
+                
+            }
+            
+        }
+        _structSymbols = [symbols copy];
+    }
+    
+
+
+    
+    
+}
 
 - (NSString*)structName {
     debug(@"_runtimeType: '%@'", _runtimeType);
@@ -31,35 +106,22 @@
     return FJSStructNameFromRuntimeType(_runtimeType);
 }
 
-- (BOOL)hasStructFieldNamed:(NSString*)name {
+- (FJSStructSymbol*)structFieldNamed:(NSString*)name {
     
-    // _runtimeType is in the format of {CGPoint="x"d"y"d}
+    [self parseStruct];
     
-    FJSTDTokenizer *tokenizer  = [FJSTDTokenizer tokenizerWithString:_runtimeType];
-    FJSTDToken *tok            = [tokenizer nextToken];
-    NSString *sv               = [tok stringValue];
-    FMAssert([sv isEqualToString:@"{"]);
+    for (FJSStructSymbol *ss in _structSymbols) {
+        if ([[ss name] isEqualToString:name]) {
+            return ss;
+        }
+    }
     
-    tok            = [tokenizer nextToken];
-    sv             = [tok stringValue];
-    FMAssert([sv isEqualToString:_name]);
-    
-    tok            = [tokenizer nextToken];
-    sv             = [tok stringValue];
-    FMAssert([sv isEqualToString:@"="]);
-    
-    //
-    //    NSArray *elements = [self ffiElementsForTokenizer:tokenizer];
-    //
-    //    while ((tok = [tokenizer nextToken]) != [FJSTDToken EOFToken]) {
-    //        debug(@"remaining in structure, being ignored: '%@'", [tok stringValue]);
-    //    }
-    //
-    //    type = [self ffiTypeForArrayEncoding:elements];
-    //
-    //    [FJSFFIStructureLookup setObject:[NSValue valueWithPointer:type] forKey:structEncoding];
-    
-    return NO;
+    return nil;
+}
+
+- (NSArray*)structFields {
+    [self parseStruct];
+    return _structSymbols;
 }
 
 - (void)addArgument:(FJSSymbol*)sym {
@@ -277,4 +339,6 @@
 @end
 
 
+@implementation FJSStructSymbol
 
+@end

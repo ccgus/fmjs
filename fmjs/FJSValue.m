@@ -139,6 +139,11 @@ static NSPointerArray *FJSValueLiveWeakArray;
 }
 
 + (instancetype)valueWithConstantPointer:(void*)p ofType:(char)type inRuntime:(FJSRuntime*)runtime {
+    // In theory, we're going to do something special with consts in the future.
+    return [self valueWithPointer:p ofType:type inRuntime:runtime];
+}
+
++ (instancetype)valueWithPointer:(void*)p ofType:(char)type inRuntime:(FJSRuntime*)runtime {
     FMAssert(runtime);
     FJSValue *cw = [[self alloc] init];
     cw->_cValue.type = type;
@@ -427,6 +432,91 @@ static NSPointerArray *FJSValueLiveWeakArray;
     return [NSString stringWithFormat:@"%@ - %@ (%@ native)", [super description], obj, _isJSNative ? @"js" : @"c"];
 }
 
+- (FJSValue*)valueFromStructFieldNamed:(NSString*)structFieldName {
+    
+    FMAssert(_cValue.type == _C_STRUCT_B);
+
+    FJSSymbol *structSym = [self symbol];
+    FMAssert(structSym);
+
+    NSString *name = [structSym structName];
+    FMAssert(name);
+    
+    FJSSymbol *structInfoSym = [FJSSymbol symbolForName:name];
+    FMAssert(structInfoSym);
+
+    FJSStructSymbol *structFieldSym = [structInfoSym structFieldNamed:structFieldName];
+    FMAssert(structFieldSym);
+
+    
+    
+    FJSStructSymbol *foundType = nil;
+    size_t offset = 0;
+    
+    for (FJSStructSymbol *ss in [structInfoSym structFields]) {
+        if ([[ss name] isEqualToString:structFieldName]) {
+            foundType = ss;
+            break;
+        }
+        offset += [ss size];
+    }
+    
+    
+    debug(@"%@ is at offset %ld", structFieldName, offset);
+    
+    void *loc = _cValue.value.pointerValue + offset;
+    
+    FJSObjCValue cv;
+    cv.type = [foundType type];
+    switch (cv.type) {
+        case _C_DBL:
+            cv.value.doubleValue = *((double *)loc);
+            break;
+            
+        case _C_FLT:
+            cv.value.floatValue = *((float *)loc);
+            break;
+            
+        case _C_INT:
+            cv.value.intValue = *((int *)loc);
+            break;
+            
+        case _C_UINT:
+            cv.value.uintValue = *((unsigned int *)loc);
+            break;
+            
+        case _C_LNG:
+            cv.value.longValue = *((long *)loc);
+            break;
+            
+        case _C_ULNG:
+            cv.value.unsignedLongValue = *((unsigned long *)loc);
+            break;
+            
+        case _C_LNG_LNG:
+            cv.value.longLongValue = *((long long *)loc);
+            break;
+            
+        case _C_ULNG_LNG:
+            cv.value.unsignedLongLongValue = *((unsigned long long *)loc);
+            break;
+            
+        default:
+            FMAssert(NO);
+            break;
+    }
+    
+    
+    FJSValue *v = [FJSValue valueWithCValue:cv inRuntime:_runtime];
+    
+    
+    return v;
+}
+
+
+
+
+
 - (ffi_type*)FFIType {
     return [self FFITypeWithHint:nil];
 }
@@ -670,7 +760,13 @@ static NSPointerArray *FJSValueLiveWeakArray;
         return [[self instance] doubleValue];
     }
     
-    FMAssert(_cValue.type);
+    if (_cValue.type == _C_PTR) {
+        // We're probably pointing to a struct.
+        double *d = _cValue.value.pointerValue;
+        return *d;
+    }
+    
+    FMAssert(_cValue.type == _C_DBL);
     return _cValue.value.doubleValue;
 }
 

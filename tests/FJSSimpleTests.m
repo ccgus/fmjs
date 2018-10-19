@@ -8,6 +8,7 @@
 
 #import "FJSSimpleTests.h"
 #import "FJSFFI.h"
+#import "FJSSymbol.h"
 #import <FMJS/FJS.h>
 #import <dlfcn.h>
 

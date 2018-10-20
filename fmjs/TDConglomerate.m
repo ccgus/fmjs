@@ -2151,16 +2151,16 @@ static NSArray *sTDReservedWords = nil;
 
 
 
-@interface TDTokenEOF : FJSTDToken {}
-+ (TDTokenEOF *)instance;
+@interface FJSTDTokenEOF : FJSTDToken {}
++ (FJSTDTokenEOF *)instance;
 @end
 
-@implementation TDTokenEOF
+@implementation FJSTDTokenEOF
 
-static TDTokenEOF *EOFToken = nil;
+static FJSTDTokenEOF *EOFToken = nil;
 
 #ifndef __clang_analyzer__ // SD: disabled analyzer for this somewhat crazy code; not sure quite what would be wrong with just doing a dispatch_once here...
-+ (TDTokenEOF *)instance {
++ (FJSTDTokenEOF *)instance {
     @synchronized(self) {
         if (!EOFToken) {
             [[self alloc] init]; // assignment not done here
@@ -2207,7 +2207,7 @@ static TDTokenEOF *EOFToken = nil;
 
 
 - (NSString *)description {
-    return [NSString stringWithFormat:@"<TDTokenEOF %p>", self];
+    return [NSString stringWithFormat:@"<FJSTDTokenEOF %p>", self];
 }
 
 
@@ -2236,7 +2236,7 @@ static TDTokenEOF *EOFToken = nil;
 @implementation FJSTDToken
 
 + (FJSTDToken *)EOFToken {
-    return [TDTokenEOF instance];
+    return [FJSTDTokenEOF instance];
 }
 
 

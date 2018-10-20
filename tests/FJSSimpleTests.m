@@ -28,6 +28,7 @@ int FJSSimpleTestsMethodCalled;
 
 @interface FJSTestClass : NSObject
 @property (assign) int passedInt;
+@property (strong) NSString *randomString;
 @end
 
 @implementation FJSTestClass
@@ -336,6 +337,8 @@ int FJSSimpleTestsMethodCalled;
     tiff.writeToFile_atomically_('/tmp/foo.tiff', true);\n\
     NSWorkspace.sharedWorkspace().openFile_('/tmp/foo.tiff');";
     
+    
+    #pragma message "FIXME: Asan doesn't like tiff.writeToFile_atomically_ for some reason. SOMETIMES. Not all the time."
     FJSRuntime *runtime = [FJSRuntime new];
     [runtime evaluateScript:code];
 }
@@ -673,6 +676,23 @@ int FJSSimpleTestsMethodCalled;
     
     // FIXME: What should we do in this case? Right now we get a nan.
     // XCTAssert([v toLong] == 0, "Got %ld", [v toLong]);
+    
+    [runtime shutdown];
+}
+
+- (void)testSetProperty {
+    
+    FJSRuntime *runtime = [[FJSRuntime alloc] init];
+    
+    XCTAssert([runtime evaluateScript:@"var c = FJSTestClass.new(); c.randomString = 'FM';"]);
+    
+    FJSValue *f = [runtime runtimeObjectWithName:@"c"];
+    XCTAssert(f);
+    
+    FJSTestClass *c = [f toObject];
+    XCTAssert([c isKindOfClass:[FJSTestClass class]]);
+    
+    XCTAssert([[c randomString] isEqualToString:@"FM"]);
     
     [runtime shutdown];
 }

@@ -395,6 +395,7 @@ static NSPointerArray *FJSValueLiveWeakArray;
 //        }
         
         if (!_cValue.value.pointerValue) {
+            #pragma message "FIXME: wow this calloc is wrong."
             _cValue.value.pointerValue = calloc(1, sizeof(CGRect));
             _madePointerMemory = YES;
         }
@@ -505,13 +506,14 @@ static NSPointerArray *FJSValueLiveWeakArray;
             return YES;
         }
             break;
-            /*
+            
         case _C_STRUCT_B: {
-            // Whoa cool. We found a struct in a struct. CGRect maybe?
-            cv.value.pointerValue = loc;
+            FMAssert(_madePointerMemory);
+            FMAssert([self structSize] >= [value structSize]);
+            memcpy(loc, [value structLocation], [self structSize]);
         }
             break;
-            */
+        
         default:
             FMAssert(NO);
             break;
@@ -520,6 +522,22 @@ static NSPointerArray *FJSValueLiveWeakArray;
     
     
     return NO;
+}
+
+- (size_t)structSize {
+    FMAssert(_cValue.type == _C_STRUCT_B);
+    
+    size_t size = 0;
+    FJSSymbol *structSym = [self symbol];
+    NSString *name = [structSym structName];
+    FJSSymbol *structInfoSym = [FJSSymbol symbolForName:name];
+    for (FJSStructSymbol *ss in [structInfoSym structFields]) {
+        size += [ss size];
+    }
+    
+    FMAssert(size);
+    
+    return size;
 }
 
 - (FJSValue*)valueFromStructFieldNamed:(NSString*)structFieldName {

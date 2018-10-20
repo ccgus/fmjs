@@ -487,6 +487,12 @@ APPKIT_EXTERN const CGRect FJSRuntimeTestCGRect;
     [rt evaluateScript:@"r.origin.y = r.size.height;"];
     XCTAssert([[rt evaluateScript:@"r.origin.y;"] toInt] == 4);
     
+    
+    
+    [rt evaluateScript:@"r.origin = CGPointMake(43, 52);"];
+    XCTAssert([[rt evaluateScript:@"r.origin.y;"] toInt] == 52, @"Got %d", [[rt evaluateScript:@"r.origin.y;"] toInt]);
+    XCTAssert([[rt evaluateScript:@"r.origin.x;"] toInt] == 43, @"Got %d", [[rt evaluateScript:@"r.origin.x;"] toInt]);
+    
     [rt shutdown];
     
 }

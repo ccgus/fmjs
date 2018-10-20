@@ -700,6 +700,13 @@ JSValueRef FJS_getProperty(JSContextRef ctx, JSObjectRef object, JSStringRef pro
                 // This is all wrong I just know it.
                 void *p = type == _C_STRUCT_B ? dlsymbol : (*(void**)dlsymbol);
                 
+                #pragma message "FIXME: asan is crashing here"
+                // 'FJSTestConstInt' defined in '/Users/gus/Projects/fmjs/tests/FJSSimpleTests.m:21:11' (0x106dce460) of size 4
+                // 2018-10-19 23:29:03.256804-0700 xctest[1295:12166134] SUMMARY: AddressSanitizer: global-buffer-overflow FJSRuntime.m:701 in FJS_getProperty
+                // Are we referencing too much memory when we run with asan on? FJSTestConstInt vs 8 for the void*?
+
+                
+                
                 FJSValue *value = [FJSValue valueWithConstantPointer:p ofType:type inRuntime:runtime];
                 [value setSymbol:sym];
                 
@@ -732,8 +739,14 @@ static bool FJS_setProperty(JSContextRef ctx, JSObjectRef object, JSStringRef pr
         return worked;
     }
     
-    debug(@"valueFromJSObject: '%@'", valueFromJSObject);
-    debug(@"%s:%d: %@", __FUNCTION__, __LINE__, propertyName);
+    if ([valueFromJSObject isInstance]) {
+        debug(@"Need to set a property yo. %@ on %@", propertyName, [valueFromJSObject instance]);
+        
+    }
+    
+    #pragma message "FIXME: How about setting properties on NSObjects?"
+    
+    
     
     return NO;
 }

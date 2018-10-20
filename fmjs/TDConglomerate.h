@@ -399,14 +399,14 @@
     @var        TDTokenTypeWord A constant indicating that a token is a word, like <tt>cat</tt>.
 */
 typedef enum {
-    TDTokenTypeEOF,
-    TDTokenTypeNumber,
-    TDTokenTypeQuotedString,
-    TDTokenTypeSymbol,
-    TDTokenTypeWord,
-    TDTokenTypeWhitespace,
-    TDTokenTypeComment
-} TDTokenType;
+    FJSTDTokenTypeEOF,
+    FJSTDTokenTypeNumber,
+    FJSTDTokenTypeQuotedString,
+    FJSTDTokenTypeSymbol,
+    FJSTDTokenTypeWord,
+    FJSTDTokenTypeWhitespace,
+    FJSTDTokenTypeComment
+} FJSTDTokenType;
 
 /*!
     @class      TDToken
@@ -416,7 +416,7 @@ typedef enum {
 @interface FJSTDToken : NSObject {
     CGFloat floatValue;
     NSString *stringValue;
-    TDTokenType tokenType;
+    FJSTDTokenType tokenType;
     
     BOOL number;
     BOOL quotedString;
@@ -441,7 +441,7 @@ typedef enum {
     @param      n the number falue of this token.
     @result     an autoreleased initialized token.
 */
-+ (id)tokenWithTokenType:(TDTokenType)t stringValue:(NSString *)s floatValue:(CGFloat)n;
++ (id)tokenWithTokenType:(FJSTDTokenType)t stringValue:(NSString *)s floatValue:(CGFloat)n;
 
 /*!
     @brief      Designated initializer. Constructs a token of the indicated type and associated string or numeric values.
@@ -450,7 +450,7 @@ typedef enum {
     @param      n the number falue of this token.
     @result     an autoreleased initialized token.
 */
-- (id)initWithTokenType:(TDTokenType)t stringValue:(NSString *)s floatValue:(CGFloat)n;
+- (id)initWithTokenType:(FJSTDTokenType)t stringValue:(NSString *)s floatValue:(CGFloat)n;
 
 /*!
     @brief      Returns true if the supplied object is an equivalent <tt>TDToken</tt>, ignoring differences in case.
@@ -506,7 +506,7 @@ typedef enum {
     @property   tokenType
     @brief      The type of this token.
 */
-@property (nonatomic, readonly) TDTokenType tokenType;
+@property (nonatomic, readonly) FJSTDTokenType tokenType;
 
 /*!
     @property   floatValue
@@ -1662,7 +1662,7 @@ typedef enum {
 @class FJSTDTokenizerState;
 @class FJSTDNumberState;
 @class FJSTDQuoteState;
-@class TDSlashState;
+@class FJSTDSlashState;
 @class FJSTDCommentState;
 @class FJSTDSymbolState;
 @class FJSTDWhitespaceState;
@@ -1817,7 +1817,7 @@ typedef enum {
 
 
 
-extern NSString * const TDTrackExceptionName;
+extern NSString * const FJSTDTrackExceptionName;
 
 /*!
  @class     TDTrackException

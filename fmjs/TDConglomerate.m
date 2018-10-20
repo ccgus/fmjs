@@ -67,7 +67,7 @@
 
 
 
-static NSString * const TDAssemblyDefaultDelimiter = @"/";
+static NSString * const FJSTDAssemblyDefaultDelimiter = @"/";
 
 @interface FJSTDAssembly ()
 @property (nonatomic, readwrite, retain) NSMutableArray *stack;
@@ -232,7 +232,7 @@ static NSString * const TDAssemblyDefaultDelimiter = @"/";
     
     [s appendString:@"]"];
     
-    NSString *d = defaultDelimiter ? defaultDelimiter : TDAssemblyDefaultDelimiter;
+    NSString *d = defaultDelimiter ? defaultDelimiter : FJSTDAssemblyDefaultDelimiter;
     [s appendString:[self consumedObjectsJoinedByString:d]];
     [s appendString:@"^"];
     [s appendString:[self remainingObjectsJoinedByString:d]];
@@ -569,7 +569,7 @@ static NSString * const TDAssemblyDefaultDelimiter = @"/";
         for ( ; i < symbol.length - 1; i++) {
             [r unread];
         }
-        return [FJSTDToken tokenWithTokenType:TDTokenTypeSymbol stringValue:[NSString stringWithFormat:@"%C", (unsigned short)cin] floatValue:0.0];
+        return [FJSTDToken tokenWithTokenType:FJSTDTokenTypeSymbol stringValue:[NSString stringWithFormat:@"%C", (unsigned short)cin] floatValue:0.0];
     }
 }
 
@@ -675,7 +675,7 @@ static NSString * const TDAssemblyDefaultDelimiter = @"/";
     //NSParameterAssert(s);
     self = [super initWithString:s];
     if (self) {
-        self.literal = [FJSTDToken tokenWithTokenType:TDTokenTypeWord stringValue:s floatValue:0.0];
+        self.literal = [FJSTDToken tokenWithTokenType:FJSTDTokenTypeWord stringValue:s floatValue:0.0];
     }
     return self;
 }
@@ -863,7 +863,7 @@ static NSString * const TDAssemblyDefaultDelimiter = @"/";
     self.currentStartSymbol = nil;
 
     if (reportTokens) {
-        return [FJSTDToken tokenWithTokenType:TDTokenTypeComment stringValue:[self bufferedString] floatValue:0.0];
+        return [FJSTDToken tokenWithTokenType:FJSTDTokenTypeComment stringValue:[self bufferedString] floatValue:0.0];
     } else {
         return [t nextToken];
     }
@@ -1001,7 +1001,7 @@ static NSString * const TDAssemblyDefaultDelimiter = @"/";
         floatValue = -floatValue;
     }
     
-    return [FJSTDToken tokenWithTokenType:TDTokenTypeNumber stringValue:[self bufferedString] floatValue:[self value]];
+    return [FJSTDToken tokenWithTokenType:FJSTDTokenTypeNumber stringValue:[self bufferedString] floatValue:[self value]];
 }
 
 
@@ -1225,7 +1225,7 @@ static NSString * const TDAssemblyDefaultDelimiter = @"/";
         
     } while (c != cin);
     
-    return [FJSTDToken tokenWithTokenType:TDTokenTypeQuotedString stringValue:[self bufferedString] floatValue:0.0];
+    return [FJSTDToken tokenWithTokenType:FJSTDTokenTypeQuotedString stringValue:[self bufferedString] floatValue:0.0];
 }
 
 @synthesize balancesEOFTerminatedQuotes;
@@ -1650,7 +1650,7 @@ static NSArray *sTDReservedWords = nil;
     self.currentStartSymbol = nil;
     
     if (reportTokens) {
-        return [FJSTDToken tokenWithTokenType:TDTokenTypeComment stringValue:[self bufferedString] floatValue:0.0];
+        return [FJSTDToken tokenWithTokenType:FJSTDTokenTypeComment stringValue:[self bufferedString] floatValue:0.0];
     } else {
         return [t nextToken];
     }
@@ -1721,7 +1721,7 @@ static NSArray *sTDReservedWords = nil;
     self = [super initWithString:s];
     if (self) {
         if (s.length) {
-            self.symbol = [FJSTDToken tokenWithTokenType:TDTokenTypeSymbol stringValue:s floatValue:0.0];
+            self.symbol = [FJSTDToken tokenWithTokenType:FJSTDTokenTypeSymbol stringValue:s floatValue:0.0];
         }
     }
     return self;
@@ -2025,13 +2025,13 @@ static NSArray *sTDReservedWords = nil;
     NSInteger len = symbol.length;
 
     if (0 == len || (len > 1 && [addedSymbols containsObject:symbol])) {
-        return [FJSTDToken tokenWithTokenType:TDTokenTypeSymbol stringValue:symbol floatValue:0.0];
+        return [FJSTDToken tokenWithTokenType:FJSTDTokenTypeSymbol stringValue:symbol floatValue:0.0];
     } else {
         NSInteger i = 0;
         for ( ; i < len - 1; i++) {
             [r unread];
         }
-        return [FJSTDToken tokenWithTokenType:TDTokenTypeSymbol stringValue:[NSString stringWithFormat:@"%C", (unsigned short)cin] floatValue:0.0];
+        return [FJSTDToken tokenWithTokenType:FJSTDTokenTypeSymbol stringValue:[NSString stringWithFormat:@"%C", (unsigned short)cin] floatValue:0.0];
     }
 }
 
@@ -2229,7 +2229,7 @@ static FJSTDTokenEOF *EOFToken = nil;
 
 @property (nonatomic, readwrite) CGFloat floatValue;
 @property (nonatomic, readwrite, copy) NSString *stringValue;
-@property (nonatomic, readwrite) TDTokenType tokenType;
+@property (nonatomic, readwrite) FJSTDTokenType tokenType;
 @property (nonatomic, readwrite, copy) id value;
 @end
 
@@ -2240,13 +2240,13 @@ static FJSTDTokenEOF *EOFToken = nil;
 }
 
 
-+ (id)tokenWithTokenType:(TDTokenType)t stringValue:(NSString *)s floatValue:(CGFloat)n {
++ (id)tokenWithTokenType:(FJSTDTokenType)t stringValue:(NSString *)s floatValue:(CGFloat)n {
     return [[[self alloc] initWithTokenType:t stringValue:s floatValue:n] autorelease];
 }
 
 
 // designated initializer
-- (id)initWithTokenType:(TDTokenType)t stringValue:(NSString *)s floatValue:(CGFloat)n {
+- (id)initWithTokenType:(FJSTDTokenType)t stringValue:(NSString *)s floatValue:(CGFloat)n {
     //NSParameterAssert(s);
     self = [super init];
     if (self) {
@@ -2254,12 +2254,12 @@ static FJSTDTokenEOF *EOFToken = nil;
         self.stringValue = s;
         self.floatValue = n;
         
-        self.number = (TDTokenTypeNumber == t);
-        self.quotedString = (TDTokenTypeQuotedString == t);
-        self.symbol = (TDTokenTypeSymbol == t);
-        self.word = (TDTokenTypeWord == t);
-        self.whitespace = (TDTokenTypeWhitespace == t);
-        self.comment = (TDTokenTypeComment == t);
+        self.number = (FJSTDTokenTypeNumber == t);
+        self.quotedString = (FJSTDTokenTypeQuotedString == t);
+        self.symbol = (FJSTDTokenTypeSymbol == t);
+        self.word = (FJSTDTokenTypeWord == t);
+        self.whitespace = (FJSTDTokenTypeWhitespace == t);
+        self.comment = (FJSTDTokenTypeComment == t);
     }
     return self;
 }
@@ -2545,7 +2545,7 @@ static FJSTDTokenEOF *EOFToken = nil;
         if (!preservesWhitespaceTokens) {
             break;
         }
-        if (TDTokenTypeWhitespace == tok.tokenType) {
+        if (FJSTDTokenTypeWhitespace == tok.tokenType) {
             [self push:tok];
             index++;
         } else {
@@ -3031,7 +3031,7 @@ static FJSTDTokenEOF *EOFToken = nil;
                               expected, @"expected",
                               found, @"found",
                               nil];
-    [[FJSTDTrackException exceptionWithName:TDTrackExceptionName reason:reason userInfo:userInfo] raise];
+    [[FJSTDTrackException exceptionWithName:FJSTDTrackExceptionName reason:reason userInfo:userInfo] raise];
 }
 
 @end
@@ -3045,7 +3045,7 @@ static FJSTDTokenEOF *EOFToken = nil;
 
 
 
-NSString * const TDTrackExceptionName = @"Track Exception";
+NSString * const FJSTDTrackExceptionName = @"Track Exception";
 
 @implementation FJSTDTrackException
 
@@ -3159,7 +3159,7 @@ NSString * const TDTrackExceptionName = @"Track Exception";
     }
     
     if (reportsWhitespaceTokens) {
-        return [FJSTDToken tokenWithTokenType:TDTokenTypeWhitespace stringValue:[self bufferedString] floatValue:0.0];
+        return [FJSTDToken tokenWithTokenType:FJSTDTokenTypeWhitespace stringValue:[self bufferedString] floatValue:0.0];
     } else {
         return [t nextToken];
     }
@@ -3340,7 +3340,7 @@ NSString * const TDTrackExceptionName = @"Track Exception";
         [r unread];
     }
     
-    return [FJSTDToken tokenWithTokenType:TDTokenTypeWord stringValue:[self bufferedString] floatValue:0.0];
+    return [FJSTDToken tokenWithTokenType:FJSTDTokenTypeWord stringValue:[self bufferedString] floatValue:0.0];
 }
 
 

@@ -16,6 +16,7 @@
 #import <objc/runtime.h>
 #import <dlfcn.h>
 
+BOOL FMJSUseSynchronousGarbageCollectForDebugging;
 NSString *FMJavaScriptExceptionName = @"FMJavaScriptException";
 const CGRect FJSRuntimeTestCGRect = {74, 78, 11, 16};
 static const void * const kDispatchQueueSpecificKey = &kDispatchQueueSpecificKey;
@@ -181,6 +182,15 @@ static JSValueRef FJS_callAsFunction(JSContextRef ctx, JSObjectRef functionJS, J
         _jsContext = nil;
     }
 }
+
++ (BOOL)useSynchronousGarbageCollectForDebugging {
+    return FMJSUseSynchronousGarbageCollectForDebugging;
+}
+
++ (void)setUseSynchronousGarbageCollectForDebugging:(BOOL)flag {
+    FMJSUseSynchronousGarbageCollectForDebugging = flag;
+}
+
 
 - (void)pushAsCurrentFJS {
     // FIXME: This doesn't nest at all.
@@ -425,13 +435,16 @@ static JSValueRef FJS_callAsFunction(JSContextRef ctx, JSObjectRef functionJS, J
 
 - (void)garbageCollect {
     
-    #pragma message "FIXME: Maybe add a flag to do the sync GC? Or a compile time option?"
     dispatch_sync(_evaluateQueue, ^{
-        // We could also define `JS_EXPORT void JSSynchronousGarbageCollectForDebugging(JSContextRef);` instead of using runtime lookups. But this feels a little safer in case JSSynchronousGarbageCollectForDebugging goes away some day.
-        void *callAddress = dlsym(RTLD_DEFAULT, "JSSynchronousGarbageCollectForDebugging");
-        if (callAddress) {
-            void (*syncGC)(JSContextRef) = (void (*)(JSContextRef))callAddress;
-            syncGC([self jsContext]);
+        
+        if (FMJSUseSynchronousGarbageCollectForDebugging) {
+        
+            // We could also define `JS_EXPORT void JSSynchronousGarbageCollectForDebugging(JSContextRef);` instead of using runtime lookups. But this feels a little safer in case JSSynchronousGarbageCollectForDebugging goes away some day.
+            void *callAddress = dlsym(RTLD_DEFAULT, "JSSynchronousGarbageCollectForDebugging");
+            if (callAddress) {
+                void (*syncGC)(JSContextRef) = (void (*)(JSContextRef))callAddress;
+                syncGC([self jsContext]);
+            }
         }
         else {
             JSGarbageCollect([self jsContext]);

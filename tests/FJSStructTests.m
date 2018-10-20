@@ -19,6 +19,8 @@ APPKIT_EXTERN const CGRect FJSRuntimeTestCGRect;
 - (void)setUp {
     // Put setup code here. This method is called before the invocation of each test method in the class.
     
+    [FJSRuntime setUseSynchronousGarbageCollectForDebugging:YES];
+    
     [FJSRuntime new]; // Warm things up.
     
     NSString *FMJSBridgeSupportPath = [[NSBundle bundleForClass:[self class]] pathForResource:@"FJSTests" ofType:@"bridgesupport"];

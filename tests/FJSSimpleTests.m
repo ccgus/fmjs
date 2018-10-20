@@ -92,6 +92,7 @@ int FJSSimpleTestsMethodCalled;
 - (void)setUp {
     // Put setup code here. This method is called before the invocation of each test method in the class.
     
+    [FJSRuntime setUseSynchronousGarbageCollectForDebugging:YES];
     // [[FJSRuntime new] shutdown]; // Warm things up.
     
     NSString *FMJSBridgeSupportPath = [[NSBundle bundleForClass:[self class]] pathForResource:@"FJSTests" ofType:@"bridgesupport"];

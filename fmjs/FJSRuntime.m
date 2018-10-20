@@ -27,7 +27,6 @@ static const void * const kDispatchQueueSpecificKey = &kDispatchQueueSpecificKey
 @property (weak) FJSRuntime *previousRuntime;
 @property (assign) JSGlobalContextRef jsContext;
 @property (assign) JSClassRef globalClass;
-@property (strong) dispatch_queue_t evaluateQueue;
 @property (strong) NSMutableSet<NSString*> *runtimeObjectNames;
 
 @end
@@ -261,20 +260,26 @@ static JSValueRef FJS_callAsFunction(JSContextRef ctx, JSObjectRef functionJS, J
 
 - (BOOL)hasFunctionNamed:(NSString*)name {
     
-    JSValueRef exception = nil;
-    JSStringRef jsFunctionName = JSStringCreateWithUTF8CString([name UTF8String]);
-    JSValueRef jsFunctionValue = JSObjectGetProperty(_jsContext, JSContextGetGlobalObject(_jsContext), jsFunctionName, &exception);
-    JSStringRelease(jsFunctionName);
+    __block BOOL hasFunc = NO;
     
-    return jsFunctionValue && (JSValueGetType(_jsContext, jsFunctionValue) == kJSTypeObject);
+    dispatch_sync(_evaluateQueue, ^{
+        JSValueRef exception = nil;
+        JSStringRef jsFunctionName = JSStringCreateWithUTF8CString([name UTF8String]);
+        JSValueRef jsFunctionValue = JSObjectGetProperty(self->_jsContext, JSContextGetGlobalObject(self->_jsContext), jsFunctionName, &exception);
+        JSStringRelease(jsFunctionName);
+        hasFunc = jsFunctionValue && (JSValueGetType(self->_jsContext, jsFunctionValue) == kJSTypeObject);
+    });
+    
+    return hasFunc;
 }
 
 - (JSObjectRef)functionWithName:(NSString *)name {
+    
     JSValueRef exception = NULL;
     
     // Get function as property of global object
     JSStringRef jsFunctionName = JSStringCreateWithUTF8CString([name UTF8String]);
-    JSValueRef jsFunctionValue = JSObjectGetProperty(_jsContext, JSContextGetGlobalObject(_jsContext), jsFunctionName, &exception);
+    JSValueRef jsFunctionValue = JSObjectGetProperty(self->_jsContext, JSContextGetGlobalObject(self->_jsContext), jsFunctionName, &exception);
     JSStringRelease(jsFunctionName);
     
     if (exception) {
@@ -282,61 +287,65 @@ static JSValueRef FJS_callAsFunction(JSContextRef ctx, JSObjectRef functionJS, J
         return nil;
     }
     
-    return JSValueToObject(_jsContext, jsFunctionValue, NULL);
+    return JSValueToObject(self->_jsContext, jsFunctionValue, NULL);
+    
 }
 
 - (FJSValue *)callFunctionNamed:(NSString*)name withArguments:(NSArray*)arguments {
     
-    FJSValue *returnValue = nil;
+    __block FJSValue *returnValue = nil;
     
-    @try {
+    dispatch_sync(_evaluateQueue, ^{
         
-        [self pushAsCurrentFJS];
-        
-        
-        JSValueRef *jsArgumentsArray = nil;
-        NSUInteger argumentsCount = [arguments count];
-        if (argumentsCount) {
-            jsArgumentsArray = calloc(argumentsCount, sizeof(JSValueRef));
+        @try {
             
-            for (NSUInteger i=0; i<argumentsCount; i++) {
-                id argument = [arguments objectAtIndex:i];
+            [self pushAsCurrentFJS];
+            
+            
+            JSValueRef *jsArgumentsArray = nil;
+            NSUInteger argumentsCount = [arguments count];
+            if (argumentsCount) {
+                jsArgumentsArray = calloc(argumentsCount, sizeof(JSValueRef));
                 
-                FJSValue *v = [FJSValue valueWithInstance:(__bridge CFTypeRef)(argument) inRuntime:self];
-                jsArgumentsArray[i] = [v JSValue];
+                for (NSUInteger i=0; i<argumentsCount; i++) {
+                    id argument = [arguments objectAtIndex:i];
+                    
+                    FJSValue *v = [FJSValue valueWithInstance:(__bridge CFTypeRef)(argument) inRuntime:self];
+                    jsArgumentsArray[i] = [v JSValue];
+                }
+            }
+            
+            JSObjectRef jsFunction = [self functionWithName:name];
+            assert((JSValueGetType(self->_jsContext, jsFunction) == kJSTypeObject));
+            JSValueRef exception = NULL;
+            //debug(@"calling function");
+            JSValueRef jsFunctionReturnValue = JSObjectCallAsFunction(self->_jsContext, jsFunction, NULL, argumentsCount, jsArgumentsArray, &exception);
+            //debug(@"called");
+            
+            if (jsArgumentsArray) {
+                free(jsArgumentsArray);
+            }
+            
+            if (exception) {
+                [self reportPossibleJSException:exception];
+                [self popAsCurrentFJS];
+            }
+            else {
+                returnValue = [FJSValue valueForJSValue:(JSObjectRef)jsFunctionReturnValue inRuntime:self];
             }
         }
-        
-        JSObjectRef jsFunction = [self functionWithName:name];
-        assert((JSValueGetType(_jsContext, jsFunction) == kJSTypeObject));
-        JSValueRef exception = NULL;
-        //debug(@"calling function");
-        JSValueRef jsFunctionReturnValue = JSObjectCallAsFunction(_jsContext, jsFunction, NULL, argumentsCount, jsArgumentsArray, &exception);
-        //debug(@"called");
-        
-        if (jsArgumentsArray) {
-            free(jsArgumentsArray);
+        @catch (NSException * e) {
+            
+            [self reportNSException:e];
+            
+            //        NSDictionary *d = [e userInfo];
+            //        if ([_errorController respondsToSelector:@selector(coscript:hadError:onLineNumber:atSourceURL:)]) {
+            //            [_errorController coscript:self hadError:[e reason] onLineNumber:[[d objectForKey:@"line"] integerValue] atSourceURL:nil];
+            //        }
         }
         
-        if (exception) {
-            [self reportPossibleJSException:exception];
-            [self popAsCurrentFJS];
-            return nil;
-        }
-        
-        returnValue = [FJSValue valueForJSValue:(JSObjectRef)jsFunctionReturnValue inRuntime:self];
-    }
-    @catch (NSException * e) {
-        
-        [self reportNSException:e];
-        
-//        NSDictionary *d = [e userInfo];
-//        if ([_errorController respondsToSelector:@selector(coscript:hadError:onLineNumber:atSourceURL:)]) {
-//            [_errorController coscript:self hadError:[e reason] onLineNumber:[[d objectForKey:@"line"] integerValue] atSourceURL:nil];
-//        }
-    }
-    
-    [self popAsCurrentFJS];
+        [self popAsCurrentFJS];
+    });
     
     return returnValue;
 }
@@ -346,32 +355,39 @@ static JSValueRef FJS_callAsFunction(JSContextRef ctx, JSObjectRef functionJS, J
 
 
 - (void)deleteRuntimeObjectWithName:(NSString*)name {
-    JSValueRef exception = NULL;
-    JSStringRef jsName = JSStringCreateWithUTF8CString([name UTF8String]);
-    JSObjectDeleteProperty(_jsContext, JSContextGetGlobalObject(_jsContext), jsName, &exception);
-    JSStringRelease(jsName);
     
-    [self reportPossibleJSException:exception];
-    [_runtimeObjectNames removeObject:name];
+    dispatch_sync(_evaluateQueue, ^{
+        JSValueRef exception = NULL;
+        JSStringRef jsName = JSStringCreateWithUTF8CString([name UTF8String]);
+        JSObjectDeleteProperty(self->_jsContext, JSContextGetGlobalObject(self->_jsContext), jsName, &exception);
+        JSStringRelease(jsName);
+        
+        [self reportPossibleJSException:exception];
+        [[self runtimeObjectNames] removeObject:name];
+    });
 }
 
 
 - (FJSValue*)runtimeObjectWithName:(NSString *)name {
     
-    JSValueRef exception = NULL;
+    __block FJSValue *obj = nil;
     
-    JSStringRef jsName = JSStringCreateWithUTF8CString([name UTF8String]);
-    JSValueRef jsValue = JSObjectGetProperty([self contextRef], JSContextGetGlobalObject([self contextRef]), jsName, &exception);
-    JSStringRelease(jsName);
+    dispatch_sync(_evaluateQueue, ^{
+        JSValueRef exception = NULL;
+        
+        JSStringRef jsName = JSStringCreateWithUTF8CString([name UTF8String]);
+        JSValueRef jsValue = JSObjectGetProperty([self contextRef], JSContextGetGlobalObject([self contextRef]), jsName, &exception);
+        JSStringRelease(jsName);
+        
+        if (exception) {
+            [self reportPossibleJSException:exception];
+        }
+        else {
+            obj = [FJSValue valueForJSValue:jsValue inRuntime:self];
+        }
+    });
     
-    if (exception) {
-        [self reportPossibleJSException:exception];
-        return NULL;
-    }
-    
-    FJSValue *w = [FJSValue valueForJSValue:jsValue inRuntime:self];
-    
-    return w;
+    return obj;
 }
 
 - (void)setRuntimeObject:(nullable id)object withName:(NSString *)name {
@@ -381,46 +397,46 @@ static JSValueRef FJS_callAsFunction(JSContextRef ctx, JSObjectRef functionJS, J
         return;
     }
     
-    FJSValue *value = nil;
-    
-    if ([object isKindOfClass:NSClassFromString(@"NSBlock")]) {
-        value = [FJSValue valueWithBlock:(__bridge CFTypeRef _Nonnull)(object) inRuntime:self];
-    }
-    else {
-        value = [FJSValue valueWithInstance:(__bridge CFTypeRef _Nonnull)(object) inRuntime:self];
-    }
-    
-    JSValueRef jsValue = [value JSValue];
-    
-    FMAssert(jsValue);
-    
-    JSValueRef exception = NULL;
-    JSStringRef jsName = JSStringCreateWithUTF8CString([name UTF8String]);
-    JSObjectSetProperty([self contextRef], JSContextGetGlobalObject([self contextRef]), jsName, jsValue, kJSPropertyAttributeNone, &exception);
-    JSStringRelease(jsName);
-    
-    [_runtimeObjectNames addObject:name];
-    
-    if (exception != NULL) {
-        FMAssert(NO);
-        return;
-    }
+    dispatch_sync(_evaluateQueue, ^{
+        FJSValue *value = nil;
+        
+        if ([object isKindOfClass:NSClassFromString(@"NSBlock")]) {
+            value = [FJSValue valueWithBlock:(__bridge CFTypeRef _Nonnull)(object) inRuntime:self];
+        }
+        else {
+            value = [FJSValue valueWithInstance:(__bridge CFTypeRef _Nonnull)(object) inRuntime:self];
+        }
+        
+        JSValueRef jsValue = [value JSValue];
+        
+        FMAssert(jsValue);
+        
+        JSValueRef exception = NULL;
+        JSStringRef jsName = JSStringCreateWithUTF8CString([name UTF8String]);
+        JSObjectSetProperty([self contextRef], JSContextGetGlobalObject([self contextRef]), jsName, jsValue, kJSPropertyAttributeNone, &exception);
+        JSStringRelease(jsName);
+        
+        [[self runtimeObjectNames] addObject:name];
+        
+        [self reportPossibleJSException:exception];
+    });
     
 }
 
 - (void)garbageCollect {
     
     #pragma message "FIXME: Maybe add a flag to do the sync GC? Or a compile time option?"
-    
-    // We could also define `JS_EXPORT void JSSynchronousGarbageCollectForDebugging(JSContextRef);` instead of using runtime lookups. But this feels a little safer in case JSSynchronousGarbageCollectForDebugging goes away some day.
-    void *callAddress = dlsym(RTLD_DEFAULT, "JSSynchronousGarbageCollectForDebugging");
-    if (callAddress) {
-        void (*syncGC)(JSContextRef) = (void (*)(JSContextRef))callAddress;
-        syncGC(_jsContext);
-    }
-    else {
-        JSGarbageCollect(_jsContext);
-    }
+    dispatch_sync(_evaluateQueue, ^{
+        // We could also define `JS_EXPORT void JSSynchronousGarbageCollectForDebugging(JSContextRef);` instead of using runtime lookups. But this feels a little safer in case JSSynchronousGarbageCollectForDebugging goes away some day.
+        void *callAddress = dlsym(RTLD_DEFAULT, "JSSynchronousGarbageCollectForDebugging");
+        if (callAddress) {
+            void (*syncGC)(JSContextRef) = (void (*)(JSContextRef))callAddress;
+            syncGC([self jsContext]);
+        }
+        else {
+            JSGarbageCollect([self jsContext]);
+        }
+    });
 }
 
 - (FJSValue*)evaluateScript:(NSString *)script withSourceURL:(nullable NSURL *)sourceURL {

@@ -21,6 +21,7 @@ NS_ASSUME_NONNULL_BEGIN
 @property (copy) void(^exceptionHandler)(FJSRuntime *runtime, NSException *exception);
 @property (copy) void(^printHandler)(FJSRuntime *runtime, NSString *stringToPrint);
 @property (copy) void(^finalizeHandler)(FJSRuntime *runtime, FJSValue *value);
+@property (strong) dispatch_queue_t evaluateQueue;
 
 + (void)loadFrameworkAtPath:(NSString*)path;
 

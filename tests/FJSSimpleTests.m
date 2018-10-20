@@ -344,6 +344,38 @@ int FJSSimpleTestsMethodCalled;
     [runtime evaluateScript:code];
 }
 
+- (void)xtestCoreImageExampleInAutoreleasePool {
+    
+    // Note- when guard malloc is turned on in 10.14, the Apple JPEG decoders trip it up. Hurray.
+    
+    NSString *code = @"\
+    function doCI(idx) {\n\
+        print('…………');\n\
+        var url = NSURL.fileURLWithPath_('/Library/Desktop Pictures/Yosemite.jpg');\n\
+        var img = CIImage.imageWithContentsOfURL_(url)\n\
+        var f = CIFilter.filterWithName_('CIColorInvert');\n\
+        f.setValue_forKey_(img, kCIInputImageKey);\n\
+        var r = f.outputImage();\n\
+        r = r.imageByCroppingToRect_(CGRectMake(0, 0, 500, 500));\n\
+        r = r.imageByApplyingTransform_(CGAffineTransformMakeScale(.5, .5));\n\
+        var tiff = r.TIFFRepresentation();\n\
+        var file = '/tmp/foo' + idx + '.tiff';\n\
+        print(file);\n\
+        tiff.writeToFile_atomically_(file, true)\n\
+        NSWorkspace.sharedWorkspace().openFile_(file);\n\
+    }";
+    
+    FJSRuntime *runtime = [FJSRuntime new];
+    [runtime evaluateScript:code];
+    
+    for  (int i = 0; i < 10; i++) @autoreleasepool {
+        [runtime callFunctionNamed:@"doCI" withArguments:@[@(i)]];
+    }
+    
+}
+
+
+
 - (void)testReentrantCrash {
     
     // If you want to test crashes on reentrantcy (is that a word?) uncomment these:

@@ -395,8 +395,15 @@ static NSPointerArray *FJSValueLiveWeakArray;
 //        }
         
         if (!_cValue.value.pointerValue) {
-            #pragma message "FIXME: wow this calloc is wrong."
-            _cValue.value.pointerValue = calloc(1, sizeof(CGRect));
+            #pragma message "FIXME: refactor out how we get the size of the struct somehow.There's too many lines below to pull it out."
+            
+            FJSSymbol *structSym = [self symbol];
+            NSString *name = [structSym structName];
+            FJSSymbol *structInfoSym = [FJSSymbol symbolForName:name];
+            size_t size = [structInfoSym structSize];
+            FMAssert(size);
+            
+            _cValue.value.pointerValue = calloc(1, size);
             _madePointerMemory = YES;
         }
         else {

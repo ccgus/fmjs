@@ -39,6 +39,7 @@
 
 - (NSString*)structName;
 - (NSArray*)structFields;
+- (size_t)structSize;
 - (FJSStructSymbol*)structFieldNamed:(NSString*)name;
 
 

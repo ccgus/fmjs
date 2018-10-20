@@ -156,6 +156,19 @@
     return _structSymbols;
 }
 
+- (size_t)structSize {
+    
+    #pragma message "FIXME: Add an assertion that we're a struct, so we're not calling this on an argument symbol. Or maybe look up the original symbol if this is an argument?"
+    
+    [self parseStruct];
+    
+    size_t size = 0;
+    for (FJSStructSymbol *ss in _structSymbols) {
+        size += [ss size];
+    }
+    return size;
+}
+
 - (void)addArgument:(FJSSymbol*)sym {
     if (!_arguments) {
         _arguments = [NSMutableArray array];

@@ -39,6 +39,7 @@ static FJSRuntime *FJSCurrentRuntime;
 static void FJS_initialize(JSContextRef ctx, JSObjectRef object);
 static void FJS_finalize(JSObjectRef object);
 JSValueRef FJS_getProperty(JSContextRef ctx, JSObjectRef object, JSStringRef propertyNameJS, JSValueRef *exception);
+static bool FJS_setProperty(JSContextRef ctx, JSObjectRef object, JSStringRef propertyNameJS, JSValueRef value, JSValueRef* exception);
 static bool FJS_hasProperty(JSContextRef ctx, JSObjectRef object, JSStringRef propertyName);
 static JSValueRef FJS_callAsFunction(JSContextRef ctx, JSObjectRef functionJS, JSObjectRef thisObject, size_t argumentCount, const JSValueRef arguments[], JSValueRef *exception);
 
@@ -120,6 +121,7 @@ static JSValueRef FJS_callAsFunction(JSContextRef ctx, JSObjectRef functionJS, J
     JSClassDefinition COSGlobalClassDefinition  = kJSClassDefinitionEmpty;
     COSGlobalClassDefinition.className          = "FMJSClass";
     COSGlobalClassDefinition.getProperty        = FJS_getProperty;
+    COSGlobalClassDefinition.setProperty        = FJS_setProperty;
     COSGlobalClassDefinition.initialize         = FJS_initialize;
     COSGlobalClassDefinition.finalize           = FJS_finalize;
     COSGlobalClassDefinition.hasProperty        = FJS_hasProperty; // If we don't have this, getProperty gets called twice.
@@ -583,15 +585,12 @@ static bool FJS_hasProperty(JSContextRef ctx, JSObjectRef object, JSStringRef pr
     
     if ([objectValue isStruct]) {
         
-        debug(@"propertyName: '%@'?", propertyName);
-        
         FJSSymbol *structSym = [objectValue symbol];
         FMAssert(structSym);
         
         NSString *name = [structSym structName];
         
         FJSSymbol *structInfoSym = [FJSSymbol symbolForName:name];
-        
         
         return [structInfoSym structFieldNamed:propertyName] != nil;
     }
@@ -712,6 +711,31 @@ JSValueRef FJS_getProperty(JSContextRef ctx, JSObjectRef object, JSStringRef pro
     }
     
     return nil;
+}
+
+static bool FJS_setProperty(JSContextRef ctx, JSObjectRef object, JSStringRef propertyNameJS, JSValueRef value, JSValueRef* exception) {
+    NSString *propertyName = (NSString *)CFBridgingRelease(JSStringCopyCFString(kCFAllocatorDefault, propertyNameJS));
+    if ([propertyName isEqualToString:FJSRuntimeLookupKey]) {
+        return NO;
+    }
+    
+    if (!JSObjectGetPrivate(object)) { // We didn't make this object.
+        return NO;
+    }
+    
+    
+    FJSRuntime *runtime         = [FJSRuntime runtimeInContext:ctx];
+    FJSValue *valueFromJSObject = [FJSValue valueForJSValue:object inRuntime:runtime];
+    
+    if ([valueFromJSObject isStruct]) {
+        BOOL worked = [valueFromJSObject setValue:[FJSValue valueForJSValue:value inRuntime:runtime] onStructFieldNamed:propertyName];
+        return worked;
+    }
+    
+    debug(@"valueFromJSObject: '%@'", valueFromJSObject);
+    debug(@"%s:%d: %@", __FUNCTION__, __LINE__, propertyName);
+    
+    return NO;
 }
 
 static JSValueRef FJS_callAsFunction(JSContextRef context, JSObjectRef functionJS, JSObjectRef thisObject, size_t argumentCount, const JSValueRef arguments[], JSValueRef *exception) {

@@ -432,6 +432,96 @@ static NSPointerArray *FJSValueLiveWeakArray;
     return [NSString stringWithFormat:@"%@ - %@ (%@ native)", [super description], obj, _isJSNative ? @"js" : @"c"];
 }
 
+- (BOOL)setValue:(FJSValue*)value onStructFieldNamed:(NSString*)structFieldName {
+    
+#pragma message "FIXME: Need more tests for the setValue:onStructFieldNamed: types."
+    FMAssert(_cValue.type == _C_STRUCT_B);
+    
+    FJSSymbol *structSym = [self symbol];
+    FMAssert(structSym);
+    
+    NSString *name = [structSym structName];
+    FMAssert(name);
+    
+    FJSSymbol *structInfoSym = [FJSSymbol symbolForName:name];
+    FMAssert(structInfoSym);
+    
+    FJSStructSymbol *structFieldSym = [structInfoSym structFieldNamed:structFieldName];
+    FMAssert(structFieldSym);
+    
+    
+    
+    FJSStructSymbol *foundType = nil;
+    size_t offset = 0;
+    
+    for (FJSStructSymbol *ss in [structInfoSym structFields]) {
+        if ([[ss name] isEqualToString:structFieldName]) {
+            foundType = ss;
+            break;
+        }
+        offset += [ss size];
+    }
+    
+    void *loc = _cValue.value.pointerValue + offset;
+    
+    switch ([foundType type]) {
+        case _C_DBL: {
+            double d = [value toDouble];
+            memcpy(loc, &d, sizeof(d));
+            return YES;
+        }
+            break;
+            /*
+        case _C_FLT:
+            cv.value.floatValue = *((float *)loc);
+            break;
+            
+        case _C_INT:
+            cv.value.intValue = *((int *)loc);
+            break;
+            
+        case _C_UINT:
+            cv.value.uintValue = *((unsigned int *)loc);
+            break;
+            
+        case _C_LNG:
+            cv.value.longValue = *((long *)loc);
+            break;
+            */
+        case _C_ULNG: {
+            unsigned long l = [value toLongLong];
+            memcpy(loc, &l, sizeof(l));
+            return YES;
+        }
+            break;
+            /*
+        case _C_LNG_LNG:
+            cv.value.longLongValue = *((long long *)loc);
+            break;
+            */
+        case _C_ULNG_LNG: {
+            unsigned long long l = [value toLongLong];
+            memcpy(loc, &l, sizeof(l));
+            return YES;
+        }
+            break;
+            /*
+        case _C_STRUCT_B: {
+            // Whoa cool. We found a struct in a struct. CGRect maybe?
+            cv.value.pointerValue = loc;
+        }
+            break;
+            */
+        default:
+            FMAssert(NO);
+            break;
+    }
+    
+    
+    
+    return NO;
+}
+
 - (FJSValue*)valueFromStructFieldNamed:(NSString*)structFieldName {
     
     FMAssert(_cValue.type == _C_STRUCT_B);
@@ -460,9 +550,6 @@ static NSPointerArray *FJSValueLiveWeakArray;
         }
         offset += [ss size];
     }
-    
-    
-    debug(@"%@ is at offset %ld", structFieldName, offset);
     
     void *loc = _cValue.value.pointerValue + offset;
     

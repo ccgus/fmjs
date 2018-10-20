@@ -411,7 +411,7 @@ static NSMutableDictionary *FJSFFIStructureLookup;
         NSArray *elements = [self ffiElementsForTokenizer:tokenizer];
         
         while ((tok = [tokenizer nextToken]) != [FJSTDToken EOFToken]) {
-            debug(@"remaining in structure, being ignored: '%@'", [tok stringValue]);
+            // debug(@"remaining in structure, being ignored: '%@'", [tok stringValue]);
         }
         
         type = [self ffiTypeForArrayEncoding:elements];

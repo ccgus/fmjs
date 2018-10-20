@@ -425,6 +425,16 @@ APPKIT_EXTERN const CGRect FJSRuntimeTestCGRect;
     
     XCTAssert([v toInt] == 3, @"Got %d", [v toInt]);
     
+    
+    [rt evaluateScript:@"p.y = 14; p.x = 7;"];
+    
+    v = [rt runtimeObjectWithName:@"p"];
+    
+    CGPoint p = [v toCGPoint];
+    
+    XCTAssert(FJSEqualFloats(p.y, 14), @"Got %f", p.y);
+    XCTAssert(FJSEqualFloats(p.x, 7), @"Got %f", p.x);
+    
     [rt shutdown];
     
 }
@@ -434,8 +444,6 @@ APPKIT_EXTERN const CGRect FJSRuntimeTestCGRect;
     
     FJSSymbol *CGRectMakeSym = [FJSSymbol symbolForName:@"CGRectMake"];
     XCTAssert(CGRectMakeSym);
-    
-    
     
     NSString *name = FJSStructNameFromRuntimeType(@"{CGRect={CGPoint=dd}{CGSize=dd}}");
     XCTAssert([name isEqualToString:@"CGRect"], @"Got '%@'", name);
@@ -455,9 +463,30 @@ APPKIT_EXTERN const CGRect FJSRuntimeTestCGRect;
     [rt evaluateScript:@"var r = CGRectMake(1, 2, 3, 4);"];
 
     FJSValue *v = [rt evaluateScript:@"r.size.width;"];
-
     XCTAssert([v toInt] == 3, @"Got %d", [v toInt]);
-
+    
+    v = [rt evaluateScript:@"r.size.height;"];
+    XCTAssert([v toInt] == 4, @"Got %d", [v toInt]);
+    
+    v = [rt evaluateScript:@"r.origin.x;"];
+    XCTAssert([v toInt] == 1, @"Got %d", [v toInt]);
+    
+    v = [rt evaluateScript:@"r.origin.y;"];
+    XCTAssert([v toInt] == 2, @"Got %d", [v toInt]);
+    
+    CGRect *rectPointer = [[rt runtimeObjectWithName:@"r"] structLocation];
+    
+    XCTAssert(FJSEqualFloats(rectPointer->origin.x + rectPointer->origin.y + rectPointer->size.width + rectPointer->size.height, 10));
+    
+    [rt evaluateScript:@"r.origin.x = 37;"];
+    XCTAssert(FJSEqualFloats(rectPointer->origin.x, 37), @"Got %f", rectPointer->origin.x);
+    
+    [rt evaluateScript:@"r.origin.x = r.size.width + 15;"];
+    XCTAssert(FJSEqualFloats(rectPointer->origin.x, 18), @"Got %f", rectPointer->origin.x);
+    
+    [rt evaluateScript:@"r.origin.y = r.size.height;"];
+    XCTAssert([[rt evaluateScript:@"r.origin.y;"] toInt] == 4);
+    
     [rt shutdown];
     
 }
@@ -478,6 +507,19 @@ APPKIT_EXTERN const CGRect FJSRuntimeTestCGRect;
     v = [rt evaluateScript:@"r.length;"];
     
     XCTAssert([v toInt] == 14, @"Got %d", [v toInt]);
+    
+    [rt evaluateScript:@"r.location = 7; r.length = 12;"];
+    
+    v = [rt runtimeObjectWithName:@"r"];
+    
+    NSRange *r = [v structLocation];
+    
+    XCTAssert(FJSEqualFloats(r->length, 12), @"Got %ld", r->length);
+    XCTAssert(FJSEqualFloats(r->location, 7), @"Got %ld", r->location);
+    
+    [rt evaluateScript:@"r.location = r.length;"];
+    
+    XCTAssert(FJSEqualFloats(r->location, 12), @"Got %ld", r->location);
     
     [rt shutdown];
     

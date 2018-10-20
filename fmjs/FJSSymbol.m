@@ -106,8 +106,6 @@
                     
                     [sym setSize:size];
                     [symbols addObject:sym];
-                    
-                    
                 }
                 else {
                     
@@ -121,10 +119,6 @@
                         return;
                     }
                 }
-                
-                
-                #pragma message "FIXME: Need to fill in the size."
-                
             }
             
         }
@@ -138,7 +132,6 @@
 }
 
 - (NSString*)structName {
-    debug(@"_runtimeType: '%@'", _runtimeType);
     
     FMAssert([_runtimeType hasPrefix:@"{"]);
     

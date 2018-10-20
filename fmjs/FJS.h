@@ -14,8 +14,13 @@ FOUNDATION_EXPORT double FMJSVersionNumber;
 //! Project version string for FMJS.
 FOUNDATION_EXPORT const unsigned char FMJSVersionString[];
 
+#ifndef debug
 #define debug NSLog
+#endif
+
+#ifndef FMAssert
 #define FMAssert assert
+#endif
 
 #import <FMJS/FJSRuntime.h>
 #import <FMJS/FJSValue.h>

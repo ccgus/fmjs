@@ -433,8 +433,6 @@ static NSPointerArray *FJSValueLiveWeakArray;
         else {
             obj = [NSString stringWithFormat:@"nsvalue type '%c' %p", _cValue.type, [(NSValue*)obj pointerValue]];
         }
-        
-        
     }
     
     return [NSString stringWithFormat:@"%@ - %@ (%@ native)", [super description], obj, _isJSNative ? @"js" : @"c"];

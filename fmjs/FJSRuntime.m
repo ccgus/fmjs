@@ -769,13 +769,26 @@ static bool FJS_setProperty(JSContextRef ctx, JSObjectRef object, JSStringRef pr
     }
     
     if ([valueFromJSObject isInstance]) {
-        debug(@"Need to set a property yo. %@ on %@", propertyName, [valueFromJSObject instance]);
+        // If we got here, it's probobably in the format foo.bar = 123; So let's rewrite it to setBar:?
         
+        NSString *setName = [[propertyName substringToIndex:1] uppercaseString];
+        setName = [setName stringByAppendingString:[propertyName substringFromIndex:1]];
+        setName = [NSString stringWithFormat:@"set%@:", setName];
+        
+        FMAssert(([[valueFromJSObject instance] respondsToSelector:NSSelectorFromString(setName)])); // what isn't going to work here?
+        if ([[valueFromJSObject instance] respondsToSelector:NSSelectorFromString(setName)]) {
+
+            FJSValue *arg = [FJSValue valueForJSValue:value inRuntime:runtime];
+            FJSSymbol *setterMethod = [FJSSymbol symbolForName:setName inObject:[valueFromJSObject instance]];
+            FJSValue *setterValue = [FJSValue valueWithSymbol:setterMethod inRuntime:runtime];
+            
+            FJSFFI *ffi = [FJSFFI ffiWithFunction:setterValue caller:valueFromJSObject arguments:@[arg] cos:runtime];
+
+            [ffi callFunction];
+            
+            return YES;
+        }
     }
-    
-    #pragma message "FIXME: How about setting properties on NSObjects?"
-    
-    
     
     return NO;
 }
@@ -799,7 +812,7 @@ static JSValueRef FJS_callAsFunction(JSContextRef context, JSObjectRef functionJ
     NSMutableArray *args = [NSMutableArray arrayWithCapacity:argumentCount];
     for (size_t idx = 0; idx < argumentCount; idx++) {
         JSValueRef jsArg = arguments[idx];
-        FJSValue *arg = [FJSValue valueForJSValue:(JSObjectRef)jsArg inRuntime:runtime];
+        FJSValue *arg = [FJSValue valueForJSValue:jsArg inRuntime:runtime];
         assert(arg);
         [args addObject:arg];
     }

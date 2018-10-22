@@ -22,7 +22,7 @@ typedef struct {
         short shortValue;
         unsigned short ushortValue;
         int intValue;
-        int uintValue;
+        unsigned int uintValue;
         long longValue;
         unsigned long unsignedLongValue;
         long long longLongValue;

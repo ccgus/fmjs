@@ -21,6 +21,7 @@
 
 @property (weak) id weakInstance;
 @property (assign) BOOL madePointerMemory;
+@property (assign) size_t madePointerMemorySize;
 
 @property (assign) BOOL isWeakReference;
 
@@ -138,9 +139,43 @@ static NSPointerArray *FJSValueLiveWeakArray;
     return cw;
 }
 
-+ (instancetype)valueWithConstantPointer:(void*)p ofType:(char)type inRuntime:(FJSRuntime*)runtime {
++ (instancetype)valueWithConstantPointer:(void*)p withSymbol:(FJSSymbol*)sym inRuntime:(FJSRuntime*)runtime {
     // In theory, we're going to do something special with consts in the future.
-    return [self valueWithPointer:p ofType:type inRuntime:runtime];
+    
+    FJSValue *cw = [[self alloc] init];
+    [cw setRuntime:runtime];
+    
+    [cw setSymbol:sym];
+    
+    
+    char type = [[sym runtimeType] characterAtIndex:0];
+    cw->_cValue.type = type;
+    
+    if (type == _C_PTR) {
+        cw->_cValue.value.pointerValue = p;
+        FMAssert(NO); // We need a test for this. Looks like you found a case for it.
+    }
+    else {
+        size_t copySize = 0;
+    
+        if (type == _C_STRUCT_B) {
+            [cw objectStorage]; // Prime up the struct memory location
+            copySize = [cw madePointerMemorySize];
+            FMAssert(copySize);
+        }
+        else if (!FJSGetSizeOfTypeEncoding(&copySize, type)) {
+            printf("Couldn't get size of type encoding: '%c'\n", type);
+            FMAssert(NO);
+            return nil;
+        }
+        
+        FMAssert(copySize);
+        memcpy([cw objectStorage], p, copySize);
+    }
+    
+    // https://developer.apple.com/documentation/code_diagnostics/undefined_behavior_sanitizer/misaligned_pointer?language=objc
+    
+    return cw;
 }
 
 + (instancetype)valueWithPointer:(void*)p ofType:(char)type inRuntime:(FJSRuntime*)runtime {
@@ -400,10 +435,10 @@ static NSPointerArray *FJSValueLiveWeakArray;
             FJSSymbol *structSym = [self symbol];
             NSString *name = [structSym structName];
             FJSSymbol *structInfoSym = [FJSSymbol symbolForName:name];
-            size_t size = [structInfoSym structSize];
-            FMAssert(size);
+            _madePointerMemorySize = [structInfoSym structSize];
+            FMAssert(_madePointerMemorySize);
             
-            _cValue.value.pointerValue = calloc(1, size);
+            _cValue.value.pointerValue = calloc(1, _madePointerMemorySize);
             _madePointerMemory = YES;
         }
         else {
@@ -514,8 +549,9 @@ static NSPointerArray *FJSValueLiveWeakArray;
             
         case _C_STRUCT_B: {
             FMAssert(_madePointerMemory);
+            FMAssert(_madePointerMemorySize);
             FMAssert([self structSize] >= [value structSize]);
-            memcpy(loc, [value structLocation], [self structSize]);
+            memcpy(loc, [value structLocation], [value structSize]);
         }
             break;
         

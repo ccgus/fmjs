@@ -30,7 +30,7 @@
 + (instancetype)valueWithBlock:(CFTypeRef)block inRuntime:(FJSRuntime*)runtime;
 + (instancetype)valueWithInstance:(CFTypeRef)instance inRuntime:(FJSRuntime*)runtime;
 + (instancetype)valueWithWeakInstance:(id)instance inRuntime:(FJSRuntime*)runtime;
-+ (instancetype)valueWithConstantPointer:(void*)p ofType:(char)type inRuntime:(FJSRuntime*)runtime;
++ (instancetype)valueWithConstantPointer:(void*)p withSymbol:(FJSSymbol*)sym inRuntime:(FJSRuntime*)runtime;
 + (instancetype)valueWithClass:(Class)c inRuntime:(FJSRuntime*)runtime;
 + (instancetype)valueWithCValue:(FJSObjCValue)cvalue inRuntime:(FJSRuntime*)runtime;
 + (instancetype)valueWithNullInRuntime:(FJSRuntime*)runtime;

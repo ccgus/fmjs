@@ -339,7 +339,6 @@ int FJSSimpleTestsMethodCalled;
     NSWorkspace.sharedWorkspace().openFile_('/tmp/foo.tiff');";
     
     
-    #pragma message "FIXME: Asan doesn't like tiff.writeToFile_atomically_ for some reason. SOMETIMES. Not all the time."
     FJSRuntime *runtime = [FJSRuntime new];
     [runtime evaluateScript:code];
 }
@@ -578,9 +577,10 @@ int FJSSimpleTestsMethodCalled;
     
     [runtime shutdown];
     
+    
+    XCTAssert(![FJSValue countOfLiveInstances], @"Still have %ld live instances.", [FJSValue countOfLiveInstances]);
+    
     if ([FJSValue countOfLiveInstances]) {
-        
-        debug(@"Still have %ld live instances.", [FJSValue countOfLiveInstances]);
         
         NSPointerArray *ar = [FJSValue liveInstancesPointerArray];
         
@@ -591,8 +591,6 @@ int FJSSimpleTestsMethodCalled;
                 debug(@"v: '%@'", v);
             }
         }
-        
-        abort();
     }
 }
 

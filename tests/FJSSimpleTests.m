@@ -740,6 +740,14 @@ int FJSSimpleTestsMethodCalled;
     NSString *c = [f toObject];
     XCTAssert([c isEqualToString:@"FJS Missing Underscore"]);
     
+    FJSValue *u = [runtime evaluateScript:@"NSURL.URLWithString('https://flyingmeat.com').URLByAppendingPathComponent('acorn');"];
+    XCTAssert(u);
+    
+    NSURL *url = [u toObject];
+    XCTAssert([url isKindOfClass:[NSURL class]]);
+    
+    XCTAssert([[url absoluteString] isEqualToString:@"https://flyingmeat.com/acorn"]);
+    
     [runtime shutdown];
 }
 

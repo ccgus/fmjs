@@ -641,6 +641,7 @@ JSValueRef FJS_getProperty(JSContextRef ctx, JSObjectRef object, JSStringRef pro
     if ([propertyName isEqualToString:FJSRuntimeLookupKey]) {
         return nil;
     }
+    debug(@"propertyName: '%@'", propertyName);
     
     FJSRuntime *runtime = [FJSRuntime runtimeInContext:ctx];
     

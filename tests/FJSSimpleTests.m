@@ -728,6 +728,21 @@ int FJSSimpleTestsMethodCalled;
     [runtime shutdown];
 }
 
+- (void)testMissingUnderscoreMethod {
+    
+    FJSRuntime *runtime = [[FJSRuntime alloc] init];
+    
+    XCTAssert([runtime evaluateScript:@"var c = NSString.stringWithString('FJS Missing Underscore');"]);
+    
+    FJSValue *f = [runtime runtimeObjectWithName:@"c"];
+    XCTAssert(f);
+    
+    NSString *c = [f toObject];
+    XCTAssert([c isEqualToString:@"FJS Missing Underscore"]);
+    
+    [runtime shutdown];
+}
+
 - (void)xtestPerformanceExample {
     // This is an example of a performance test case.
     [self measureBlock:^{

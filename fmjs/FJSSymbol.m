@@ -199,12 +199,20 @@
 
 - (FJSSymbol*)methodNamed:(NSString*)methodName isClass:(BOOL)isClassMethod {
     
+    // FIXME: Should this be a runtime behavior that we can turn on and off?
+    BOOL lookForMissingColonForArgument = YES;
+    
     methodName = [methodName stringByReplacingOccurrencesOfString:@"_" withString:@":"];
+    
+    NSString *methodNameWithArgAdded = [methodName stringByAppendingString:@":"];
     
     assert([[self symbolType] isEqualToString:@"class"]);
     
     for (FJSSymbol *sym in isClassMethod ? _classMethods : _instanceMethods) {
         if ([[sym name] isEqualToString:methodName]) {
+            return sym;
+        }
+        else if (lookForMissingColonForArgument && [[sym name] isEqualToString:methodNameWithArgAdded]) {
             return sym;
         }
     }
@@ -233,6 +241,12 @@
     SEL selector = NSSelectorFromString(methodName);
     
     Method method = isClassMethod ? class_getClassMethod(c, selector) : class_getInstanceMethod(c, selector);
+    
+    if (lookForMissingColonForArgument &&  !method) {
+        selector = NSSelectorFromString([methodName stringByAppendingString:@":"]);
+        method = isClassMethod ? class_getClassMethod(c, selector) : class_getInstanceMethod(c, selector);
+        methodName = [methodName stringByAppendingString:@":"];
+    }
     
     
     if (method) {

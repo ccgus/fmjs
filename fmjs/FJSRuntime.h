@@ -10,11 +10,12 @@
 
 @import JavaScriptCore;
 
+NS_ASSUME_NONNULL_BEGIN
+
 extern NSString *FMJavaScriptExceptionName;
 
 @class FJSValue;
 
-NS_ASSUME_NONNULL_BEGIN
 
 @interface FJSRuntime : NSObject
 
@@ -42,7 +43,7 @@ NS_ASSUME_NONNULL_BEGIN
 
 - (FJSValue *)callFunctionNamed:(NSString*)name withArguments:(NSArray*)arguments;
 - (BOOL)hasFunctionNamed:(NSString*)name;
-
++ (FJSRuntime*)currentRuntime;
 @end
 
 

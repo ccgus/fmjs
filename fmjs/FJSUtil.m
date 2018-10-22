@@ -489,6 +489,12 @@ const char *FJSTypeEncodingForBlock(id theBlock) {
     return descriptor->rest[index];
 }
 
-
+NSString *FJSUUID(void) {
+    CFUUIDRef uuid = CFUUIDCreate(kCFAllocatorDefault);
+    NSString *uuidString = (__bridge_transfer NSString *)CFUUIDCreateString(kCFAllocatorDefault, uuid);
+    CFRelease(uuid);
+    
+    return [uuidString lowercaseString];
+}
 
 

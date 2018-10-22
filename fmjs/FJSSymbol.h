@@ -10,6 +10,9 @@
 
 @class FJSStructSymbol;
 
+
+NS_ASSUME_NONNULL_BEGIN
+
 @interface FJSSymbol : NSObject {
     
 }
@@ -52,3 +55,7 @@
 @property (strong) NSString *name;
 @property (strong) NSString *structName;
 @end
+
+
+NS_ASSUME_NONNULL_END
+

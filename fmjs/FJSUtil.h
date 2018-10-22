@@ -22,3 +22,4 @@ const char *FJSTypeEncodingForBlock(id theBlock);
 
 BOOL FJSGetSizeOfTypeEncoding(size_t *sizePtr, char encoding);
 
+NSString *FJSUUID(void);

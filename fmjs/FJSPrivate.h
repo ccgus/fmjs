@@ -4,6 +4,8 @@
 #import "FJSFFI.h"
 #import "FJSUtil.h"
 
+NS_ASSUME_NONNULL_BEGIN
+
 @interface FJSRuntime (Private)
 - (void)reportNSException:(NSException*)e;
 - (void)reportPossibleJSException:(nullable JSValueRef)exception;
@@ -57,3 +59,5 @@
 - (void)retainReturnValue;
 
 @end
+
+NS_ASSUME_NONNULL_END

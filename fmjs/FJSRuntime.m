@@ -594,7 +594,8 @@ static bool FJS_hasProperty(JSContextRef ctx, JSObjectRef object, JSStringRef pr
                 return YES;
             }
         }
-        else if (FJSStringIsNumber(propertyName) && [[objectValue instance] respondsToSelector:@selector(objectAtIndexedSubscript:)]) {
+        
+        if (FJSStringIsNumber(propertyName) && [[objectValue instance] respondsToSelector:@selector(objectAtIndexedSubscript:)]) {
             if ([[objectValue instance] objectAtIndexedSubscript:[propertyName integerValue]]) {
                 return YES;
             }
@@ -641,7 +642,6 @@ JSValueRef FJS_getProperty(JSContextRef ctx, JSObjectRef object, JSStringRef pro
     if ([propertyName isEqualToString:FJSRuntimeLookupKey]) {
         return nil;
     }
-    debug(@"propertyName: '%@'", propertyName);
     
     FJSRuntime *runtime = [FJSRuntime runtimeInContext:ctx];
     
@@ -662,7 +662,8 @@ JSValueRef FJS_getProperty(JSContextRef ctx, JSObjectRef object, JSStringRef pro
         if ([[valueFromJSObject instance] respondsToSelector:@selector(objectForKeyedSubscript:)]) {
             objcSubscriptedObject = [[valueFromJSObject instance] objectForKeyedSubscript:propertyName];
         }
-        else if (FJSStringIsNumber(propertyName) && [[valueFromJSObject instance] respondsToSelector:@selector(objectAtIndexedSubscript:)]) {
+        
+        if (!objcSubscriptedObject && FJSStringIsNumber(propertyName) && [[valueFromJSObject instance] respondsToSelector:@selector(objectAtIndexedSubscript:)]) {
             objcSubscriptedObject = [[valueFromJSObject instance] objectAtIndexedSubscript:[propertyName integerValue]];
         }
         
@@ -751,6 +752,7 @@ static bool FJS_setProperty(JSContextRef ctx, JSObjectRef object, JSStringRef pr
     
     FJSRuntime *runtime         = [FJSRuntime runtimeInContext:ctx];
     FJSValue *valueFromJSObject = [FJSValue valueForJSValue:object inRuntime:runtime];
+    FJSValue *arg               = [FJSValue valueForJSValue:value inRuntime:runtime];
     
     if ([valueFromJSObject isStruct]) {
         BOOL worked = [valueFromJSObject setValue:[FJSValue valueForJSValue:value inRuntime:runtime] onStructFieldNamed:propertyName];
@@ -760,6 +762,24 @@ static bool FJS_setProperty(JSContextRef ctx, JSObjectRef object, JSStringRef pr
     if ([valueFromJSObject isInstance]) {
         // If we got here, it's probobably in the format foo.bar = 123; So let's rewrite it to setBar:?
         
+        #pragma message "FIXME: Should we add something like setFJSObject:forKeyedSubscript:?"
+        
+        @try {
+            if ([[valueFromJSObject instance] respondsToSelector:@selector(setObject:forKeyedSubscript:)]) {
+                [[valueFromJSObject instance] setObject:[arg toObject] forKeyedSubscript:propertyName];
+                return YES;
+            }
+            
+            if (FJSStringIsNumber(propertyName) && [[valueFromJSObject instance] respondsToSelector:@selector(setObject:atIndexedSubscript:)]) {
+                [[valueFromJSObject instance] setObject:[arg toObject] atIndexedSubscript:[propertyName integerValue]];
+                return YES;
+            }
+        }
+        @catch (NSException * e) {
+            [runtime reportNSException:e];
+            return NO;
+        }
+        
         NSString *setName = [[propertyName substringToIndex:1] uppercaseString];
         setName = [setName stringByAppendingString:[propertyName substringFromIndex:1]];
         setName = [NSString stringWithFormat:@"set%@:", setName];
@@ -767,7 +787,6 @@ static bool FJS_setProperty(JSContextRef ctx, JSObjectRef object, JSStringRef pr
         FMAssert(([[valueFromJSObject instance] respondsToSelector:NSSelectorFromString(setName)])); // what isn't going to work here?
         if ([[valueFromJSObject instance] respondsToSelector:NSSelectorFromString(setName)]) {
 
-            FJSValue *arg = [FJSValue valueForJSValue:value inRuntime:runtime];
             FJSSymbol *setterMethod = [FJSSymbol symbolForName:setName inObject:[valueFromJSObject instance]];
             FJSValue *setterValue = [FJSValue valueWithSymbol:setterMethod inRuntime:runtime];
             

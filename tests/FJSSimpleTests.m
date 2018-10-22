@@ -728,6 +728,28 @@ int FJSSimpleTestsMethodCalled;
     [runtime shutdown];
 }
 
+- (void)testArraySubscript {
+    
+    
+    FJSRuntime *runtime = [[FJSRuntime alloc] init];
+    
+    NSMutableArray *ar = [NSMutableArray array];
+    
+    [runtime setRuntimeObject:ar withName:@"ar"];
+    
+    XCTAssert([runtime evaluateScript:@"ar[0] = 'Hi!';"]);
+    
+    XCTAssert([ar count] == 1);
+    XCTAssert([[ar objectAtIndex:0] isEqualToString:@"Hi!"]);
+    
+    XCTAssert([runtime evaluateScript:@"ar[0] = 'Hello?';"]);
+    XCTAssert([[ar objectAtIndex:0] isEqualToString:@"Hello?"]);
+    
+    [runtime shutdown];
+    
+    
+}
+
 - (void)testMissingUnderscoreMethod {
     
     FJSRuntime *runtime = [[FJSRuntime alloc] init];

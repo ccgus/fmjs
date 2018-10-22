@@ -67,7 +67,11 @@
       </BuildableProductRunnable>
       <CommandLineArguments>
          <CommandLineArgument
-            argument = "/Users/gus/Dropbox/Rainier/Junk.js"
+            argument = "/Users/gus/Dropbox/Rainier/sqlite.js"
+            isEnabled = "NO">
+         </CommandLineArgument>
+         <CommandLineArgument
+            argument = "/Users/gus/Dropbox/Rainier/suite.js"
             isEnabled = "YES">
          </CommandLineArgument>
       </CommandLineArguments>

@@ -587,8 +587,7 @@ static bool FJS_hasProperty(JSContextRef ctx, JSObjectRef object, JSStringRef pr
     FJSValue *objectValue = [FJSValue valueForJSValue:object inRuntime:runtime];
     
     if ([objectValue isInstance]) {
-        
-        
+    
         if ([[objectValue instance] respondsToSelector:@selector(hasFJSValueForKeyedSubscript:inRuntime:)]) {
             if ([[objectValue instance] hasFJSValueForKeyedSubscript:propertyName inRuntime:runtime]) {
                 return YES;
@@ -669,6 +668,11 @@ JSValueRef FJS_getProperty(JSContextRef ctx, JSObjectRef object, JSStringRef pro
         if ([[valueFromJSObject instance] respondsToSelector:@selector(FJSValueForKeyedSubscript:inRuntime:)]) {
             FJSValue *v = [[valueFromJSObject instance] FJSValueForKeyedSubscript:propertyName inRuntime:runtime];
             if (v) {
+                
+                if ([v isJSNative]) {
+                    return [v JSValue];
+                }
+                #pragma message "FIXME: Why do we not just call JSValue? Why do I keep on using newJSValueForWrapper?"
                 return [runtime newJSValueForWrapper:v];
             }
         }

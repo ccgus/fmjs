@@ -37,6 +37,7 @@ NS_ASSUME_NONNULL_BEGIN
 + (instancetype)valueWithCValue:(FJSObjCValue)cvalue inRuntime:(FJSRuntime*)runtime;
 + (instancetype)valueWithNullInRuntime:(FJSRuntime*)runtime;
 + (instancetype)valueWithUndefinedInRuntime:(FJSRuntime*)runtime;
++ (instancetype)valueWithSerializedJSFunction:(NSString*)function inRuntime:(FJSRuntime*)runtime;
 
 
 - (BOOL)isClass;
@@ -44,7 +45,8 @@ NS_ASSUME_NONNULL_BEGIN
 - (BOOL)isBlock;
 - (BOOL)isStruct;
 - (BOOL)isSymbol;
-- (BOOL)isFunction;
+- (BOOL)isCFunction;
+- (BOOL)isJSFunction;
 - (BOOL)isInstanceMethod;
 - (BOOL)isClassMethod;
 

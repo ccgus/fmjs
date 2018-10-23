@@ -11,6 +11,7 @@
 
 static NSString *COSUTTypeNumber = @"R.number";
 static NSString *COSUTTypeTable = @"R.table";
+static NSString *COSUTTypeFunction = @"R.function";
 
 @interface FJSSuite ()
 @property (strong) NSString *tablePath;
@@ -92,72 +93,75 @@ static NSString *COSUTTypeTable = @"R.table";
     
     [sub setTableID:FJSUUID()];
     
-    //[self setFJSValue:[FJSValue valueWithInstance:(__bridge CFTypeRef _Nonnull)(sub) inRuntime:nil] forKeyedSubscript:tableName inRuntime:nil];
-    
-    [self setTableObject:sub forKey:tableName];
+    [self setTableObject:sub withUTI:COSUTTypeTable uuid:[sub tableID] forKey:tableName];
     
     return sub;
 }
 
 
-- (id)fsObjectWithKey:(NSString*)key {
-    
-    NSString *basePath = [[_q path] stringByDeletingLastPathComponent];
-    
-    
-    // FIXME: is this too fragile?
-    NSString *subFolder = [_tablePath stringByReplacingOccurrencesOfString:@"." withString:@"/"];
-    
-    basePath = [basePath stringByAppendingPathComponent:subFolder];
-    
-    NSString *filePath   = [basePath stringByAppendingPathComponent:key];
-    NSString *lookupPath = filePath;
-    
-    BOOL found = [[NSFileManager defaultManager] fileExistsAtPath:lookupPath];
-    
-    if (!found) {
-        
-        NSArray *extensions = @[@"js", @"coscript"];
-        
-        for (NSString *ext in extensions) {
-            
-            lookupPath = [filePath stringByAppendingPathExtension:ext];
-            
-            debug(@"lookupPath: '%@'", lookupPath);
-            
-            if ([[NSFileManager defaultManager] fileExistsAtPath:lookupPath]) {
-                found = YES;
-                break;
-            }
-        }
-    }
-    
-    if (found) {
-        
-        NSError *outErr = nil;
-        NSString *script = [NSString stringWithContentsOfFile:lookupPath encoding:NSUTF8StringEncoding error:&outErr];
-        if (!script) {
-            NSLog(@"Error reading path '%@'", lookupPath);
-            NSLog(@"%@", outErr);
-            return nil;
-        }
-        
-        
-        NSString *rep = [NSString stringWithFormat:@"R.%@.%@", _tablePath, key];
-        script = [script stringByReplacingOccurrencesOfString:@"$R" withString:rep];
-        
-        FJSRuntime *rt = [FJSRuntime currentRuntime];
-        
-        FJSValue *v = [rt evaluateScript:script withSourceURL:[NSURL fileURLWithPath:lookupPath]];
-        
-        return [v toObject];
-    }
-    
-    
-    return nil;
-    
-}
+//- (id)fileSystemObjectWithKey:(NSString*)key {
+//
+//    NSString *basePath = [[_q path] stringByDeletingLastPathComponent];
+//
+//
+//    // FIXME: is this too fragile?
+//    NSString *subFolder = [_tablePath stringByReplacingOccurrencesOfString:@"." withString:@"/"];
+//
+//    basePath = [basePath stringByAppendingPathComponent:subFolder];
+//
+//    NSString *filePath   = [basePath stringByAppendingPathComponent:key];
+//    NSString *lookupPath = filePath;
+//
+//    BOOL found = [[NSFileManager defaultManager] fileExistsAtPath:lookupPath];
+//
+//    if (!found) {
+//
+//        NSArray *extensions = @[@"js", @"coscript"];
+//
+//        for (NSString *ext in extensions) {
+//
+//            lookupPath = [filePath stringByAppendingPathExtension:ext];
+//
+//            debug(@"lookupPath: '%@'", lookupPath);
+//
+//            if ([[NSFileManager defaultManager] fileExistsAtPath:lookupPath]) {
+//                found = YES;
+//                break;
+//            }
+//        }
+//    }
+//
+//    if (found) {
+//
+//        NSError *outErr = nil;
+//        NSString *script = [NSString stringWithContentsOfFile:lookupPath encoding:NSUTF8StringEncoding error:&outErr];
+//        if (!script) {
+//            NSLog(@"Error reading path '%@'", lookupPath);
+//            NSLog(@"%@", outErr);
+//            return nil;
+//        }
+//
+//
+//        NSString *rep = [NSString stringWithFormat:@"R.%@.%@", _tablePath, key];
+//        script = [script stringByReplacingOccurrencesOfString:@"$R" withString:rep];
+//
+//        FJSRuntime *rt = [FJSRuntime currentRuntime];
+//
+//        FJSValue *v = [rt evaluateScript:script withSourceURL:[NSURL fileURLWithPath:lookupPath]];
+//
+//        return [v toObject];
+//    }
+//
+//
+//    return nil;
+//
+//}
+
 - (BOOL)hasFJSValueForKeyedSubscript:(NSString *)key inRuntime:(FJSRuntime*)runtime {
+    
+    if ([self respondsToSelector:NSSelectorFromString(key)] || [self respondsToSelector:NSSelectorFromString([key stringByAppendingString:@":"])]) {
+        return NO;
+    }
     
     __block BOOL found = NO;
     
@@ -177,9 +181,15 @@ static NSString *COSUTTypeTable = @"R.table";
     return found;
 }
 - (FJSValue*)FJSValueForKeyedSubscript:(NSString *)key inRuntime:(FJSRuntime*)runtime {
-//- (id)objectForKeyedSubscript:(NSString *)key {
+   
+    #pragma message "FIXME: This method is hacked together with duct tape and glue. Please clean it up."
     
-    __block id value = nil;
+    if ([self respondsToSelector:NSSelectorFromString(key)] || [self respondsToSelector:NSSelectorFromString([key stringByAppendingString:@":"])]) {
+        return nil;
+    }
+    
+    __block id value = nil; // why two types?!
+    __block FJSValue *returnValue = nil;
     
     [_q inDatabase:^(FJSDatabase *db) {
         NSString *query = @"select data, uti, uniqueID from R where name = ? and parentID = ?";
@@ -205,6 +215,11 @@ static NSString *COSUTTypeTable = @"R.table";
                 value = [self subTableWithName:key];
                 [(FJSSuite*)value setTableID:[rs stringForColumn:@"uniqueID"]];
             }
+            else if ([(__bridge id)uti isEqualToString:COSUTTypeFunction]) {
+                
+                NSString *f = [rs stringForColumn:@"data"];
+                returnValue = [FJSValue valueWithSerializedJSFunction:f inRuntime:runtime];
+            }
             else {
                 value = [rs dataForColumn:@"data"];
             }
@@ -213,9 +228,14 @@ static NSString *COSUTTypeTable = @"R.table";
         }
     }];
     
-    if (!value) {
-        value = [self fsObjectWithKey:key];
+//    if (!value) {
+//        value = [self fileSystemObjectWithKey:key];
+//    }
+    
+    if (returnValue) {
+        return returnValue;
     }
+    
     
     if (!value) {
         NSLog(@"Could not find value for key '%@' in table %@ / %@", key, _tablePath, _tableID);
@@ -233,32 +253,49 @@ static NSString *COSUTTypeTable = @"R.table";
 */
 
 - (BOOL)setFJSValue:(FJSValue*)value forKeyedSubscript:(NSString*)key inRuntime:(FJSRuntime*)runtime {
-//- (void)setObject:(id)theObj forKeyedSubscript:(NSString *)key {
-    return [self setTableObject:[value toObject] forKey:key];
+    
+    
+    NSString *uuid = nil;
+    NSString *uti = (id)kUTTypeData;
+    
+    id obj = [value toObject];
+    
+    if ([value isJSFunction]) {
+        uti = COSUTTypeFunction;
+        
+        FMAssert([obj isKindOfClass:[NSString class]]);
+        
+        #pragma message "FIXME: This is completely wrong. We need ot check for the existance of it, make sure it's at the front, and then trim only that part out."
+        obj = [obj stringByReplacingOccurrencesOfString:@"function () " withString:@""];
+    }
+    else if ([obj isKindOfClass:[NSString class]]) {
+        uti = (id)kUTTypeUTF8PlainText;
+    }
+    else if ([obj isKindOfClass:[NSNumber class]]) {
+        uti = COSUTTypeNumber;
+    }
+    else if ([obj isKindOfClass:[FJSSuite class]]) {
+        uti = COSUTTypeTable;
+        
+        uuid = [(FJSSuite*)obj tableID];
+        assert([(FJSSuite*)obj tableID]);
+        
+        obj = [NSNull null];
+    }
+    
+    return [self setTableObject:obj withUTI:uti uuid:nil forKey:key];
 }
-- (BOOL)setTableObject:(id)theObj forKey:(NSString *)key {
+
+- (BOOL)setTableObject:(id)theObj withUTI:(NSString*)uti uuid:(nullable NSString*)uuid forKey:(NSString *)key {
     
     __block id obj = theObj;
     
+    uuid = uuid ? uuid : FJSUUID();
+    
     [_q inDatabase:^(FJSDatabase *db) {
         
-        NSString *uuid = FJSUUID();
-        NSString *uti = (id)kUTTypeData;
         
-        if ([obj isKindOfClass:[NSString class]]) {
-            uti = (id)kUTTypeUTF8PlainText;
-        }
-        else if ([obj isKindOfClass:[NSNumber class]]) {
-            uti = COSUTTypeNumber;
-        }
-        else if ([obj isKindOfClass:[FJSSuite class]]) {
-            uti = COSUTTypeTable;
-            
-            uuid = [(FJSSuite*)obj tableID];
-            assert([(FJSSuite*)obj tableID]);
-            
-            obj = [NSNull null];
-        }
+        
         
         NSString *delete = @"delete from R where name = ? and parentID = ?";
         

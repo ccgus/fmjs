@@ -145,7 +145,7 @@ static NSMutableDictionary *FJSFFIStructureLookup;
 - (nullable FJSValue*)callFunction {
     
     FMAssert(_f);
-    FMAssert([_f isFunction] || [_f isClassMethod] || [_f isInstanceMethod] || [_f isBlock]);
+    FMAssert([_f isCFunction] || [_f isClassMethod] || [_f isInstanceMethod] || [_f isBlock]);
     
     if ([_f isClassMethod] || [_f isInstanceMethod]) {
         return [self objcInvoke];

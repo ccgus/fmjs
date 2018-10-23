@@ -11,6 +11,7 @@
 #import "FJSFFI.h"
 #import "FJSUtil.h"
 #import "FJSSymbol.h"
+#import "FJSPrivate.h"
 
 #import <objc/runtime.h>
 
@@ -233,6 +234,33 @@ static NSPointerArray *FJSValueLiveWeakArray;
     return cw;
 }
 
++ (instancetype)valueWithSerializedJSFunction:(NSString*)function inRuntime:(FJSRuntime*)runtime {
+    FMAssert(runtime);
+    
+    JSStringRef functionName = JSStringCreateWithCFString((__bridge CFStringRef)@"__runtimeFunction");
+    JSStringRef functionBody = JSStringCreateWithCFString((__bridge CFStringRef)function);
+    JSValueRef exception = nil;
+    JSObjectRef jsFunction = JSObjectMakeFunction([runtime contextRef], nil, 0, nil, functionBody, nil, 0, &exception);
+    [runtime reportPossibleJSException:exception];
+    
+    JSStringRelease(functionBody);
+    JSStringRelease(functionName);
+    
+    if (jsFunction) {
+        
+        
+        FJSValue *native = [FJSValue new];
+        [native setNativeJSValue:jsFunction];
+        [native setIsJSNative:YES];
+        [native setRuntime:runtime];
+        [native setJsValueType:kJSTypeObject];
+
+        return native;
+    }
+    
+    return nil;
+}
+
 - (BOOL)isClass {
     return _cValue.type == _C_CLASS;
 }
@@ -323,8 +351,26 @@ static NSPointerArray *FJSValueLiveWeakArray;
     return _symbol != nil;
 }
 
-- (BOOL)isFunction {
+- (BOOL)isCFunction {
     return [[_symbol symbolType] isEqualToString:@"function"];
+}
+
+- (BOOL)isJSFunction {
+    if (!_nativeJSValue) {
+        return NO;
+    }
+    
+    if (JSValueGetType([_runtime contextRef], _nativeJSValue) != kJSTypeObject) {
+        return NO;
+    }
+    
+    JSObjectRef obj = JSValueToObject([_runtime contextRef], _nativeJSValue, nil);
+    if (!obj) {
+        return NO;
+    }
+    
+    return JSObjectIsFunction([_runtime contextRef], obj);
+    
 }
 
 - (BOOL)hasClassMethodNamed:(NSString*)m {

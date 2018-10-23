@@ -9,6 +9,7 @@
 #import "FJSSimpleTests.h"
 #import "FJSFFI.h"
 #import "FJSSymbol.h"
+#import "FJSPrivate.h"
 #import <FMJS/FJS.h>
 #import <dlfcn.h>
 
@@ -565,6 +566,34 @@ int FJSSimpleTestsMethodCalled;
     XCTAssert([[f toObject] isEqualToString:funk]);
     
     [runtime shutdown];
+}
+
+- (void)testMakeFunction {
+    
+    FJSRuntime *runtime = [FJSRuntime new];
+    
+    JSStringRef functionName = JSStringCreateWithCFString((__bridge CFStringRef)@"__runtimeFunction");
+    JSStringRef functionBody = JSStringCreateWithCFString((__bridge CFStringRef)@"{print('Hello from func'); FJSMethodPleasePassSignedShortNumber3(3); return 12;}");
+    JSValueRef exception = nil;
+    JSObjectRef jsFunction = JSObjectMakeFunction([runtime contextRef], nil, 0, nil, functionBody, nil, 0, &exception);
+    [runtime reportPossibleJSException:exception];
+    
+    JSStringRelease(functionName);
+    JSStringRelease(functionBody);
+    
+    FMAssert(jsFunction);
+    
+    JSValueRef jsFunctionReturnValue = JSObjectCallAsFunction([runtime contextRef], jsFunction, NULL, 0, nil, &exception);
+    XCTAssert(JSValueIsNumber([runtime contextRef], jsFunctionReturnValue));
+    
+    XCTAssert(FJSEqualFloats(JSValueToNumber([runtime contextRef], jsFunctionReturnValue, NULL), 12));
+    
+    [runtime reportPossibleJSException:exception];
+    
+    // FIXME: report the exception.
+    
+    
+    
 }
 
 - (void)testPrintBlockHangingAround {

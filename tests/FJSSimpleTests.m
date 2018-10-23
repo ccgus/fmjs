@@ -344,6 +344,32 @@ int FJSSimpleTestsMethodCalled;
     [runtime evaluateScript:code];
 }
 
+- (void)testCoreImageExample2 {
+    
+    NSString *code = @"\
+    \n\
+    var center = CIVector.vectorWithX_Y_(100, 100);\n\
+    var filterParams = { inputWidth: 5, inputSharpness: .5, inputCenter: center, }\n\
+    var url = NSURL.fileURLWithPath_('/Library/Desktop Pictures/Yosemite.jpg');\n\
+    var image = CIImage.imageWithContentsOfURL_(url)\n\
+    image = image.imageByApplyingFilter_withInputParameters_('CICircularScreen', filterParams);\n\
+    image = image.imageByCroppingToRect_(CGRectMake(0, 0, 200, 200));\n\
+    var tiff = image.TIFFRepresentation();\n\
+    tiff.writeToFile_atomically_('/tmp/foo2.tiff', true);\n\
+    NSWorkspace.sharedWorkspace().openFile_('/tmp/foo2.tiff');";
+    
+    
+    FJSRuntime *runtime = [FJSRuntime new];
+    [runtime evaluateScript:code];
+}
+
+
+
+
+
+
+
+
 - (void)xtestCoreImageExampleInAutoreleasePool {
     
     // Note- when guard malloc is turned on in 10.14, the Apple JPEG decoders trip it up. Hurray.

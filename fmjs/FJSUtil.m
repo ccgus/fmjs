@@ -9,6 +9,7 @@
 #import "FJSUtil.h"
 #import "FJSFFI.h"
 #import "FJS.h"
+#import "FJSPrivate.h"
 
 @import ObjectiveC;
 
@@ -86,6 +87,7 @@ NSDictionary *FJSNativeDictionaryFromJSObject(JSObjectRef jsObject, JSContextRef
     for (NSUInteger i=0; i<length; i++) {
         id obj = nil;
         JSStringRef name = JSPropertyNameArrayGetNameAtIndex(names, i);
+        NSString *key = (NSString *)CFBridgingRelease(JSStringCopyCFString(kCFAllocatorDefault, name));
         JSValueRef jsValue = JSObjectGetProperty(context, jsObject, name, &exception);
         
         if (exception != NULL) {
@@ -97,7 +99,6 @@ NSDictionary *FJSNativeDictionaryFromJSObject(JSObjectRef jsObject, JSContextRef
             obj = [NSNull null];
         }
         
-        NSString *key = (NSString *)CFBridgingRelease(JSStringCopyCFString(kCFAllocatorDefault, name));
         [dictionary setObject:obj forKey:key];
     }
     
@@ -117,6 +118,7 @@ BOOL FJSObjectIsArray(JSObjectRef jsObject, JSContextRef context) {
 }
 
 id FJSNativeObjectFromJSValue(JSValueRef jsValue, NSString *typeEncoding, JSContextRef context) {
+    
     
     // typeEncoding could be '@"NSString"', thanks to blocks!.
     if ([typeEncoding hasPrefix:@"@"]) {
@@ -148,6 +150,19 @@ id FJSNativeObjectFromJSValue(JSValueRef jsValue, NSString *typeEncoding, JSCont
         if (JSValueIsObject(context, jsValue)) {
             
             JSObjectRef jsObject = JSValueToObject(context, jsValue, NULL);
+            
+            
+            if (JSObjectGetPrivate(jsObject)) {
+                FMAssert([(__bridge FJSValue *)JSObjectGetPrivate(jsObject) isKindOfClass:[FJSValue class]]);
+                FJSValue *value = (__bridge FJSValue *)JSObjectGetPrivate(jsObject);
+                
+                if ([value isInstance]) {
+                    return [value toObject];
+                }
+            }
+            
+            
+            
             BOOL isFunction = JSObjectIsFunction(context, jsObject);
             
             if (isFunction) {

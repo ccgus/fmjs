@@ -91,15 +91,16 @@ static NSString *COSUTTypeTable = @"R.table";
     #pragma message "FIXME: make sure to return an existing one if it's already around"
     
     [sub setTableID:FJSUUID()];
-    [self setObject:sub forKeyedSubscript:tableName];
+    
+    //[self setFJSValue:[FJSValue valueWithInstance:(__bridge CFTypeRef _Nonnull)(sub) inRuntime:nil] forKeyedSubscript:tableName inRuntime:nil];
+    
+    [self setTableObject:sub forKey:tableName];
     
     return sub;
 }
 
 
 - (id)fsObjectWithKey:(NSString*)key {
-    
-    debug(@"key: '%@'", key);
     
     NSString *basePath = [[_q path] stringByDeletingLastPathComponent];
     
@@ -156,8 +157,27 @@ static NSString *COSUTTypeTable = @"R.table";
     return nil;
     
 }
-
-- (id)objectForKeyedSubscript:(NSString *)key {
+- (BOOL)hasFJSValueForKeyedSubscript:(NSString *)key inRuntime:(FJSRuntime*)runtime {
+    
+    __block BOOL found = NO;
+    
+    [_q inDatabase:^(FJSDatabase *db) {
+        NSString *query = @"select uniqueID from R where name = ? and parentID = ?";
+        
+        if (!_tableID) {
+            query = @"select uniqueID from R where name = ? and parentID is null";
+        }
+        
+        FJSResultSet *rs = [db executeQuery:query, key, _tableID];
+        
+        found = [rs next];
+        [rs close];
+    }];
+    
+    return found;
+}
+- (FJSValue*)FJSValueForKeyedSubscript:(NSString *)key inRuntime:(FJSRuntime*)runtime {
+//- (id)objectForKeyedSubscript:(NSString *)key {
     
     __block id value = nil;
     
@@ -199,9 +219,10 @@ static NSString *COSUTTypeTable = @"R.table";
     
     if (!value) {
         NSLog(@"Could not find value for key '%@' in table %@ / %@", key, _tablePath, _tableID);
+        return nil;
     }
     
-    return value;
+    return [FJSValue valueWithInstance:(__bridge CFTypeRef _Nonnull)(value) inRuntime:runtime];
 }
 
 /*
@@ -211,10 +232,11 @@ static NSString *COSUTTypeTable = @"R.table";
 }
 */
 
-- (void)setObject:(id)theObj forKeyedSubscript:(NSString *)key {
-    
-    
-    debug(@"%@: '%@'", key, theObj);
+- (BOOL)setFJSValue:(FJSValue*)value forKeyedSubscript:(NSString*)key inRuntime:(FJSRuntime*)runtime {
+//- (void)setObject:(id)theObj forKeyedSubscript:(NSString *)key {
+    return [self setTableObject:[value toObject] forKey:key];
+}
+- (BOOL)setTableObject:(id)theObj forKey:(NSString *)key {
     
     __block id obj = theObj;
     
@@ -258,6 +280,8 @@ static NSString *COSUTTypeTable = @"R.table";
         }
         
     }];
+    
+    return YES;
 }
 
 - (NSArray*)subTables {
@@ -315,7 +339,7 @@ static NSString *COSUTTypeTable = @"R.table";
     
 }
 
-- (BOOL)respondsToSelector:(SEL)aSelector {
+- (BOOL)xrespondsToSelector:(SEL)aSelector {
     debug(@"-[%@ %@]?", NSStringFromClass([self class]), NSStringFromSelector(aSelector));
     return [super respondsToSelector:aSelector];
 }

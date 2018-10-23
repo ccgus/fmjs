@@ -588,6 +588,13 @@ static bool FJS_hasProperty(JSContextRef ctx, JSObjectRef object, JSStringRef pr
     
     if ([objectValue isInstance]) {
         
+        
+        if ([[objectValue instance] respondsToSelector:@selector(hasFJSValueForKeyedSubscript:inRuntime:)]) {
+            if ([[objectValue instance] hasFJSValueForKeyedSubscript:propertyName inRuntime:runtime]) {
+                return YES;
+            }
+        }
+        
         // Only return true on finds, because otherwise we'll miss things like objectForKey: and objectAtIndex:
         if ([[objectValue instance] respondsToSelector:@selector(objectForKeyedSubscript:)]) {
             if ([[objectValue instance] objectForKeyedSubscript:propertyName]) {
@@ -659,7 +666,14 @@ JSValueRef FJS_getProperty(JSContextRef ctx, JSObjectRef object, JSStringRef pro
         
         id objcSubscriptedObject = nil;
         
-        if ([[valueFromJSObject instance] respondsToSelector:@selector(objectForKeyedSubscript:)]) {
+        if ([[valueFromJSObject instance] respondsToSelector:@selector(FJSValueForKeyedSubscript:inRuntime:)]) {
+            FJSValue *v = [[valueFromJSObject instance] FJSValueForKeyedSubscript:propertyName inRuntime:runtime];
+            if (v) {
+                return [runtime newJSValueForWrapper:v];
+            }
+        }
+        
+        if (!objcSubscriptedObject && [[valueFromJSObject instance] respondsToSelector:@selector(objectForKeyedSubscript:)]) {
             objcSubscriptedObject = [[valueFromJSObject instance] objectForKeyedSubscript:propertyName];
         }
         
@@ -762,9 +776,13 @@ static bool FJS_setProperty(JSContextRef ctx, JSObjectRef object, JSStringRef pr
     if ([valueFromJSObject isInstance]) {
         // If we got here, it's probobably in the format foo.bar = 123; So let's rewrite it to setBar:?
         
-        #pragma message "FIXME: Should we add something like setFJSObject:forKeyedSubscript:?"
-        
         @try {
+            
+            if ([[valueFromJSObject instance] respondsToSelector:@selector(setFJSValue:forKeyedSubscript:inRuntime:)]) {
+                [[valueFromJSObject instance] setFJSValue:arg forKeyedSubscript:propertyName inRuntime:runtime];
+                return YES;
+            }
+            
             if ([[valueFromJSObject instance] respondsToSelector:@selector(setObject:forKeyedSubscript:)]) {
                 [[valueFromJSObject instance] setObject:[arg toObject] forKeyedSubscript:propertyName];
                 return YES;

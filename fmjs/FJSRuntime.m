@@ -146,7 +146,7 @@ static JSValueRef FJS_callAsFunction(JSContextRef ctx, JSObjectRef functionJS, J
     FMAssert([FJSRuntime runtimeInContext:_jsContext]  == self);
     
     __weak FJSRuntime *weakSelf = self;
-    id printHandler = ^(id s) {
+    self[@"print"] = ^(id s) {
         
         if ([weakSelf printHandler]) {
             [weakSelf printHandler](weakSelf, [s description]);
@@ -161,7 +161,26 @@ static JSValueRef FJS_callAsFunction(JSContextRef ctx, JSObjectRef functionJS, J
         }
     };
     
-    [self setRuntimeObject:printHandler withName:@"print"];
+    
+    self[@"require"] = ^(NSString *modulePath) {
+        debug(@"arg: '%@'", modulePath);
+        
+        //NSString* module = [NSString stringWithFormat:@"(function() { var module = { exports : {} }; var exports = module.exports; %@ ; return module.exports; })()", script];
+        //result = [self executeString:module baseURL:scriptURL];
+        
+        
+        
+        
+        
+//        JSModule *module = [JSModule require:arg atPath:[[NSFileManager defaultManager] currentDirectoryPath]];
+//        if (!module) {
+//            [[JSContext currentContext] evaluateScript:@"throw 'not found'"];
+//            return [JSValue valueWithUndefinedInContext:[JSContext currentContext]];
+//        }
+//        return module.exports;
+        return nil;
+    };
+    
     
 }
 
@@ -419,27 +438,32 @@ static JSValueRef FJS_callAsFunction(JSContextRef ctx, JSObjectRef functionJS, J
     });
 }
 
-- (void)setRuntimeObject:(nullable id)object withName:(NSString *)name {
+- (void)setObject:(id)object forKeyedSubscript:(NSString *)key {
     
     if (!object) {
-        [self deleteRuntimeObjectWithName:name];
+        [self deleteRuntimeObjectWithName:key];
         return;
     }
     
     FJSValue *value = nil;
     
-    if ([object isKindOfClass:NSClassFromString(@"NSBlock")]) {
+    if ([object isKindOfClass:[FJSValue class]]) {
+        value = object;
+    }
+    else if ([object isKindOfClass:NSClassFromString(@"NSBlock")]) {
         value = [FJSValue valueWithBlock:(__bridge CFTypeRef _Nonnull)(object) inRuntime:self];
     }
     else {
         value = [FJSValue valueWithInstance:(__bridge CFTypeRef _Nonnull)(object) inRuntime:self];
     }
     
-    [self setRuntimeValue:value withName:name];
-    
-    
-    
+    [self setRuntimeValue:value withName:key];
 }
+
+- (FJSValue*)objectForKeyedSubscript:(id)key {
+    return [self runtimeObjectWithName:key];
+}
+
 
 - (void)garbageCollect {
     

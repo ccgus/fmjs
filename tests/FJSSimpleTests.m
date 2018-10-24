@@ -13,7 +13,7 @@
 #import <FMJS/FJS.h>
 #import <dlfcn.h>
 
-@interface FJSValue (Private)
+@interface FJSValue (PrivateTestThings)
 + (size_t)countOfLiveInstances;
 + (NSPointerArray*)liveInstancesPointerArray;
 @end
@@ -179,7 +179,7 @@ int FJSSimpleTestsMethodCalled;
         
         FJSTestClass *testClass = [FJSTestClass new];
         weakTestClass = testClass;
-        [runtime setRuntimeObject:testClass withName:@"testClass"];
+        runtime[@"testClass"] = testClass;
         
         [runtime setPrintHandler:^(FJSRuntime * _Nonnull rt, NSString * _Nonnull stringToPrint) {
             XCTAssert(stringToPrint);
@@ -375,16 +375,25 @@ int FJSSimpleTestsMethodCalled;
     
     [runtime setRuntimeValue:v withName:@"what"];
     
-    [runtime setRuntimeObject:^(NSString*s) {
+    runtime[@"funk"] = ^(NSString*s) {
         
         XCTAssert([s isEqualToString:@"Gus"]);
         
-    } withName:@"funk"];
+    };
     
     [runtime evaluateScript:@"funk(what.name);"];
     
 }
 
+- (void)testSimpleModuleRequire {
+    
+    
+//    FJSRuntime *runtime = [FJSRuntime new];
+//    FJSValue *v = [runtime evaluateScript:code];
+//
+//
+//    [runtime evaluateScript:@"funk(what.name);"];
+}
 
 
 
@@ -674,23 +683,20 @@ int FJSSimpleTestsMethodCalled;
     __block int foo = 0;
     __block BOOL calledFunk = NO;
     
-    id block = ^{
+    runtime[@"funk"] = ^{
         foo++;
         calledFunk = YES;
     };
-    
-    [runtime setRuntimeObject:block withName:@"funk"];
-    
     [runtime evaluateScript:@"funk();"];
     
     
     XCTAssert(calledFunk);
     XCTAssert(foo == 1);
     
-    [runtime setRuntimeObject:^(NSString *what) {
+    runtime[@"funkItUp"] = ^(NSString *what) {
         foo++;
         calledFunk = [what isEqualToString:@"funky"];
-    } withName:@"funkItUp"];
+    };
     
     [runtime evaluateScript:@"funkItUp('funky');"];
     
@@ -699,12 +705,12 @@ int FJSSimpleTestsMethodCalled;
     XCTAssert(foo == 2);
     
     
-    [runtime setRuntimeObject:^(NSUInteger un, NSInteger sn, double dub) {
+    runtime[@"whatWhat"] = ^(NSUInteger un, NSInteger sn, double dub) {
         foo++;
         XCTAssert(un == 3);
         XCTAssert(sn == -1);
         XCTAssert(FJSEqualFloats(dub, 123.45));
-    } withName:@"whatWhat"];
+    };
     
     [runtime evaluateScript:@"whatWhat(3, -1, 123.45);"];
     
@@ -730,7 +736,7 @@ int FJSSimpleTestsMethodCalled;
     
     FJSRuntime *runtime = [FJSRuntime new];
     
-    [runtime setRuntimeObject:d withName:@"d"];
+    runtime[@"d"] = d;
     
     FJSValue *v = [runtime evaluateScript:@"d.a + 1"];
     
@@ -747,7 +753,7 @@ int FJSSimpleTestsMethodCalled;
     
     FJSRuntime *runtime = [FJSRuntime new];
     
-    [runtime setRuntimeObject:@[@(7), @(65), @(72), @(84), @"Hello"] withName:@"a"];
+    runtime[@"a"] = @[@(7), @(65), @(72), @(84), @"Hello"];
     
     FJSValue *v = [runtime evaluateScript:@"a[0];"];
     XCTAssert([v toLong] == 7, "Got %ld", [v toLong]);
@@ -808,7 +814,7 @@ int FJSSimpleTestsMethodCalled;
     
     NSMutableArray *ar = [NSMutableArray array];
     
-    [runtime setRuntimeObject:ar withName:@"ar"];
+    runtime[@"ar"] = ar;
     
     XCTAssert([runtime evaluateScript:@"ar[0] = 'Hi!';"]);
     

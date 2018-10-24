@@ -22,8 +22,6 @@ FOUNDATION_EXPORT const unsigned char FMJSVersionString[];
 #define FMAssert assert
 #endif
 
-#import <FMJS/FJSRuntime.h>
-#import <FMJS/FJSValue.h>
-// TODO, figure out why FJSSymbolManager, and only FJSSymbolManager needs to have a lowercase fmjs there.
-//#import <FMJS/FJSSymbolManager.h>
-#import <fmjs/FJSSymbolManager.h>
+#import "FJSRuntime.h"
+#import "FJSValue.h"
+#import "FJSSymbolManager.h"

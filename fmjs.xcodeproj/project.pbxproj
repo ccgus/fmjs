@@ -43,6 +43,7 @@
 		CC515376215300A20076B554 /* FJSTests.bridgesupport in Resources */ = {isa = PBXBuildFile; fileRef = CC5153742153004D0076B554 /* FJSTests.bridgesupport */; };
 		CC5DAA8C2157095A0089A633 /* TDConglomerate.h in Headers */ = {isa = PBXBuildFile; fileRef = CC5DAA8A2157095A0089A633 /* TDConglomerate.h */; };
 		CC5DAA8D2157095A0089A633 /* TDConglomerate.m in Sources */ = {isa = PBXBuildFile; fileRef = CC5DAA8B2157095A0089A633 /* TDConglomerate.m */; settings = {COMPILER_FLAGS = "-fno-objc-arc"; }; };
+		CC887A0D2180E6E400FC9BFB /* FJSTestModule.js in Resources */ = {isa = PBXBuildFile; fileRef = CC887A0C2180E6E400FC9BFB /* FJSTestModule.js */; };
 		CC92AE2721618497001F0CA4 /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = CC92AE2621618497001F0CA4 /* main.m */; };
 		CC92AE2B21618506001F0CA4 /* FJSSymbolManager.m in Sources */ = {isa = PBXBuildFile; fileRef = CCB1855D214D7B3000346D2F /* FJSSymbolManager.m */; };
 		CC92AE2C21618506001F0CA4 /* FJSFFI.m in Sources */ = {isa = PBXBuildFile; fileRef = CCB1855F214D7B3000346D2F /* FJSFFI.m */; };
@@ -122,6 +123,7 @@
 		CC5DAA7021558FC50089A633 /* FJSSimpleTests.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = FJSSimpleTests.h; sourceTree = "<group>"; };
 		CC5DAA8A2157095A0089A633 /* TDConglomerate.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = TDConglomerate.h; sourceTree = "<group>"; };
 		CC5DAA8B2157095A0089A633 /* TDConglomerate.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = TDConglomerate.m; sourceTree = "<group>"; };
+		CC887A0C2180E6E400FC9BFB /* FJSTestModule.js */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.javascript; path = FJSTestModule.js; sourceTree = "<group>"; };
 		CC92AE2421618496001F0CA4 /* fmjs */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = fmjs; sourceTree = BUILT_PRODUCTS_DIR; };
 		CC92AE2621618497001F0CA4 /* main.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = main.m; sourceTree = "<group>"; };
 		CC92AE3121618720001F0CA4 /* FJSInterpreter.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = FJSInterpreter.m; sourceTree = "<group>"; };
@@ -232,6 +234,7 @@
 		CC2F20B0214D7A3700F38D03 /* tests */ = {
 			isa = PBXGroup;
 			children = (
+				CC887A0C2180E6E400FC9BFB /* FJSTestModule.js */,
 				CC5153742153004D0076B554 /* FJSTests.bridgesupport */,
 				CC310014215AB24800B270F5 /* FJSStructTests.m */,
 				CC2F20B1214D7A3700F38D03 /* FJSSimpleTests.m */,
@@ -449,6 +452,7 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				CC887A0D2180E6E400FC9BFB /* FJSTestModule.js in Resources */,
 				CC515376215300A20076B554 /* FJSTests.bridgesupport in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

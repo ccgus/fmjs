@@ -449,6 +449,7 @@ static NSPointerArray *FJSValueLiveWeakArray;
             vr = JSValueMakeUndefined([_runtime contextRef]);
             break;
         default:
+            debug(@"Unknown type: '%c'", _cValue.type);
             FMAssert(NO);
     
     }

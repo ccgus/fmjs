@@ -387,8 +387,26 @@ int FJSSimpleTestsMethodCalled;
 
 - (void)testSimpleModuleRequire {
     
+    NSString *modulePath = [[NSBundle bundleForClass:[self class]] pathForResource:@"FJSTestModule" ofType:@"js"];
+    FMAssert(modulePath);
+
+    modulePath = [modulePath stringByDeletingPathExtension];
     
-//    FJSRuntime *runtime = [FJSRuntime new];
+    FJSRuntime *runtime = [FJSRuntime new];
+    
+    __block BOOL functionCalled = NO;
+    runtime[@"testFunction"] = ^{
+        functionCalled = YES;
+    };
+    
+    [runtime evaluateScript:[NSString stringWithFormat:@"var r = require('%@'); r.callTestFunc();", modulePath]];
+    
+    XCTAssert(functionCalled);
+    
+//
+    
+    
+//
 //    FJSValue *v = [runtime evaluateScript:code];
 //
 //

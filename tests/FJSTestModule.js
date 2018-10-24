@@ -1,10 +1,17 @@
 
 module.exports = {
     hello: function(name) {
-        print("Hello, " + name);
+        console.log("Hello, " + name);
     },
     bye: function(name) {
-        print("Goodbye, " + name);
-    }
+        console.log("Goodbye, " + name);
+    },
+    callTestFunc: function() {
+        testFunction();
+    },
 };
+
+function callTest() {
+    testFunction();
+}
 

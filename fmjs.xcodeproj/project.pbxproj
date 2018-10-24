@@ -12,23 +12,18 @@
 		CC2F20B2214D7A3700F38D03 /* FJSSimpleTests.m in Sources */ = {isa = PBXBuildFile; fileRef = CC2F20B1214D7A3700F38D03 /* FJSSimpleTests.m */; };
 		CC2F6727217E7C640095FCEB /* FJSDatabase.h in Headers */ = {isa = PBXBuildFile; fileRef = CC2F671F217E7C640095FCEB /* FJSDatabase.h */; };
 		CC2F6728217E7C640095FCEB /* FJSDatabase.m in Sources */ = {isa = PBXBuildFile; fileRef = CC2F6720217E7C640095FCEB /* FJSDatabase.m */; };
-		CC2F6729217E7C640095FCEB /* FJSDatabase.m in Sources */ = {isa = PBXBuildFile; fileRef = CC2F6720217E7C640095FCEB /* FJSDatabase.m */; };
 		CC2F672A217E7C640095FCEB /* FJSDatabase.m in Sources */ = {isa = PBXBuildFile; fileRef = CC2F6720217E7C640095FCEB /* FJSDatabase.m */; };
 		CC2F672B217E7C640095FCEB /* FJSDatabaseAdditions.h in Headers */ = {isa = PBXBuildFile; fileRef = CC2F6721217E7C640095FCEB /* FJSDatabaseAdditions.h */; };
 		CC2F672C217E7C640095FCEB /* FJSDatabaseAdditions.m in Sources */ = {isa = PBXBuildFile; fileRef = CC2F6722217E7C640095FCEB /* FJSDatabaseAdditions.m */; };
-		CC2F672D217E7C640095FCEB /* FJSDatabaseAdditions.m in Sources */ = {isa = PBXBuildFile; fileRef = CC2F6722217E7C640095FCEB /* FJSDatabaseAdditions.m */; };
 		CC2F672E217E7C640095FCEB /* FJSDatabaseAdditions.m in Sources */ = {isa = PBXBuildFile; fileRef = CC2F6722217E7C640095FCEB /* FJSDatabaseAdditions.m */; };
 		CC2F672F217E7C640095FCEB /* FJSDatabaseQueue.h in Headers */ = {isa = PBXBuildFile; fileRef = CC2F6723217E7C640095FCEB /* FJSDatabaseQueue.h */; };
 		CC2F6730217E7C640095FCEB /* FJSDatabaseQueue.m in Sources */ = {isa = PBXBuildFile; fileRef = CC2F6724217E7C640095FCEB /* FJSDatabaseQueue.m */; };
-		CC2F6731217E7C640095FCEB /* FJSDatabaseQueue.m in Sources */ = {isa = PBXBuildFile; fileRef = CC2F6724217E7C640095FCEB /* FJSDatabaseQueue.m */; };
 		CC2F6732217E7C640095FCEB /* FJSDatabaseQueue.m in Sources */ = {isa = PBXBuildFile; fileRef = CC2F6724217E7C640095FCEB /* FJSDatabaseQueue.m */; };
 		CC2F6733217E7C640095FCEB /* FJSResultSet.h in Headers */ = {isa = PBXBuildFile; fileRef = CC2F6725217E7C640095FCEB /* FJSResultSet.h */; };
 		CC2F6734217E7C640095FCEB /* FJSResultSet.m in Sources */ = {isa = PBXBuildFile; fileRef = CC2F6726217E7C640095FCEB /* FJSResultSet.m */; };
-		CC2F6735217E7C640095FCEB /* FJSResultSet.m in Sources */ = {isa = PBXBuildFile; fileRef = CC2F6726217E7C640095FCEB /* FJSResultSet.m */; };
 		CC2F6736217E7C640095FCEB /* FJSResultSet.m in Sources */ = {isa = PBXBuildFile; fileRef = CC2F6726217E7C640095FCEB /* FJSResultSet.m */; };
 		CC2F6739217E8D750095FCEB /* FJSSuite.h in Headers */ = {isa = PBXBuildFile; fileRef = CC2F6737217E8D750095FCEB /* FJSSuite.h */; };
 		CC2F673A217E8D750095FCEB /* FJSSuite.m in Sources */ = {isa = PBXBuildFile; fileRef = CC2F6738217E8D750095FCEB /* FJSSuite.m */; };
-		CC2F673B217E8D750095FCEB /* FJSSuite.m in Sources */ = {isa = PBXBuildFile; fileRef = CC2F6738217E8D750095FCEB /* FJSSuite.m */; };
 		CC2F673C217E8D750095FCEB /* FJSSuite.m in Sources */ = {isa = PBXBuildFile; fileRef = CC2F6738217E8D750095FCEB /* FJSSuite.m */; };
 		CC310016215AB2DD00B270F5 /* FJSStructTests.m in Sources */ = {isa = PBXBuildFile; fileRef = CC310014215AB24800B270F5 /* FJSStructTests.m */; };
 		CC4C3C7A2150193F005CA4A6 /* AppDelegate.m in Sources */ = {isa = PBXBuildFile; fileRef = CC4C3C792150193F005CA4A6 /* AppDelegate.m */; };
@@ -493,13 +488,8 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				CC2F672D217E7C640095FCEB /* FJSDatabaseAdditions.m in Sources */,
-				CC2F6735217E7C640095FCEB /* FJSResultSet.m in Sources */,
-				CC2F673B217E8D750095FCEB /* FJSSuite.m in Sources */,
-				CC2F6729217E7C640095FCEB /* FJSDatabase.m in Sources */,
 				CC2F20B2214D7A3700F38D03 /* FJSSimpleTests.m in Sources */,
 				CC310016215AB2DD00B270F5 /* FJSStructTests.m in Sources */,
-				CC2F6731217E7C640095FCEB /* FJSDatabaseQueue.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

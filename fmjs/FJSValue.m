@@ -237,24 +237,20 @@ static NSPointerArray *FJSValueLiveWeakArray;
 + (instancetype)valueWithSerializedJSFunction:(NSString*)function inRuntime:(FJSRuntime*)runtime {
     FMAssert(runtime);
     
-    JSStringRef functionName = JSStringCreateWithCFString((__bridge CFStringRef)@"__runtimeFunction");
+    function = [NSString stringWithFormat:@"(%@)()", function];
+    
     JSStringRef functionBody = JSStringCreateWithCFString((__bridge CFStringRef)function);
     JSValueRef exception = nil;
     JSObjectRef jsFunction = JSObjectMakeFunction([runtime contextRef], nil, 0, nil, functionBody, nil, 0, &exception);
     [runtime reportPossibleJSException:exception];
     
     JSStringRelease(functionBody);
-    JSStringRelease(functionName);
-    
     if (jsFunction) {
-        
-        
         FJSValue *native = [FJSValue new];
         [native setNativeJSValue:jsFunction];
         [native setIsJSNative:YES];
         [native setRuntime:runtime];
         [native setJsValueType:kJSTypeObject];
-
         return native;
     }
     

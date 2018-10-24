@@ -400,22 +400,9 @@ static JSValueRef FJS_callAsFunction(JSContextRef ctx, JSObjectRef functionJS, J
     return obj;
 }
 
-- (void)setRuntimeObject:(nullable id)object withName:(NSString *)name {
-    
-    if (!object) {
-        [self deleteRuntimeObjectWithName:name];
-        return;
-    }
+- (void)setRuntimeValue:(FJSValue*)value withName:(NSString *)name {
     
     dispatch_sync(_evaluateQueue, ^{
-        FJSValue *value = nil;
-        
-        if ([object isKindOfClass:NSClassFromString(@"NSBlock")]) {
-            value = [FJSValue valueWithBlock:(__bridge CFTypeRef _Nonnull)(object) inRuntime:self];
-        }
-        else {
-            value = [FJSValue valueWithInstance:(__bridge CFTypeRef _Nonnull)(object) inRuntime:self];
-        }
         
         JSValueRef jsValue = [value JSValue];
         
@@ -430,6 +417,27 @@ static JSValueRef FJS_callAsFunction(JSContextRef ctx, JSObjectRef functionJS, J
         
         [self reportPossibleJSException:exception];
     });
+}
+
+- (void)setRuntimeObject:(nullable id)object withName:(NSString *)name {
+    
+    if (!object) {
+        [self deleteRuntimeObjectWithName:name];
+        return;
+    }
+    
+    FJSValue *value = nil;
+    
+    if ([object isKindOfClass:NSClassFromString(@"NSBlock")]) {
+        value = [FJSValue valueWithBlock:(__bridge CFTypeRef _Nonnull)(object) inRuntime:self];
+    }
+    else {
+        value = [FJSValue valueWithInstance:(__bridge CFTypeRef _Nonnull)(object) inRuntime:self];
+    }
+    
+    [self setRuntimeValue:value withName:name];
+    
+    
     
 }
 

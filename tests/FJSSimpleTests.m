@@ -365,7 +365,25 @@ int FJSSimpleTestsMethodCalled;
 
 
 
-
+- (void)testDumbImportThings {
+    // Both these work.
+    //NSString *code = @"var _ = function(){ var a = {name: 'Gus'};  return a; }(); _;";
+    NSString *code = @"(function(){ var a = {name: 'Gus'};  return a; }())";
+    
+    FJSRuntime *runtime = [FJSRuntime new];
+    FJSValue *v = [runtime evaluateScript:code];
+    
+    [runtime setRuntimeValue:v withName:@"what"];
+    
+    [runtime setRuntimeObject:^(NSString*s) {
+        
+        XCTAssert([s isEqualToString:@"Gus"]);
+        
+    } withName:@"funk"];
+    
+    [runtime evaluateScript:@"funk(what.name);"];
+    
+}
 
 
 

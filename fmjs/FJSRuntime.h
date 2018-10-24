@@ -30,6 +30,7 @@ extern NSString *FMJavaScriptExceptionName;
 - (FJSValue*)evaluateScript:(NSString*)str;
 - (FJSValue*)evaluateScript:(NSString *)script withSourceURL:(nullable NSURL *)sourceURL;
 
+- (void)setRuntimeValue:(FJSValue*)value withName:(NSString *)name;
 - (void)setRuntimeObject:(nullable id)object withName:(NSString *)name;
 - (FJSValue*)runtimeObjectWithName:(NSString *)name;
 - (void)deleteRuntimeObjectWithName:(NSString*)name;

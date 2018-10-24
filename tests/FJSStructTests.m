@@ -430,7 +430,7 @@ APPKIT_EXTERN const CGRect FJSRuntimeTestCGRect;
     
     [rt evaluateScript:@"p.y = 14; p.x = 7;"];
     
-    v = [rt runtimeObjectWithName:@"p"];
+    v = [rt objectForKeyedSubscript:@"p"];
     
     CGPoint p = [v toCGPoint];
     
@@ -476,7 +476,7 @@ APPKIT_EXTERN const CGRect FJSRuntimeTestCGRect;
     v = [rt evaluateScript:@"r.origin.y;"];
     XCTAssert([v toInt] == 2, @"Got %d", [v toInt]);
     
-    CGRect *rectPointer = [[rt runtimeObjectWithName:@"r"] structLocation];
+    CGRect *rectPointer = [[rt objectForKeyedSubscript:@"r"] structLocation];
     
     XCTAssert(FJSEqualFloats(rectPointer->origin.x + rectPointer->origin.y + rectPointer->size.width + rectPointer->size.height, 10));
     
@@ -518,7 +518,7 @@ APPKIT_EXTERN const CGRect FJSRuntimeTestCGRect;
     
     [rt evaluateScript:@"r.location = 7; r.length = 12;"];
     
-    v = [rt runtimeObjectWithName:@"r"];
+    v = [rt objectForKeyedSubscript:@"r"];
     
     NSRange *r = [v structLocation];
     

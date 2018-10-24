@@ -373,7 +373,7 @@ int FJSSimpleTestsMethodCalled;
     FJSRuntime *runtime = [FJSRuntime new];
     FJSValue *v = [runtime evaluateScript:code];
     
-    [runtime setRuntimeValue:v withName:@"what"];
+    runtime[@"what"] = v;
     
     runtime[@"funk"] = ^(NSString*s) {
         
@@ -613,7 +613,7 @@ int FJSSimpleTestsMethodCalled;
     
     XCTAssert([runtime hasFunctionNamed:@"foof"]);
     
-    FJSValue *f = [runtime runtimeObjectWithName:@"foof"];
+    FJSValue *f = runtime[@"foof"];
     
     XCTAssert(f);
     XCTAssert([[f toObject] isEqualToString:funk]);
@@ -796,7 +796,7 @@ int FJSSimpleTestsMethodCalled;
     
     XCTAssert([runtime evaluateScript:@"var c = FJSTestClass.new(); c.randomString = 'FM';"]);
     
-    FJSValue *f = [runtime runtimeObjectWithName:@"c"];
+    FJSValue *f = runtime[@"c"];
     XCTAssert(f);
     
     FJSTestClass *c = [f toObject];
@@ -835,7 +835,7 @@ int FJSSimpleTestsMethodCalled;
     
     XCTAssert([runtime evaluateScript:@"var c = NSString.stringWithString('FJS Missing Underscore');"]);
     
-    FJSValue *f = [runtime runtimeObjectWithName:@"c"];
+    FJSValue *f = runtime[@"c"];
     XCTAssert(f);
     
     NSString *c = [f toObject];

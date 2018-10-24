@@ -262,12 +262,7 @@ static NSString *COSUTTypeFunction = @"R.function";
     
     if ([value isJSFunction]) {
         uti = COSUTTypeFunction;
-        
         FMAssert([obj isKindOfClass:[NSString class]]);
-        
-        #pragma message "FIXME: This is completely wrong. We need ot check for the existance of it, make sure it's at the front, and then trim only that part out."
-        //obj = [obj stringByReplacingOccurrencesOfString:@"function () " withString:@""];
-        //obj = [NSString stringWithFormat:@"(%@())", obj];
     }
     else if ([obj isKindOfClass:[NSString class]]) {
         uti = (id)kUTTypeUTF8PlainText;

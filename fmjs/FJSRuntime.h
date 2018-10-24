@@ -31,15 +31,11 @@ extern NSString *FMJavaScriptExceptionName;
 - (FJSValue*)evaluateScript:(NSString *)script withSourceURL:(nullable NSURL *)sourceURL;
 
 // This gets us context["foo"] = @"Hi"; support
+// Object can either be a FJSValue object, objc block, or an objc instance (which will be wrapped in a FJSValue)
 - (void)setObject:(id)object forKeyedSubscript:(NSString *)key;
 - (FJSValue*)objectForKeyedSubscript:(id)key;
 
-// FIXME: rename this to "removeRuntimeValueWithName:"
-- (void)deleteRuntimeObjectWithName:(NSString*)name;
-
-
-- (void)setRuntimeValue:(FJSValue*)value withName:(NSString *)name;
-- (FJSValue*)runtimeObjectWithName:(NSString *)name;
+- (void)removeRuntimeValueWithName:(NSString*)name;
 
 - (void)shutdown;
 - (void)garbageCollect;
@@ -51,6 +47,7 @@ extern NSString *FMJavaScriptExceptionName;
 - (FJSValue *)callFunctionNamed:(NSString*)name withArguments:(NSArray*)arguments;
 - (BOOL)hasFunctionNamed:(NSString*)name;
 + (FJSRuntime*)currentRuntime;
+
 @end
 
 

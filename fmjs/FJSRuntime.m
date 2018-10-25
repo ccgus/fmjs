@@ -178,6 +178,8 @@ static JSValueRef FJS_callAsFunction(JSContextRef ctx, JSObjectRef functionJS, J
             [self removeRuntimeValueWithName:name];
         }
         
+        [_cachedModules removeAllObjects];
+        
         JSClassRelease(_globalClass);
         
         [self garbageCollect];

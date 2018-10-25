@@ -319,6 +319,8 @@ static JSValueRef FJS_callAsFunction(JSContextRef ctx, JSObjectRef functionJS, J
             [self pushAsCurrentFJS];
             
             
+            #pragma message "FIXME: Replace this with the on on FJSValue?"
+            
             JSValueRef *jsArgumentsArray = nil;
             NSUInteger argumentsCount = [arguments count];
             if (argumentsCount) {
@@ -960,6 +962,9 @@ static void FJS_finalize(JSObjectRef object) {
         
         if ([(__bridge id)value isKindOfClass:[FJSValue class]]) {
             FMAssert(![(__bridge FJSValue*)value isJSNative]); // Sanity.
+            
+            [(__bridge FJSValue*)value setDebugFinalizeCalled:YES];
+            
             FJSRuntime *rt = [(__bridge FJSValue*)value runtime];
             
             if ([rt finalizeHandler]) {

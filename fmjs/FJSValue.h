@@ -46,6 +46,12 @@ typedef struct {
 @property (strong) FJSSymbol *symbol;
 @property (assign) FJSObjCValue cValue;
 @property (assign) JSType jsValueType;
+@property (assign) BOOL debugFinalizeCalled;
+
+#ifdef DEBUG
+@property (strong) NSString *debugStackFromInit;
+
+#endif
 
 - (id)toObject;
 - (BOOL)toBOOL;
@@ -68,6 +74,18 @@ typedef struct {
 
 - (FJSValue*)valueFromStructFieldNamed:(NSString*)structFieldName;
 - (BOOL)setValue:(FJSValue*)value onStructFieldNamed:(NSString*)structFieldName;
+
+
+- (FJSValue *)invokeMethodNamed:(NSString *)method withArguments:(nullable NSArray *)arguments;
+
+
+- (FJSValue *)objectForKeyedSubscript:(NSString*)key;
+//- (JSValue *)objectAtIndexedSubscript:(NSUInteger)index;
+//- (void)setObject:(id)object forKeyedSubscript:(NSObject <NSCopying> *)key;
+//- (void)setObject:(id)object atIndexedSubscript:(NSUInteger)index;
+
+
+
 
 @end
 

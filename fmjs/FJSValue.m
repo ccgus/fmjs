@@ -44,6 +44,8 @@ static NSPointerArray *FJSValueLiveWeakArray;
             FJSValueLiveWeakArray = [NSPointerArray pointerArrayWithOptions:NSPointerFunctionsWeakMemory];
         }
         [FJSValueLiveWeakArray addPointer:(__bridge void * _Nullable)(self)];
+        
+        _debugStackFromInit = [[NSThread callStackSymbols] description];
 #endif
         
     }
@@ -1057,6 +1059,93 @@ static NSPointerArray *FJSValueLiveWeakArray;
     }
     
     return self;
+    
+}
+
+- (FJSValue *)objectForKeyedSubscript:(NSString*)key {
+    
+    FMAssert(_isJSNative);
+    
+    if (!_isJSNative) {
+        FMAssert(NO);
+        return nil;
+    }
+    
+    if (!JSValueIsObject([_runtime contextRef], _nativeJSValue)) {
+        FMAssert(NO);
+        return nil;
+    }
+    
+    JSStringRef jsKey = JSStringCreateWithCFString((__bridge CFStringRef)key);
+    JSValueRef err;
+    JSValueRef ref = JSObjectGetProperty([_runtime contextRef], JSValueToObject([_runtime contextRef], _nativeJSValue, nil), jsKey, &err);
+    JSStringRelease(jsKey);
+    
+    #pragma message "FIXME: Report the exception?"
+    
+    if (!ref) {
+        return nil;
+    }
+    
+    return [FJSValue valueForJSValue:ref inRuntime:_runtime];
+}
+
+- (FJSValue *)invokeMethodNamed:(NSString *)method withArguments:(NSArray *)arguments {
+    
+    if (!_isJSNative) {
+        FMAssert(NO);
+        return nil;
+    }
+    
+    if (!JSValueIsObject([_runtime contextRef], _nativeJSValue)) {
+        FMAssert(NO);
+        return nil;
+    }
+    
+    FJSValue *functionValue = self[method];
+    if (!functionValue) {
+        return nil;
+    }
+    
+    JSValueRef *jsArgumentsArray = nil;
+    NSUInteger argumentsCount = [arguments count];
+    if (argumentsCount) {
+        jsArgumentsArray = calloc(argumentsCount, sizeof(JSValueRef));
+        
+        for (NSUInteger i=0; i<argumentsCount; i++) {
+            FJSValue *v = [arguments objectAtIndex:i];
+            
+            if (![v isKindOfClass:[FJSValue class]])  {
+                v = [FJSValue valueWithInstance:(__bridge CFTypeRef)(v) inRuntime:[self runtime]];
+            }
+            
+            jsArgumentsArray[i] = [v JSValue];
+        }
+    }
+    
+    
+    
+    JSObjectRef jsFunction = JSValueToObject([_runtime contextRef], [functionValue nativeJSValue], nil);
+    
+    JSObjectRef thisObject = JSValueToObject([_runtime contextRef], _nativeJSValue, nil);
+    JSValueRef exception = nil;
+    JSValueRef jsFunctionReturnValue = JSObjectCallAsFunction([_runtime contextRef], jsFunction, thisObject, argumentsCount, jsArgumentsArray, &exception);
+    
+    if (jsArgumentsArray) {
+        free(jsArgumentsArray);
+    }
+    
+    #pragma message "FIXME: Do we need to push and pop as the current runtime?"
+    
+    FJSValue *returnValue = nil;
+    if (exception) {
+        [_runtime reportPossibleJSException:exception];
+    }
+    else {
+        returnValue = [FJSValue valueForJSValue:(JSObjectRef)jsFunctionReturnValue inRuntime:_runtime];
+    }
+    
+    return returnValue;
     
 }
 

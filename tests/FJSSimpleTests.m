@@ -94,7 +94,6 @@ int FJSSimpleTestsMethodCalled;
     // Put setup code here. This method is called before the invocation of each test method in the class.
     
     [FJSRuntime setUseSynchronousGarbageCollectForDebugging:YES];
-    // [[FJSRuntime new] shutdown]; // Warm things up.
     
     NSString *FMJSBridgeSupportPath = [[NSBundle bundleForClass:[self class]] pathForResource:@"FJSTests" ofType:@"bridgesupport"];
     FMAssert(FMJSBridgeSupportPath);
@@ -120,9 +119,9 @@ int FJSSimpleTestsMethodCalled;
             
             FJSValue *v = [ar pointerAtIndex:idx];
             if (v) {
-                debug(@"v: '%@'", v);
+                debug(@"v: '%@' (Finalized? %d)", v, [v debugFinalizeCalled]);
                 debug(@"[v toObject]: '%@'", [v toObject]);
-                
+                debug(@"%@", [v debugStackFromInit]);
             }
         }
         
@@ -363,29 +362,46 @@ int FJSSimpleTestsMethodCalled;
     
     FJSRuntime *runtime = [FJSRuntime new];
     [runtime evaluateScript:code];
+
+    FJSValue *tiff = runtime[@"tiff"];
+    XCTAssert(tiff);
+    
+    // FIXME: This sucks! Why do we have to nil out our variables to get JSC to call finalize on our objects? We don't need to do this in a cocoa app, which has runloops all set up :/"
+    [runtime evaluateScript:@"url = null; img = null; f = null; r = null; tiff = null;"];
+    
     [runtime shutdown];
     
-    #pragma message "FIXME: Why do we still have a ton of FJSValues hanging around here?"
+    XCTAssert([tiff debugFinalizeCalled]);
+    
     
 }
 
 - (void)testCoreImageExample2 {
     
-    NSString *code = @"\
-    \n\
-    var center = CIVector.vectorWithX_Y_(100, 100);\n\
-    var filterParams = { inputWidth: 5, inputSharpness: .5, inputCenter: center, }\n\
-    var url = NSURL.fileURLWithPath_('/Library/Desktop Pictures/Yosemite.jpg');\n\
-    var image = CIImage.imageWithContentsOfURL_(url)\n\
-    image = image.imageByApplyingFilter_withInputParameters_('CICircularScreen', filterParams);\n\
-    image = image.imageByCroppingToRect_(CGRectMake(0, 0, 200, 200));\n\
-    var tiff = image.TIFFRepresentation();\n\
-    tiff.writeToFile_atomically_('/tmp/foo2.tiff', true);\n\
-    NSWorkspace.sharedWorkspace().openFile_('/tmp/foo2.tiff');";
+    @autoreleasepool {
+        
+        NSString *code = @"\
+        \n\
+        var center = CIVector.vectorWithX_Y_(100, 100);\n\
+        var filterParams = { inputWidth: 5, inputSharpness: .5, inputCenter: center, }\n\
+        var url = NSURL.fileURLWithPath_('/Library/Desktop Pictures/Yosemite.jpg');\n\
+        var image = CIImage.imageWithContentsOfURL_(url)\n\
+        image = image.imageByApplyingFilter_withInputParameters_('CICircularScreen', filterParams);\n\
+        image = image.imageByCroppingToRect_(CGRectMake(0, 0, 200, 200));\n\
+        var tiff = image.TIFFRepresentation();\n\
+        tiff.writeToFile_atomically_('/tmp/foo2.tiff', true);\n\
+        NSWorkspace.sharedWorkspace().openFile_('/tmp/foo2.tiff');";
+        
+        
+        FJSRuntime *runtime = [FJSRuntime new];
+        [runtime evaluateScript:code];
+        // This is kind of Bs. What if we do a runloop?
+        [runtime evaluateScript:@"tiff = null; image = null; url = null; filterParams = null; center = null;"];
+        [runtime shutdown];
+    }
     
     
-    FJSRuntime *runtime = [FJSRuntime new];
-    [runtime evaluateScript:code];
+    
 }
 
 
@@ -444,13 +460,23 @@ int FJSSimpleTestsMethodCalled;
     
     [runtime evaluateScript:[NSString stringWithFormat:@"r = require('%@');", modulePath]];
     
-    
     v = [runtime evaluateScript:@"r.callInc()"];
     XCTAssert([v toInt] == 3, @"Got %d", [v toInt]);
+    
+    
+    FJSValue *rModule = runtime[@"r"];
+    XCTAssert(rModule);
+    
+    FJSValue *callIncFunction = rModule[@"callInc"];
+    XCTAssert(callIncFunction);
+    
+    v = [rModule invokeMethodNamed:@"callInc" withArguments:nil];
+    XCTAssert([v toInt] == 4, @"Got %d", [v toInt]);
     
     [runtime shutdown];
     
     XCTAssert(functionCalled);
+    
 }
 
 
@@ -634,7 +660,7 @@ int FJSSimpleTestsMethodCalled;
     XCTAssert([[runtime evaluateScript:@"FJSTestPassNil(null);"] toBOOL]);
     XCTAssert([[runtime evaluateScript:@"FJSTestPassNil(undefined);"] toBOOL]);
     
-    [runtime evaluateScript:@"var c = FJSSimpleTests.new(); FJSAssertObject(c); FJSAssert(c != null);"];
+    [runtime evaluateScript:@"var c = FJSSimpleTests.new(); FJSAssertObject(c); FJSAssert(c != null); c = null;"];
     
     [runtime evaluateScript:@"print('Hello?');"];
     [runtime evaluateScript:@"print(FJSMethodReturnNSDictionary());"];
@@ -854,19 +880,27 @@ int FJSSimpleTestsMethodCalled;
 
 - (void)testSetProperty {
     
-    FJSRuntime *runtime = [[FJSRuntime alloc] init];
+    @autoreleasepool {
+        
+        FJSRuntime *runtime = [[FJSRuntime alloc] init];
+        
+        XCTAssert([runtime evaluateScript:@"var c = FJSTestClass.new(); c.randomString = 'FM';"]);
+        
+        FJSValue *f = runtime[@"c"];
+        XCTAssert(f);
+        
+        FJSTestClass *c = [f toObject];
+        XCTAssert([c isKindOfClass:[FJSTestClass class]]);
+        
+        XCTAssert([[c randomString] isEqualToString:@"FM"]);
+        
+        [runtime evaluateScript:@"c = null"]; // So checkForValueLeaks passes.
+        
+        [runtime shutdown];
+    }
     
-    XCTAssert([runtime evaluateScript:@"var c = FJSTestClass.new(); c.randomString = 'FM';"]);
+    [self checkForValueLeaks];
     
-    FJSValue *f = runtime[@"c"];
-    XCTAssert(f);
-    
-    FJSTestClass *c = [f toObject];
-    XCTAssert([c isKindOfClass:[FJSTestClass class]]);
-    
-    XCTAssert([[c randomString] isEqualToString:@"FM"]);
-    
-    [runtime shutdown];
 }
 
 - (void)testArraySubscript {

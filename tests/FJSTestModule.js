@@ -11,6 +11,7 @@ module.exports = {
     },
     someVal: 0,
     callInc: function () {
+        print("Calling callInc! Currently at " + this.someVal)
         this.someVal = this.someVal + 1;
         return this.someVal;
     }

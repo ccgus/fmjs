@@ -105,6 +105,28 @@ int FJSSimpleTestsMethodCalled;
 
 - (void)tearDown {
     // Put teardown code here. This method is called after the invocation of each test method in the class.
+
+    [self checkForValueLeaks];
+}
+
+- (void)checkForValueLeaks {
+    XCTAssert(![FJSValue countOfLiveInstances], @"Got %ld instances still around", [FJSValue countOfLiveInstances]); // If this fails, make sure you're calling shutdown on all your runtimes.
+    
+    if ([FJSValue countOfLiveInstances]) {
+        
+        NSPointerArray *ar = [FJSValue liveInstancesPointerArray];
+        
+        for (NSUInteger idx = 0; idx < [ar count]; idx++) {
+            
+            FJSValue *v = [ar pointerAtIndex:idx];
+            if (v) {
+                debug(@"v: '%@'", v);
+                debug(@"[v toObject]: '%@'", [v toObject]);
+                
+            }
+        }
+        
+    }
 }
 
 - (void)testObjcMethods {
@@ -339,9 +361,12 @@ int FJSSimpleTestsMethodCalled;
     tiff.writeToFile_atomically_('/tmp/foo.tiff', true);\n\
     NSWorkspace.sharedWorkspace().openFile_('/tmp/foo.tiff');";
     
-    
     FJSRuntime *runtime = [FJSRuntime new];
     [runtime evaluateScript:code];
+    [runtime shutdown];
+    
+    #pragma message "FIXME: Why do we still have a ton of FJSValues hanging around here?"
+    
 }
 
 - (void)testCoreImageExample2 {

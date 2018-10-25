@@ -9,4 +9,9 @@ module.exports = {
         print("This is the test funk");
         testFunction();
     },
+    someVal: 0,
+    callInc: function () {
+        this.someVal = this.someVal + 1;
+        return this.someVal;
+    }
 };

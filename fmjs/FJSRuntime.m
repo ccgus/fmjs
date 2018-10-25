@@ -29,6 +29,7 @@ static const void * const kDispatchQueueSpecificKey = &kDispatchQueueSpecificKey
 @property (assign) JSGlobalContextRef jsContext;
 @property (assign) JSClassRef globalClass;
 @property (strong) NSMutableSet<NSString*> *runtimeObjectNames;
+@property (strong) NSMutableDictionary *cachedModules;
 
 @end
 
@@ -98,7 +99,7 @@ static JSValueRef FJS_callAsFunction(JSContextRef ctx, JSObjectRef functionJS, J
         dispatch_queue_set_specific(_evaluateQueue, kDispatchQueueSpecificKey, (__bridge void *)self, NULL);
         
         _runtimeObjectNames = [NSMutableSet set];
-        
+        _cachedModules = [NSMutableDictionary dictionary];
         [self setupJS];
     }
     
@@ -174,7 +175,6 @@ static JSValueRef FJS_callAsFunction(JSContextRef ctx, JSObjectRef functionJS, J
     if (_jsContext) {
         
         for (NSString *name in [_runtimeObjectNames copy]) {
-            debug(@"name: '%@'", name);
             [self removeRuntimeValueWithName:name];
         }
         
@@ -597,28 +597,21 @@ static JSValueRef FJS_callAsFunction(JSContextRef ctx, JSObjectRef functionJS, J
     
     NSString *fullPath = FJSResolveModuleAtPath(modulePath, [[NSFileManager defaultManager] currentDirectoryPath]);
     
-    debug(@"arg: '%@'", modulePath);
-    debug(@"fullPath: '%@'", fullPath);
-    
     if (!fullPath) {
         FMAssert(NO);
         return [FJSValue valueWithUndefinedInRuntime:self];
     }
     
-    FJSValue *v = [self evaluateModuleAtURL:[NSURL fileURLWithPath:fullPath]];
-    if (v) {
-        #pragma message "FIXME: We need to cache the module."
-        
-        //self[modulePath] = v;
-        
-        return v;
+    if ([_cachedModules objectForKey:fullPath]) {
+        return [_cachedModules objectForKey:fullPath];
     }
     
-    //NSString* module = [NSString stringWithFormat:@"(function() { var module = { exports : {} }; var exports = module.exports; %@ ; return module.exports; })()", script];
-    //result = [self executeString:module baseURL:scriptURL];
     
-    
-    
+    FJSValue *v = [self evaluateModuleAtURL:[NSURL fileURLWithPath:fullPath]];
+    if (v) {
+        [_cachedModules setObject:v forKey:fullPath];
+        return v;
+    }
     
     
     //        JSModule *module = [JSModule require:arg atPath:[[NSFileManager defaultManager] currentDirectoryPath]];
@@ -966,8 +959,6 @@ static void FJS_finalize(JSObjectRef object) {
         if ([(__bridge id)value isKindOfClass:[FJSValue class]]) {
             FMAssert(![(__bridge FJSValue*)value isJSNative]); // Sanity.
             FJSRuntime *rt = [(__bridge FJSValue*)value runtime];
-            
-            debug(@"finalize: '%@'", value);
             
             if ([rt finalizeHandler]) {
                 [rt finalizeHandler](rt, (__bridge FJSValue*)value);

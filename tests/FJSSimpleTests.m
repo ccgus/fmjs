@@ -385,7 +385,7 @@ int FJSSimpleTestsMethodCalled;
     
 }
 
-- (void)xtestSimpleModuleRequire {
+- (void)testSimpleModuleRequire {
     
     NSString *modulePath = [[NSBundle bundleForClass:[self class]] pathForResource:@"FJSTestModule" ofType:@"js"];
     FMAssert(modulePath);
@@ -409,8 +409,19 @@ int FJSSimpleTestsMethodCalled;
     
     [runtime evaluateScript:[NSString stringWithFormat:@"var r = require('%@');", modulePath]];
     
-    [runtime evaluateScript:@"print(Object.keys(r));"];
     [runtime evaluateScript:@"r.callTestFunc();"];
+    
+    FJSValue *v = [runtime evaluateScript:@"r.callInc()"];
+    XCTAssert([v toInt] == 1);
+    
+    v = [runtime evaluateScript:@"r.callInc()"];
+    XCTAssert([v toInt] == 2);
+    
+    [runtime evaluateScript:[NSString stringWithFormat:@"r = require('%@');", modulePath]];
+    
+    
+    v = [runtime evaluateScript:@"r.callInc()"];
+    XCTAssert([v toInt] == 3, @"Got %d", [v toInt]);
     
     [runtime shutdown];
     

@@ -19,6 +19,7 @@
 
 @property (weak) FJSRuntime *runtime;
 @property (assign) JSValueRef nativeJSValue;
+@property (assign) JSGlobalContextRef unprotectContextRef;
 
 @property (weak) id weakInstance;
 @property (assign) BOOL madePointerMemory;
@@ -64,6 +65,13 @@ static NSPointerArray *FJSValueLiveWeakArray;
         }
         
         CFRelease(_cValue.value.pointerValue);
+    }
+    
+    if (_unprotectContextRef) {
+        FMAssert(_nativeJSValue);
+        JSValueUnprotect(_unprotectContextRef, _nativeJSValue);
+        JSGlobalContextRelease(_unprotectContextRef);
+        _unprotectContextRef = nil;
     }
     
     if (_madePointerMemory) {
@@ -253,12 +261,7 @@ static NSPointerArray *FJSValueLiveWeakArray;
     
     JSStringRelease(functionBody);
     if (jsFunction) {
-        FJSValue *native = [FJSValue new];
-        [native setNativeJSValue:jsFunction];
-        [native setIsJSNative:YES];
-        [native setRuntime:runtime];
-        [native setJsValueType:kJSTypeObject];
-        return native;
+        return [self valueForJSValue:jsFunction inRuntime:runtime];
     }
     
     return nil;
@@ -1078,7 +1081,8 @@ static NSPointerArray *FJSValueLiveWeakArray;
     
     JSStringRef jsKey = JSStringCreateWithCFString((__bridge CFStringRef)key);
     JSValueRef err;
-    JSValueRef ref = JSObjectGetProperty([_runtime contextRef], JSValueToObject([_runtime contextRef], _nativeJSValue, nil), jsKey, &err);
+    JSObjectRef obj = JSValueToObject([_runtime contextRef], _nativeJSValue, nil);
+    JSValueRef ref = JSObjectGetProperty([_runtime contextRef], obj, jsKey, &err);
     JSStringRelease(jsKey);
     
     #pragma message "FIXME: Report the exception?"
@@ -1087,7 +1091,9 @@ static NSPointerArray *FJSValueLiveWeakArray;
         return nil;
     }
     
-    return [FJSValue valueForJSValue:ref inRuntime:_runtime];
+    FJSValue *val = [FJSValue valueForJSValue:ref inRuntime:_runtime];
+    [val protectNative];
+    return val;
 }
 
 - (FJSValue *)invokeMethodNamed:(NSString *)method withArguments:(NSArray *)arguments {
@@ -1147,6 +1153,20 @@ static NSPointerArray *FJSValueLiveWeakArray;
     
     return returnValue;
     
+}
+
+- (void)protectNative {
+    
+    if (!_nativeJSValue) {
+        return;
+    }
+    
+    FMAssert(!_unprotectContextRef);
+    if (!_unprotectContextRef) {
+        FMAssert(_runtime);
+        _unprotectContextRef = JSGlobalContextRetain((JSGlobalContextRef)[_runtime contextRef]);
+        JSValueProtect(_unprotectContextRef, _nativeJSValue);
+    }
 }
 
 @end

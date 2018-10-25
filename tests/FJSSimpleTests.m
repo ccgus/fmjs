@@ -380,6 +380,8 @@ int FJSSimpleTestsMethodCalled;
     
     @autoreleasepool {
         
+        // This is currently failing because of the use of unprotectContextRef. Which is a bummer. We're going to have to figure that one out.
+        
         NSString *code = @"\
         \n\
         var center = CIVector.vectorWithX_Y_(100, 100);\n\
@@ -396,10 +398,10 @@ int FJSSimpleTestsMethodCalled;
         FJSRuntime *runtime = [FJSRuntime new];
         [runtime evaluateScript:code];
         // This is kind of Bs. What if we do a runloop?
-        [runtime evaluateScript:@"tiff = null; image = null; url = null; filterParams = null; center = null;"];
+        [runtime evaluateScript:@"center = null; filterParams.filterParams = null; filterParams = null; url = null; image = null; tiff = null;"];
         [runtime shutdown];
+        
     }
-    
     
     
 }

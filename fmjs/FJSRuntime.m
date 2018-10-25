@@ -407,6 +407,8 @@ static JSValueRef FJS_callAsFunction(JSContextRef ctx, JSObjectRef functionJS, J
         }
     //});
     
+    #pragma message "FIXME: Should we call protectNative for these objects? Or mabye even if it isn't native?"
+    
     return obj;
 }
 
@@ -583,8 +585,6 @@ static JSValueRef FJS_callAsFunction(JSContextRef ctx, JSObjectRef functionJS, J
             NSString *module = [NSString stringWithFormat:@"(function() { var module = { exports : {} }; var exports = module.exports; %@ ; return module.exports; })()", script];
             
             FJSValue *moduleValue = [self evaluateNoQueue:module withSourceURL:scriptURL];
-            
-            debug(@"moduleValue: '%@'", moduleValue);
             
             return moduleValue;
         }

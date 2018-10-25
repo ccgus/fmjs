@@ -594,7 +594,7 @@ static JSValueRef FJS_callAsFunction(JSContextRef ctx, JSObjectRef functionJS, J
     return nil;
 }
 
-
+// FIXME: Should we put this in a queue if we're not in one already?
 - (FJSValue*)require:(NSString*)modulePath {
     
     NSString *fullPath = FJSResolveModuleAtPath(modulePath, [[NSFileManager defaultManager] currentDirectoryPath]);

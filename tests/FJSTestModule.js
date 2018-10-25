@@ -1,4 +1,3 @@
-
 module.exports = {
     hello: function(name) {
         console.log("Hello, " + name);
@@ -7,11 +6,7 @@ module.exports = {
         console.log("Goodbye, " + name);
     },
     callTestFunc: function() {
+        print("This is the test funk");
         testFunction();
     },
 };
-
-function callTest() {
-    testFunction();
-}
-

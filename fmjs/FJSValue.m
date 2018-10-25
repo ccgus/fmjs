@@ -87,6 +87,11 @@ static NSPointerArray *FJSValueLiveWeakArray;
     return FJSValueLiveWeakArray;
 }
 
++ (instancetype)valueWithNewObjectInRuntime:(FJSRuntime*)runtime {
+    return [self valueForJSValue:JSObjectMake([runtime contextRef], nil, nil) inRuntime:runtime];
+}
+
+
 + (instancetype)valueWithNullInRuntime:(FJSRuntime*)runtime {
     return [self valueForJSValue:(JSObjectRef)JSValueMakeNull([runtime contextRef]) inRuntime:runtime];
 }
@@ -313,6 +318,7 @@ static NSPointerArray *FJSValueLiveWeakArray;
     
     if (o) { // If a null or underfined jsvalue is pushed to native- well, we get here.
         //debug(@"FJSValue retaining %@ currently at %ld", o, CFGetRetainCount(o));
+        FMAssert(![(__bridge id)o isKindOfClass:[self class]]);
         CFRetain(o);
     }
     _cValue.type = _C_ID;
@@ -448,6 +454,9 @@ static NSPointerArray *FJSValueLiveWeakArray;
         case _C_VOID:
             vr = JSValueMakeUndefined([_runtime contextRef]);
             break;
+//        case _C_PTR:
+//            vr = JSValueMakeUndefined([_runtime contextRef]);
+//            break;
         default:
             debug(@"Unknown type: '%c'", _cValue.type);
             FMAssert(NO);
@@ -826,7 +835,7 @@ static NSPointerArray *FJSValueLiveWeakArray;
 
 - (BOOL)pushJSValueToNativeType:(NSString*)type {
     
-    if ([type isEqualToString:@"B"]) {
+   if ([type isEqualToString:@"B"]) {
         _cValue.type = _C_BOOL;
         _cValue.value.boolValue = [FJSNativeObjectFromJSValue(_nativeJSValue, type, [_runtime contextRef]) boolValue];
         return YES;
@@ -1038,6 +1047,17 @@ static NSPointerArray *FJSValueLiveWeakArray;
 - (nullable void*)structLocation {
     FMAssert(_cValue.type == _C_STRUCT_B);
     return _cValue.value.pointerValue;
+}
+
+- (FJSValue*)unwrapValue {
+    
+    if ([self isInstance] && [[self instance] isKindOfClass:[FJSValue class]]) {
+        debug(@"unwrapping %@", [self instance]);
+        return CFRetain((__bridge CFTypeRef)([self instance]));
+    }
+    
+    return self;
+    
 }
 
 @end

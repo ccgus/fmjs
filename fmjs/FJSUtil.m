@@ -142,7 +142,7 @@ id FJSNativeObjectFromJSValue(JSValueRef jsValue, NSString *typeEncoding, JSCont
         }
         
         
-        if (JSValueIsNull(context, jsValue) || JSValueIsUndefined(context, jsValue)) {
+        if (JSValueIsNull(context, jsValue) || JSValueIsUndefined(context, jsValue) || !JSValueGetType(context, jsValue)) {
             return nil;
         }
         
@@ -512,4 +512,96 @@ NSString *FJSUUID(void) {
     return [uuidString lowercaseString];
 }
 
+
+// This was taken from jsc-cli
+// FIXME: Add the Apple copyright to FMJS.
+static NSString *FJSResolveModuleAsFile(NSString *modulePath) {
+    if ([[NSFileManager defaultManager] fileExistsAtPath:modulePath]) {
+        return modulePath;
+    }
+    
+    if ([[NSFileManager defaultManager] fileExistsAtPath:[modulePath stringByAppendingPathExtension:@"js"]]) {
+        return [modulePath stringByAppendingPathExtension:@"js"];
+    }
+    
+    return nil;
+}
+
+static NSString *FJSResolveModuleAsDirectory(NSString *modulePath) {
+    
+//    if ([[NSFileManager defaultManager] fileExistsAtPath:[modulePath stringByAppendingPathComponent:@"package.json"]]) {
+//        NSString *path = [modulePath stringByAppendingString:@"package.json"];
+//        NSString *fileContents = [NSString stringWithContentsOfFile:path encoding:NSUTF8StringEncoding error:nil];
+//        JSContext *tempContext = [[JSContext alloc] init];
+//        NSString *script = [NSString stringWithFormat:@"JSON.parse(%@)", fileContents];
+//        JSValue *result = [tempContext evaluateScript:script];
+//        if (![result[@"main"] isUndefined]) {
+//            return resolveModuleAsFile([result[@"main"] toString]);
+//        }
+//    }
+    
+    if ([[NSFileManager defaultManager] fileExistsAtPath:[modulePath stringByAppendingPathComponent:@"index.js"]]) {
+        return [modulePath stringByAppendingPathComponent:@"index.js"];
+    }
+    
+    return nil;
+}
+
+static NSArray *FJSNodeModulePaths(NSString *start)
+{
+    NSArray *parts = [start pathComponents];
+    NSUInteger root = [parts indexOfObject:@"node_modules"];
+    if (root == NSNotFound)
+        root = 0;
+    
+    NSUInteger i = [parts count] - 1;
+    NSMutableArray *dirs = [[NSMutableArray alloc] init];
+    while (i > root) {
+        NSString *component = [parts objectAtIndex:i];
+        if ([component isEqualToString:@"node_modules"]) {
+            i -= 1;
+            continue;
+        }
+        [dirs addObject:[NSString pathWithComponents:[parts subarrayWithRange:NSMakeRange(0, i)]]];
+        i -= 1;
+    }
+    
+    return dirs;
+}
+
+
+static NSString *FJSResolveAsNodeModule(NSString *moduleName, NSString* start)
+{
+    NSArray *dirs = FJSNodeModulePaths(start);
+    for (NSUInteger i = 0; i < [dirs count]; i++) {
+        NSString *dir = [dirs objectAtIndex:i];
+        NSString *result = FJSResolveModuleAsFile([NSString stringWithFormat:@"%@/%@", dir, moduleName]);
+        if (result)
+            return result;
+        
+        result = FJSResolveModuleAsDirectory([NSString stringWithFormat:@"%@/%@", dir, moduleName]);
+        if (result)
+            return result;
+    }
+    return nil;
+}
+
+NSString *FJSResolveModuleAtPath(NSString *module, NSString *path) {
+    
+    NSString *result;
+    if ([module hasPrefix:@"./"] || [module hasPrefix:@"/"] || [module hasPrefix:@"../"]) {
+        result = FJSResolveModuleAsFile([NSString stringWithFormat:@"%@/%@", path, module]);
+        
+        if (result) {
+            return result;
+        }
+        
+        result = FJSResolveModuleAsDirectory([NSString stringWithFormat:@"%@/%@", path, module]);
+        if (result) {
+            return result;
+        }
+    }
+    
+    return FJSResolveAsNodeModule(module, [path stringByDeletingLastPathComponent]);
+}
 

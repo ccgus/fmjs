@@ -163,22 +163,7 @@ static JSValueRef FJS_callAsFunction(JSContextRef ctx, JSObjectRef functionJS, J
     
     
     self[@"require"] = ^(NSString *modulePath) {
-        debug(@"arg: '%@'", modulePath);
-        
-        //NSString* module = [NSString stringWithFormat:@"(function() { var module = { exports : {} }; var exports = module.exports; %@ ; return module.exports; })()", script];
-        //result = [self executeString:module baseURL:scriptURL];
-        
-        
-        
-        
-        
-//        JSModule *module = [JSModule require:arg atPath:[[NSFileManager defaultManager] currentDirectoryPath]];
-//        if (!module) {
-//            [[JSContext currentContext] evaluateScript:@"throw 'not found'"];
-//            return [JSValue valueWithUndefinedInContext:[JSContext currentContext]];
-//        }
-//        return module.exports;
-        return nil;
+        return [weakSelf require:modulePath];
     };
     
     
@@ -189,6 +174,7 @@ static JSValueRef FJS_callAsFunction(JSContextRef ctx, JSObjectRef functionJS, J
     if (_jsContext) {
         
         for (NSString *name in [_runtimeObjectNames copy]) {
+            debug(@"name: '%@'", name);
             [self removeRuntimeValueWithName:name];
         }
         
@@ -402,7 +388,7 @@ static JSValueRef FJS_callAsFunction(JSContextRef ctx, JSObjectRef functionJS, J
     
     __block FJSValue *obj = nil;
     
-    dispatch_sync(_evaluateQueue, ^{
+    //dispatch_sync(_evaluateQueue, ^{
         JSValueRef exception = NULL;
         
         JSStringRef jsName = JSStringCreateWithUTF8CString([name UTF8String]);
@@ -415,7 +401,7 @@ static JSValueRef FJS_callAsFunction(JSContextRef ctx, JSObjectRef functionJS, J
         else {
             obj = [FJSValue valueForJSValue:jsValue inRuntime:self];
         }
-    });
+    //});
     
     return obj;
 }
@@ -478,6 +464,46 @@ static JSValueRef FJS_callAsFunction(JSContextRef ctx, JSObjectRef functionJS, J
     });
 }
 
+- (FJSValue*)evaluateNoQueue:(NSString *)script withSourceURL:(nullable NSURL *)sourceURL {
+    
+    [self pushAsCurrentFJS];
+    
+    FJSValue *returnValue = nil;
+    
+    @try {
+        
+        
+        JSStringRef jsString = JSStringCreateWithCFString((__bridge CFStringRef)script);
+        JSStringRef jsScriptPath = (sourceURL != nil ? JSStringCreateWithUTF8CString([[sourceURL path] UTF8String]) : NULL);
+        JSValueRef exception = NULL;
+        
+        JSValueRef result = JSEvaluateScript([self contextRef], jsString, NULL, jsScriptPath, 1, &exception);
+        
+        [self reportPossibleJSException:exception];
+        
+        if (jsString != NULL) {
+            JSStringRelease(jsString);
+        }
+        
+        if (jsScriptPath != NULL) {
+            JSStringRelease(jsScriptPath);
+        }
+        
+        returnValue = [FJSValue valueForJSValue:result inRuntime:self];
+    }
+    @catch (NSException *exception) {
+        debug(@"Exception: %@", exception);
+        [self reportNSException:exception];
+    }
+    @finally {
+        ;
+    }
+    
+    [self popAsCurrentFJS];
+    
+    return returnValue;
+}
+
 - (FJSValue*)evaluateScript:(NSString *)script withSourceURL:(nullable NSURL *)sourceURL {
     
     /* Get the currently executing queue (which should probably be nil, but in theory could be another DB queue
@@ -488,41 +514,7 @@ static JSValueRef FJS_callAsFunction(JSContextRef ctx, JSObjectRef functionJS, J
     __block FJSValue *returnValue = nil;
     
     dispatch_sync(_evaluateQueue, ^{
-        
-        [self pushAsCurrentFJS];
-        
-        @try {
-            
-            
-            JSStringRef jsString = JSStringCreateWithCFString((__bridge CFStringRef)script);
-            JSStringRef jsScriptPath = (sourceURL != nil ? JSStringCreateWithUTF8CString([[sourceURL path] UTF8String]) : NULL);
-            JSValueRef exception = NULL;
-            
-            JSValueRef result = JSEvaluateScript([self contextRef], jsString, NULL, jsScriptPath, 1, &exception);
-            
-            [self reportPossibleJSException:exception];
-            
-            if (jsString != NULL) {
-                JSStringRelease(jsString);
-            }
-            
-            if (jsScriptPath != NULL) {
-                JSStringRelease(jsScriptPath);
-            }
-            
-            returnValue = [FJSValue valueForJSValue:(JSObjectRef)result inRuntime:self];
-            
-        }
-        @catch (NSException *exception) {
-            debug(@"Exception: %@", exception);
-            [self reportNSException:exception];
-        }
-        @finally {
-            ;
-        }
-        
-        [self popAsCurrentFJS];
-        
+        returnValue = [self evaluateNoQueue:script withSourceURL:sourceURL];
     });
     
     return returnValue;
@@ -577,6 +569,79 @@ static JSValueRef FJS_callAsFunction(JSContextRef ctx, JSObjectRef functionJS, J
     return r;
 }
 
+- (FJSValue*)evaluateModuleAtURL:(NSURL*)scriptURL {
+    
+    if (scriptURL) {
+        NSError *error;
+        NSString *script = [NSString stringWithContentsOfURL:scriptURL encoding:NSUTF8StringEncoding error:&error];
+        
+        if (script) {
+            NSString *module = [NSString stringWithFormat:@"(function() { var module = { exports : {} }; var exports = module.exports; %@ ; return module.exports; })()", script];
+            
+            FJSValue *moduleValue = [self evaluateNoQueue:module withSourceURL:scriptURL];
+            
+            debug(@"moduleValue: '%@'", moduleValue);
+            
+            return moduleValue;
+        }
+        else if (error) {
+            @throw [NSException exceptionWithName:NSInvalidArgumentException reason:[NSString stringWithFormat:@"Cannot find module %@", scriptURL.path] userInfo:nil];
+        }
+    }
+    
+    return nil;
+}
+
+
+- (FJSValue*)require:(NSString*)modulePath {
+    
+    NSString *fullPath = FJSResolveModuleAtPath(modulePath, [[NSFileManager defaultManager] currentDirectoryPath]);
+    
+    debug(@"arg: '%@'", modulePath);
+    debug(@"fullPath: '%@'", fullPath);
+    
+    if (!fullPath) {
+        FMAssert(NO);
+        return [FJSValue valueWithUndefinedInRuntime:self];
+    }
+    
+    FJSValue *v = [self evaluateModuleAtURL:[NSURL fileURLWithPath:fullPath]];
+    if (v) {
+        #pragma message "FIXME: We need to cache the module."
+        
+        //self[modulePath] = v;
+        
+        return v;
+    }
+    
+    //NSString* module = [NSString stringWithFormat:@"(function() { var module = { exports : {} }; var exports = module.exports; %@ ; return module.exports; })()", script];
+    //result = [self executeString:module baseURL:scriptURL];
+    
+    
+    
+    
+    
+    //        JSModule *module = [JSModule require:arg atPath:[[NSFileManager defaultManager] currentDirectoryPath]];
+    //        if (!module) {
+    //            [[JSContext currentContext] evaluateScript:@"throw 'not found'"];
+    //            return [JSValue valueWithUndefinedInContext:[JSContext currentContext]];
+    //        }
+    //        return module.exports;
+    return [FJSValue valueWithNewObjectInRuntime:self];
+    
+}
+
+
+
+
+
+
+
+
+
+
+
+
 @end
 
 static void FJS_initialize(JSContextRef ctx, JSObjectRef object) {
@@ -605,7 +670,7 @@ static void FJS_initialize(JSContextRef ctx, JSObjectRef object) {
 
 static bool FJS_hasProperty(JSContextRef ctx, JSObjectRef object, JSStringRef propertyNameJS) {
     NSString *propertyName = (NSString *)CFBridgingRelease(JSStringCopyCFString(kCFAllocatorDefault, propertyNameJS));
-    if ([propertyName isEqualToString:FJSRuntimeLookupKey]) {
+    if ([propertyName isEqualToString:FJSRuntimeLookupKey] || [propertyName isEqualToString:@"Object"]) {
         return nil;
     }
     
@@ -671,7 +736,7 @@ static bool FJS_hasProperty(JSContextRef ctx, JSObjectRef object, JSStringRef pr
 
 JSValueRef FJS_getProperty(JSContextRef ctx, JSObjectRef object, JSStringRef propertyNameJS, JSValueRef *exception) {
     NSString *propertyName = (NSString *)CFBridgingRelease(JSStringCopyCFString(kCFAllocatorDefault, propertyNameJS));
-    if ([propertyName isEqualToString:FJSRuntimeLookupKey]) {
+    if ([propertyName isEqualToString:FJSRuntimeLookupKey] || [propertyName isEqualToString:@"Object"]) {
         return nil;
     }
     
@@ -876,6 +941,10 @@ static JSValueRef FJS_callAsFunction(JSContextRef context, JSObjectRef functionJ
     FJSFFI *ffi = [FJSFFI ffiWithFunction:functionToCall caller:objectToCall arguments:args cos:runtime];
     
     FJSValue *ret = [ffi callFunction];
+    
+    // unwrap does a +1 retain on the value returned. Otherwise it'll be quickly removed from the runtime.
+    ret = [ret unwrapValue];
+    
     FMAssert(ret);
     
     JSValueRef returnRef = [ret JSValue];
@@ -898,9 +967,14 @@ static void FJS_finalize(JSObjectRef object) {
             FMAssert(![(__bridge FJSValue*)value isJSNative]); // Sanity.
             FJSRuntime *rt = [(__bridge FJSValue*)value runtime];
             
+            debug(@"finalize: '%@'", value);
+            
             if ([rt finalizeHandler]) {
                 [rt finalizeHandler](rt, (__bridge FJSValue*)value);
             }
+        }
+        else {
+            FMAssert([(__bridge id)value isKindOfClass:[FJSValue class]]); // When isn't this the case?
         }
         
         CFRelease(value);

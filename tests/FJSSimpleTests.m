@@ -385,7 +385,7 @@ int FJSSimpleTestsMethodCalled;
     
 }
 
-- (void)testSimpleModuleRequire {
+- (void)xtestSimpleModuleRequire {
     
     NSString *modulePath = [[NSBundle bundleForClass:[self class]] pathForResource:@"FJSTestModule" ofType:@"js"];
     FMAssert(modulePath);
@@ -394,23 +394,27 @@ int FJSSimpleTestsMethodCalled;
     
     FJSRuntime *runtime = [FJSRuntime new];
     
+    [runtime setExceptionHandler:^(FJSRuntime * _Nonnull rt, NSException * _Nonnull exception) {
+        debug(@"exception: '%@'", exception);
+    }];
+    
     __block BOOL functionCalled = NO;
     runtime[@"testFunction"] = ^{
         functionCalled = YES;
     };
     
-    [runtime evaluateScript:[NSString stringWithFormat:@"var r = require('%@'); r.callTestFunc();", modulePath]];
+    FJSValue *functionBlock = runtime[@"testFunction"];
+    
+    XCTAssert(functionBlock);
+    
+    [runtime evaluateScript:[NSString stringWithFormat:@"var r = require('%@');", modulePath]];
+    
+    [runtime evaluateScript:@"print(Object.keys(r));"];
+    [runtime evaluateScript:@"r.callTestFunc();"];
+    
+    [runtime shutdown];
     
     XCTAssert(functionCalled);
-    
-//
-    
-    
-//
-//    FJSValue *v = [runtime evaluateScript:code];
-//
-//
-//    [runtime evaluateScript:@"funk(what.name);"];
 }
 
 
@@ -673,10 +677,12 @@ int FJSSimpleTestsMethodCalled;
      It was fixed, but hey let's keep this around anyway.
      */
     
-    FJSRuntime *runtime = [FJSRuntime new];
-    
-    [runtime shutdown];
-    
+    @autoreleasepool {
+        
+        FJSRuntime *runtime = [FJSRuntime new];
+        
+        [runtime shutdown];
+    }
     
     XCTAssert(![FJSValue countOfLiveInstances], @"Still have %ld live instances.", [FJSValue countOfLiveInstances]);
     
@@ -691,6 +697,8 @@ int FJSSimpleTestsMethodCalled;
                 debug(@"v: '%@'", v);
             }
         }
+        
+        
     }
 }
 

@@ -85,6 +85,7 @@ static JSValueRef FJS_callAsFunction(JSContextRef ctx, JSObjectRef functionJS, J
             [FJSRuntime loadFrameworkAtPath:@"/System/Library/Frameworks/AppKit.framework"];
             [FJSRuntime loadFrameworkAtPath:@"/System/Library/Frameworks/CoreGraphics.framework"];
             [FJSRuntime loadFrameworkAtPath:@"/System/Library/Frameworks/CoreImage.framework"];
+            [FJSRuntime loadFrameworkAtPath:@"/System/Library/Frameworks/CoreFoundation.framework"];
             
             /* If we have custom functions again, we'll need this.
             NSString *xml =
@@ -926,6 +927,9 @@ static JSValueRef FJS_callAsFunction(JSContextRef context, JSObjectRef functionJ
     
     FJSValue *objectToCall = [FJSValue valueForJSValue:thisObject inRuntime:runtime];
     FJSValue *functionToCall = [FJSValue valueForJSValue:functionJS inRuntime:runtime];
+    
+    #pragma message "FIXME: Can we add a 'traceFunctionCalls' var?"
+    debug(@"[[functionToCall symbol] name]: '%@'", [[functionToCall symbol] name]);
     
     NSMutableArray *args = [NSMutableArray arrayWithCapacity:argumentCount];
     for (size_t idx = 0; idx < argumentCount; idx++) {

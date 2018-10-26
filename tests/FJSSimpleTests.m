@@ -26,6 +26,7 @@ NSString *FJSTestExceptionReason = @"this is a test exception";
 int FJSSimpleTestsInitHappend;
 int FJSSimpleTestsDeallocHappend;
 int FJSSimpleTestsMethodCalled;
+int FJSTestCGImageRefExampleCounter;
 
 @interface FJSTestClass : NSObject
 @property (assign) int passedInt;
@@ -80,6 +81,13 @@ int FJSSimpleTestsMethodCalled;
 
 + (void)throwException {
     @throw [NSException exceptionWithName:NSGenericException reason:FJSTestExceptionReason userInfo:nil];
+}
+
++ (void)testCGImageIs400x400:(CGImageRef)ref {
+    debug(@"ref: '%@'", ref);
+    if (CGSizeEqualToSize(CGSizeMake(400, 400), CGSizeMake(CGImageGetWidth(ref), CGImageGetHeight(ref)))) {
+        FJSTestCGImageRefExampleCounter++;
+    }
 }
 
 @end
@@ -948,6 +956,29 @@ int FJSSimpleTestsMethodCalled;
     XCTAssert([[url absoluteString] isEqualToString:@"https://flyingmeat.com/acorn"]);
     
     [runtime shutdown];
+}
+
+- (void)testCGImageRefExample {
+    
+    int countStart = FJSTestCGImageRefExampleCounter;
+    
+    NSString *code = @"\
+    var url = NSURL.fileURLWithPath_('/Library/Desktop Pictures/Yosemite.jpg');\n\
+    var img = CIImage.imageWithContentsOfURL_(url)\n\
+    var ctx = CIContext.new();\n\
+    var cgimg = ctx.createCGImage_fromRect_(img, CGRectMake(0, 0, 400, 400));\n\
+    FJSTestClass.testCGImageIs400x400_(cgimg);\n\
+    CFRelease(cgimg);\n\
+    url = null; img = null; ctx = null; cgimg = null;";
+    
+    FJSRuntime *runtime = [FJSRuntime new];
+    [runtime evaluateScript:code];
+    
+    XCTAssert(FJSTestCGImageRefExampleCounter = countStart + 1);
+    
+    
+    [runtime shutdown];
+    
 }
 
 - (void)xtestPerformanceExample {

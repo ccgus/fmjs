@@ -65,6 +65,7 @@ typedef struct {
 - (CGPoint)toCGPoint;
 - (CGSize)toCGSize;
 - (CGRect)toCGRect;
+- (CFTypeRef)CFTypeRef;
 
 - (void*)objectStorage;
 - (BOOL)pushJSValueToNativeType:(NSString*)type;

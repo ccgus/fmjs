@@ -298,6 +298,10 @@ static NSPointerArray *FJSValueLiveWeakArray;
     return (__bridge id)_cValue.value.pointerValue;
 }
 
+- (CFTypeRef)CFTypeRef {
+    return _cValue.value.pointerValue;
+}
+
 - (Class)rtClass {
     return (__bridge Class)_cValue.value.pointerValue;
 }
@@ -391,6 +395,8 @@ static NSPointerArray *FJSValueLiveWeakArray;
 
 - (nullable JSValueRef)JSValue {
     
+    #pragma message "FIXME: Should we cache our JSValue if we're not native? I mean, that would make sense…"
+    
     if (_nativeJSValue) {
         return _nativeJSValue;
     }
@@ -451,7 +457,11 @@ static NSPointerArray *FJSValueLiveWeakArray;
         }
         
         case _C_CLASS:
-        case _C_STRUCT_B: {
+        case _C_STRUCT_B:{
+            vr = [_runtime newJSValueForWrapper:self];
+            break;
+        }
+        case _C_PTR: {
             vr = [_runtime newJSValueForWrapper:self];
             break;
         }
@@ -459,9 +469,6 @@ static NSPointerArray *FJSValueLiveWeakArray;
         case _C_VOID:
             vr = JSValueMakeUndefined([_runtime contextRef]);
             break;
-//        case _C_PTR:
-//            vr = JSValueMakeUndefined([_runtime contextRef]);
-//            break;
         default:
             debug(@"Unknown type: '%c'", _cValue.type);
             FMAssert(NO);

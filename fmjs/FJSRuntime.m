@@ -17,6 +17,7 @@
 #import <dlfcn.h>
 
 BOOL FMJSUseSynchronousGarbageCollectForDebugging;
+BOOL FJSTraceFunctionCalls;
 NSString *FMJavaScriptExceptionName = @"FMJavaScriptException";
 const CGRect FJSRuntimeTestCGRect = {74, 78, 11, 16};
 static const void * const kDispatchQueueSpecificKey = &kDispatchQueueSpecificKey;
@@ -928,8 +929,9 @@ static JSValueRef FJS_callAsFunction(JSContextRef context, JSObjectRef functionJ
     FJSValue *objectToCall = [FJSValue valueForJSValue:thisObject inRuntime:runtime];
     FJSValue *functionToCall = [FJSValue valueForJSValue:functionJS inRuntime:runtime];
     
-    #pragma message "FIXME: Can we add a 'traceFunctionCalls' var?"
-    debug(@"[[functionToCall symbol] name]: '%@'", [[functionToCall symbol] name]);
+    if (FJSTraceFunctionCalls) {
+        NSLog(@"FJS_callAsFunction: '%@'", [[functionToCall symbol] name]);
+    }
     
     NSMutableArray *args = [NSMutableArray arrayWithCapacity:argumentCount];
     for (size_t idx = 0; idx < argumentCount; idx++) {

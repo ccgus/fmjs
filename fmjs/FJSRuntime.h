@@ -12,6 +12,7 @@
 
 NS_ASSUME_NONNULL_BEGIN
 
+extern BOOL FJSTraceFunctionCalls;
 extern NSString *FMJavaScriptExceptionName;
 
 @class FJSValue;

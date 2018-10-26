@@ -84,7 +84,7 @@ int FJSTestCGImageRefExampleCounter;
 }
 
 + (void)testCGImageIs400x400:(CGImageRef)ref {
-    debug(@"ref: '%@'", ref);
+    
     if (CGSizeEqualToSize(CGSizeMake(400, 400), CGSizeMake(CGImageGetWidth(ref), CGImageGetHeight(ref)))) {
         FJSTestCGImageRefExampleCounter++;
     }
@@ -356,6 +356,7 @@ int FJSTestCGImageRefExampleCounter;
     
     // Note- when guard malloc is turned on in 10.14, the Apple JPEG decoders trip it up. Hurray.
     
+    
     NSString *code = @"\
     var url = NSURL.fileURLWithPath_('/Library/Desktop Pictures/Yosemite.jpg');\n\
     var img = CIImage.imageWithContentsOfURL_(url)\n\
@@ -364,22 +365,26 @@ int FJSTestCGImageRefExampleCounter;
     var r = f.outputImage();\n\
     r = r.imageByCroppingToRect_(CGRectMake(0, 0, 500, 500));\n\
     r = r.imageByApplyingTransform_(CGAffineTransformMakeScale(.5, .5));\n\
-    var tiff = r.TIFFRepresentation();\n\
-    tiff.writeToFile_atomically_('/tmp/foo.tiff', true);\n\
-    NSWorkspace.sharedWorkspace().openFile_('/tmp/foo.tiff');";
+    checkImage(r);";
     
     FJSRuntime *runtime = [FJSRuntime new];
+    
+    runtime[@"checkImage"] = ^(CIImage *img) {
+        XCTAssert([img extent].size.width == 250, @"Got %f", [img extent].size.width);
+        XCTAssert([img extent].size.height == 250, @"Got %f", [img extent].size.height);
+    };
+    
     [runtime evaluateScript:code];
 
-    FJSValue *tiff = runtime[@"tiff"];
-    XCTAssert(tiff);
+    FJSValue *img = runtime[@"img"];
+    XCTAssert(img);
     
     // FIXME: This sucks! Why do we have to nil out our variables to get JSC to call finalize on our objects? We don't need to do this in a cocoa app, which has runloops all set up :/"
     [runtime evaluateScript:@"url = null; img = null; f = null; r = null; tiff = null;"];
     
     [runtime shutdown];
     
-    XCTAssert([tiff debugFinalizeCalled]);
+    XCTAssert([img debugFinalizeCalled]);
     
     
 }
@@ -398,12 +403,21 @@ int FJSTestCGImageRefExampleCounter;
         var image = CIImage.imageWithContentsOfURL_(url)\n\
         image = image.imageByApplyingFilter_withInputParameters_('CICircularScreen', filterParams);\n\
         image = image.imageByCroppingToRect_(CGRectMake(0, 0, 200, 200));\n\
-        var tiff = image.TIFFRepresentation();\n\
-        tiff.writeToFile_atomically_('/tmp/foo2.tiff', true);\n\
-        NSWorkspace.sharedWorkspace().openFile_('/tmp/foo2.tiff');";
+        checkImage(image);\n\
+        //var tiff = image.TIFFRepresentation();\n\
+        //tiff.writeToFile_atomically_('/tmp/foo2.tiff', true);\n\
+        //NSWorkspace.sharedWorkspace().openFile_('/tmp/foo2.tiff');";
         
         
         FJSRuntime *runtime = [FJSRuntime new];
+        
+        
+        runtime[@"checkImage"] = ^(CIImage *img) {
+            XCTAssert([img extent].size.width == 200, @"Got %f", [img extent].size.width);
+            XCTAssert([img extent].size.height == 200, @"Got %f", [img extent].size.height);
+        };
+        
+        
         [runtime evaluateScript:code];
         // This is kind of Bs. What if we do a runloop?
         [runtime evaluateScript:@"center = null; filterParams.filterParams = null; filterParams = null; url = null; image = null; tiff = null;"];

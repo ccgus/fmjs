@@ -120,17 +120,12 @@ static NSMutableDictionary *FJSFFIStructureLookup;
             
         }
         else  {
-            #pragma message "FIXME: This obviously isn't going to work for structs and other things that we need to malloc memory on the stack for."
-            FJSObjCValue cval;
-            cval.type = returnType[0];
-            FMAssert(cval.type);
-            [invocation getReturnValue:&(cval.value.pointerValue)];
             
-            returnFValue = [FJSValue valueWithCValue:cval inRuntime:_runtime];
-            
+            if ([functionSymbol returnValue]) {
+                returnFValue = [FJSValue valueWithSymbol:[functionSymbol returnValue] inRuntime:_runtime];
+                [invocation getReturnValue:[returnFValue objectStorage]];
+            }
         }
-        
-        
     }
     @catch (NSException *e) {
         [_runtime reportNSException:e];

@@ -99,8 +99,16 @@ int FJSTestCGImageRefExampleCounter;
 - (void)testFunctionToBlock:(void (^)(FJSTestClass *c))block argObjDict:(NSDictionary*)d {
 
     //[self testFunctionToBlock:block];
-    
 }
+
+- (CGRect)getRect {
+    return CGRectMake(10, 11, 12, 13);
+}
+
+- (void)checkRect:(CGRect)r {
+    assert(CGRectEqualToRect(r, CGRectMake(10, 11, 12, 13)));
+}
+
 @end
 
 
@@ -1032,6 +1040,22 @@ int FJSTestCGImageRefExampleCounter;
     
     [runtime shutdown];
     
+}
+
+- (void)testRectCheckTestThing {
+    
+    NSString *code = @"var c = FJSTestClass.new()\n"
+    "var r = c.getRect()\n"
+    "c.checkRect(r);\n"
+    "r = null; c = null;\n";
+    
+    FJSTraceFunctionCalls = YES;
+    
+    FJSRuntime *runtime = [FJSRuntime new];
+    [runtime evaluateScript:code];
+    
+    
+    [runtime shutdown];
 }
 
 - (void)xtestPerformanceExample {

@@ -242,7 +242,7 @@
     
     Method method = isClassMethod ? class_getClassMethod(c, selector) : class_getInstanceMethod(c, selector);
     
-    if (lookForMissingColonForArgument &&  !method) {
+    if (lookForMissingColonForArgument && !method) {
         selector = NSSelectorFromString([methodName stringByAppendingString:@":"]);
         method = isClassMethod ? class_getClassMethod(c, selector) : class_getInstanceMethod(c, selector);
         methodName = [methodName stringByAppendingString:@":"];

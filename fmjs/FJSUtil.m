@@ -166,6 +166,14 @@ id FJSNativeObjectFromJSValue(JSValueRef jsValue, NSString *typeEncoding, JSCont
             BOOL isFunction = JSObjectIsFunction(context, jsObject);
             
             if (isFunction) {
+                
+                if ([typeEncoding hasPrefix:@"@?"]) {
+                    debug(@"Oh crap, it's a block.");
+                    FMAssert(NO);
+                    return nil;
+                }
+                
+                
                 JSStringRef resultStringJS = JSValueToStringCopy(context, jsValue, NULL);
                 NSString *functionString = (NSString *)CFBridgingRelease(JSStringCopyCFString(kCFAllocatorDefault, resultStringJS));
                 JSStringRelease(resultStringJS);

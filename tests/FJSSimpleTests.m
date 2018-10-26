@@ -90,6 +90,17 @@ int FJSTestCGImageRefExampleCounter;
     }
 }
 
+- (void)testFunctionToBlock:(void (^)(FJSTestClass *c, int what, id other))block {
+    
+    block(self, 0, self);
+    
+}
+
+- (void)testFunctionToBlock:(void (^)(FJSTestClass *c))block argObjDict:(NSDictionary*)d {
+
+    //[self testFunctionToBlock:block];
+    
+}
 @end
 
 
@@ -605,6 +616,34 @@ int FJSTestCGImageRefExampleCounter;
     
     [runtime shutdown];
 }
+
+- (void)testFunctionToBlock {
+    
+    // FIXME: how are we going to do JS functions to blocks?
+    
+    // FJSTraceFunctionCalls = YES;
+    
+    FJSTestClass *testClass = [FJSTestClass new];
+    FJSSymbol *symbol = [FJSSymbol symbolForName:@"testFunctionToBlock" inObject:testClass];
+    XCTAssert(symbol);
+    
+    XCTAssert([[[[symbol arguments] firstObject] runtimeType] isEqualToString:@"@?"]);
+    
+    
+    FJSSymbol *otherSym = [FJSSymbol symbolForName:@"testFunctionToBlock_argObjDict" inObject:testClass];
+    XCTAssert(otherSym);
+    
+//    FJSRuntime *runtime = [FJSRuntime new];
+//
+//
+//    runtime[@"testClass"] = testClass;
+//    [runtime evaluateScript:@"testClass.testFunctionToBlock(function(tc) { tc.passedInt = 17; })"];
+//
+//     XCTAssert(testClass.passedInt == 17);
+//
+//    [runtime shutdown];
+}
+
 
 - (void)testCallFunctionNamed {
     

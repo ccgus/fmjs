@@ -119,64 +119,64 @@ static NSPointerArray *FJSValueLiveWeakArray;
     BOOL isObject = JSValueIsObject([runtime contextRef], jsValue);
     
     if (isObject) {
-        FJSValue *wr = (__bridge FJSValue *)(JSObjectGetPrivate(JSValueToObject([runtime contextRef], jsValue, nil)));
-        if (wr) {
-            return wr;
+        FJSValue *nativeCValue = (__bridge FJSValue *)(JSObjectGetPrivate(JSValueToObject([runtime contextRef], jsValue, nil)));
+        if (nativeCValue) {
+            return nativeCValue;
         }
     }
     
-    FJSValue *native = [FJSValue new];
-    [native setNativeJSValue:jsValue];
-    [native setIsJSNative:YES];
-    [native setRuntime:runtime];
-    [native setJsValueType:JSValueGetType([runtime contextRef], jsValue)];
-    return native;
+    FJSValue *nativeJSValue = [FJSValue new];
+    [nativeJSValue setNativeJSValue:jsValue];
+    [nativeJSValue setIsJSNative:YES];
+    [nativeJSValue setRuntime:runtime];
+    [nativeJSValue setJsValueType:JSValueGetType([runtime contextRef], jsValue)];
+    return nativeJSValue;
 }
 
 + (instancetype)valueWithSymbol:(FJSSymbol*)sym inRuntime:(FJSRuntime*)runtime {
     FMAssert(runtime);
-    FJSValue *cw = [[self alloc] init];
-    [cw setSymbol:sym];
-    [cw setRuntime:runtime];
+    FJSValue *value = [[self alloc] init];
+    [value setSymbol:sym];
+    [value setRuntime:runtime];
     
     if ([[sym symbolType] isEqualToString:@"retval"]) {
-        cw->_cValue.type = [[sym runtimeType] UTF8String][0];
+        value->_cValue.type = [[sym runtimeType] UTF8String][0];
     }
     
-    return cw;
+    return value;
 }
 
 + (instancetype)valueWithClass:(Class)c inRuntime:(FJSRuntime*)runtime {
     FMAssert(runtime);
-    FJSValue *cw = [[self alloc] init];
-    [cw setClass:c];
-    [cw setRuntime:runtime];
+    FJSValue *value = [[self alloc] init];
+    [value setClass:c];
+    [value setRuntime:runtime];
     
-    return cw;
+    return value;
 }
 
 + (instancetype)valueWithConstantPointer:(void*)p withSymbol:(FJSSymbol*)sym inRuntime:(FJSRuntime*)runtime {
     // In theory, we're going to do something special with consts in the future.
     
-    FJSValue *cw = [[self alloc] init];
-    [cw setRuntime:runtime];
+    FJSValue *value = [[self alloc] init];
+    [value setRuntime:runtime];
     
-    [cw setSymbol:sym];
+    [value setSymbol:sym];
     
     
     char type = [[sym runtimeType] characterAtIndex:0];
-    cw->_cValue.type = type;
+    value->_cValue.type = type;
     
     if (type == _C_PTR) {
-        cw->_cValue.value.pointerValue = p;
+        value->_cValue.value.pointerValue = p;
         FMAssert(NO); // We need a test for this. Looks like you found a case for it.
     }
     else {
         size_t copySize = 0;
     
         if (type == _C_STRUCT_B) {
-            [cw objectStorage]; // Prime up the struct memory location
-            copySize = [cw madePointerMemorySize];
+            [value objectStorage]; // Prime up the struct memory location
+            copySize = [value madePointerMemorySize];
             FMAssert(copySize);
         }
         else if (!FJSGetSizeOfTypeEncoding(&copySize, type)) {
@@ -186,67 +186,66 @@ static NSPointerArray *FJSValueLiveWeakArray;
         }
         
         FMAssert(copySize);
-        memcpy([cw objectStorage], p, copySize);
+        memcpy([value objectStorage], p, copySize);
     }
     
     // https://developer.apple.com/documentation/code_diagnostics/undefined_behavior_sanitizer/misaligned_pointer?language=objc
     
-    return cw;
+    return value;
 }
 
 + (instancetype)valueWithPointer:(void*)p ofType:(char)type inRuntime:(FJSRuntime*)runtime {
     FMAssert(runtime);
-    FJSValue *cw = [[self alloc] init];
-    cw->_cValue.type = type;
-    cw->_cValue.value.pointerValue = p;
+    FJSValue *value = [[self alloc] init];
+    value->_cValue.type = type;
+    value->_cValue.value.pointerValue = p;
     
-    [cw setRuntime:runtime];
+    [value setRuntime:runtime];
     
-    return cw;
+    return value;
 }
 
 + (instancetype)valueWithBlock:(CFTypeRef)block inRuntime:(FJSRuntime*)runtime {
     FMAssert(runtime);
-    FJSValue *cw = [[self alloc] init];
+    FJSValue *value = [[self alloc] init];
     
-    [cw setBlock:block];
-    [cw setRuntime:runtime];
+    [value setBlock:block];
+    [value setRuntime:runtime];
     
-    return cw;
+    return value;
 }
 
 + (instancetype)valueWithInstance:(CFTypeRef)instance inRuntime:(FJSRuntime*)runtime {
     FMAssert(runtime);
-    FJSValue *cw = [[self alloc] init];
-    [cw setInstance:instance];
-    [cw setRuntime:runtime];
+    FJSValue *value = [[self alloc] init];
+    [value setInstance:instance];
+    [value setRuntime:runtime];
     
-    return cw;
+    return value;
 }
 
 + (instancetype)valueWithWeakInstance:(id)instance inRuntime:(FJSRuntime*)runtime {
     FMAssert(runtime);
-    FJSValue *cw = [[self alloc] init];
-    [cw setWeakInstance:instance];
-    [cw setIsWeakReference:YES];
+    FJSValue *value = [[self alloc] init];
+    [value setWeakInstance:instance];
+    [value setIsWeakReference:YES];
     
-    cw->_cValue.type = _C_ID;
+    value->_cValue.type = _C_ID;
     
-    [cw setRuntime:runtime];
-    //debug(@"weak value: %p", cw);
+    [value setRuntime:runtime];
     
-    return cw;
+    return value;
 }
 
 + (instancetype)valueWithCValue:(FJSObjCValue)cvalue inRuntime:(FJSRuntime*)runtime {
     FMAssert(runtime);
-    FJSValue *cw = [[self alloc] init];
-    [cw setCValue:cvalue];
+    FJSValue *value = [[self alloc] init];
+    [value setCValue:cvalue];
     
-    [cw setRuntime:runtime];
+    [value setRuntime:runtime];
     //debug(@"weak value: %p", cw);
     
-    return cw;
+    return value;
 }
 
 + (instancetype)valueWithSerializedJSFunction:(NSString*)function inRuntime:(FJSRuntime*)runtime {
@@ -395,34 +394,34 @@ static NSPointerArray *FJSValueLiveWeakArray;
 
 - (nullable JSValueRef)JSValue {
     
-    #pragma message "FIXME: Should we cache our JSValue if we're not native? I mean, that would make sense…"
+    // FIXME: Should we cache our JSValue if we're not native? I mean, that would make sense…
     
     if (_nativeJSValue) {
         return _nativeJSValue;
     }
     
-    JSValueRef vr = nil;
+    JSValueRef jsValue = nil;
     
     if ([self isInstance] || [self isBlock]) {
         
-        vr = FJSNativeObjectToJSValue([self instance], [_runtime contextRef]);
+        jsValue = FJSNativeObjectToJSValue([self instance], [_runtime contextRef]);
         
-        if (vr) {
-            return vr;
+        if (jsValue) {
+            return jsValue;
         }
         
         FMAssert(_runtime);
         
-        vr = [_runtime newJSValueForWrapper:self];
+        jsValue = [_runtime newJSValueForWrapper:self];
         
-        FMAssert(vr);
-        return vr;
+        FMAssert(jsValue);
+        return jsValue;
     }
     
     switch (_cValue.type) {
             
         case _C_BOOL:
-            vr = JSValueMakeBoolean([_runtime contextRef], _cValue.value.boolValue);
+            jsValue = JSValueMakeBoolean([_runtime contextRef], _cValue.value.boolValue);
             break;
             
         case _C_CHR:
@@ -452,22 +451,22 @@ static NSPointerArray *FJSValueLiveWeakArray;
                 case _C_FLT:        number = _cValue.value.floatValue; break;
                 case _C_DBL:        number = _cValue.value.doubleValue; break;
             }
-            vr = JSValueMakeNumber([_runtime contextRef], number);
+            jsValue = JSValueMakeNumber([_runtime contextRef], number);
             break;
         }
         
         case _C_CLASS:
         case _C_STRUCT_B:{
-            vr = [_runtime newJSValueForWrapper:self];
+            jsValue = [_runtime newJSValueForWrapper:self];
             break;
         }
         case _C_PTR: {
-            vr = [_runtime newJSValueForWrapper:self];
+            jsValue = [_runtime newJSValueForWrapper:self];
             break;
         }
             
         case _C_VOID:
-            vr = JSValueMakeUndefined([_runtime contextRef]);
+            jsValue = JSValueMakeUndefined([_runtime contextRef]);
             break;
         default:
             debug(@"Unknown type: '%c'", _cValue.type);
@@ -476,22 +475,16 @@ static NSPointerArray *FJSValueLiveWeakArray;
     }
     
     
-    if (!vr) {
+    if (!jsValue) {
         debug(@"Returning nil JSValue for %@", self);
     }
     
-    return vr;
+    return jsValue;
 }
 
 - (void*)objectStorage {
     
     if (_cValue.type == _C_STRUCT_B) {
-        
-//        if (_cValue.value.pointerValue) {
-//
-//            FMAssert([[[self symbol] symbolType] isEqualToString:@"constant"]);
-//            return _cValue.value.pointerValue;
-//        }
         
         if (!_cValue.value.pointerValue) {
             #pragma message "FIXME: refactor out how we get the size of the struct somehow.There's too many lines below to pull it out."

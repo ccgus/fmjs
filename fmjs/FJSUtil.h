@@ -16,6 +16,7 @@ NSString *FJSStructNameFromRuntimeType(NSString *runtimeType);
 
 id FJSNativeObjectFromJSValue(JSValueRef jsValue, NSString *typeEncoding, JSContextRef context);
 JSValueRef FJSNativeObjectToJSValue(id o, JSContextRef context);
+JSValueRef FJSNativeObjectToJSValueOfType(id o, JSContextRef context, JSType type);
 
 void *FJSCallAddressForBlock(id block);
 const char *FJSTypeEncodingForBlock(id theBlock);

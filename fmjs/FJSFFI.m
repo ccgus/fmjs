@@ -224,6 +224,10 @@ static NSMutableDictionary *FJSFFIStructureLookup;
                 [arg pushJSValueToNativeType:[argSym runtimeType]];
                 [arg setSymbol:argSym];
             }
+            else if (!([arg isInstance] || [arg isClass] || [arg isBlock]) && [[argSym runtimeType] hasPrefix:@"@"]) {
+                debug(@"fffffffff- need to push to a native type I guess? W");
+                //FMAssert(NO);
+            }
             
             ffi_type *type         = [arg FFITypeWithHint:[argSym runtimeType]];
             ffiArgs[ffiArgIndex]   = type;

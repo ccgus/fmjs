@@ -1058,6 +1058,34 @@ int FJSTestCGImageRefExampleCounter;
     [runtime shutdown];
 }
 
+- (void)testStringConversion {
+    
+    NSString *s = [NSString stringWithFormat:@"%@yum", self];
+    
+    __block NSString *printedString;
+    FJSRuntime *runtime = [FJSRuntime new];
+    [runtime setPrintHandler:^(FJSRuntime * _Nonnull rt, NSString * _Nonnull stringToPrint) {
+        printedString = stringToPrint;
+        debug(@"printedString: '%@'", printedString);
+    }];
+    
+    runtime[@"foo"] = self;
+    
+    [runtime evaluateScript:@"print(foo + 'yum');"];
+    
+    XCTAssert(printedString);
+    XCTAssert([printedString isEqualToString:s], @"Got: %@", printedString);
+    
+    #pragma message "FIXME: What do we do with rects where instances are expected?"
+//    [runtime evaluateScript:@"print(CGRectMake(1, 2, 3, 4));"];
+//    XCTAssert(printedString);
+//    XCTAssert([printedString isEqualToString:@"1"], @"Got: %@", printedString);
+    
+    [runtime shutdown];
+}
+
+
+
 - (void)xtestPerformanceExample {
     // This is an example of a performance test case.
     [self measureBlock:^{

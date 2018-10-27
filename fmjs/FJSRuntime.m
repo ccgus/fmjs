@@ -44,6 +44,8 @@ JSValueRef FJS_getProperty(JSContextRef ctx, JSObjectRef object, JSStringRef pro
 static bool FJS_setProperty(JSContextRef ctx, JSObjectRef object, JSStringRef propertyNameJS, JSValueRef value, JSValueRef* exception);
 static bool FJS_hasProperty(JSContextRef ctx, JSObjectRef object, JSStringRef propertyName);
 static JSValueRef FJS_callAsFunction(JSContextRef ctx, JSObjectRef functionJS, JSObjectRef thisObject, size_t argumentCount, const JSValueRef arguments[], JSValueRef *exception);
+static JSValueRef FJS_convertToType(JSContextRef ctx, JSObjectRef object, JSType type, JSValueRef* exception);
+
 
 @implementation FJSRuntime
 
@@ -129,6 +131,7 @@ static JSValueRef FJS_callAsFunction(JSContextRef ctx, JSObjectRef functionJS, J
     COSGlobalClassDefinition.finalize           = FJS_finalize;
     COSGlobalClassDefinition.hasProperty        = FJS_hasProperty; // If we don't have this, getProperty gets called twice.
     COSGlobalClassDefinition.callAsFunction     = FJS_callAsFunction;
+    COSGlobalClassDefinition.convertToType      = FJS_convertToType;
     
     _globalClass                                = JSClassCreate(&COSGlobalClassDefinition);
     
@@ -958,6 +961,33 @@ static JSValueRef FJS_callAsFunction(JSContextRef context, JSObjectRef functionJ
     }
     
     return returnRef;
+}
+
+// This function is only invoked when converting an object to number or string
+static JSValueRef FJS_convertToType(JSContextRef context, JSObjectRef object, JSType type, JSValueRef* exception) {
+    FJSRuntime *runtime = [FJSRuntime runtimeInContext:context];
+    FJSValue *valueObject = [FJSValue valueForJSValue:object inRuntime:runtime];
+    
+    if ([valueObject isInstance]) {
+        
+        id o = [valueObject instance];
+        
+        if (type == kJSTypeNumber) {
+            
+            if ([o isKindOfClass:[NSNumber class]] || (([o isKindOfClass:[NSString class]] && FJSStringIsNumber(o)))) {
+                return JSValueMakeNumber(context, [o doubleValue]);
+            }
+        }
+        
+        // Fuck it, you're getting a string.
+        JSStringRef string = JSStringCreateWithCFString((__bridge CFStringRef)[o description]);
+        JSValueRef value = JSValueMakeString(context, string);
+        JSStringRelease(string);
+        return value;
+    }
+    
+    return JSValueMakeNumber(context, [valueObject toDouble]);
+    
 }
 
 static void FJS_finalize(JSObjectRef object) {

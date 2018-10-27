@@ -280,12 +280,6 @@
         
         [(isClassMethod ? [self classMethods] : [self instanceMethods]) addObject:methodSymbol];
         
-        if (![NSThread isMainThread]) {
-            //assert([NSThread isMainThread]); // need to put things in a queue if we're doing this in a background thread.
-            NSLog(@"symbol manager is not thread safe");
-        }
-        
-        
         return methodSymbol;
     }
     
@@ -317,12 +311,6 @@
         FJSSymbol *argument = [FJSSymbol new];
         [argument setRuntimeType:[NSString stringWithFormat:@"%s", [methodSignature getArgumentTypeAtIndex:idx]]];
         [[methodSymbol arguments] addObject:argument];
-    }
-    
-    
-    if (![NSThread isMainThread]) {
-        //assert([NSThread isMainThread]); // need to put things in a queue if we're doing this in a background thread.
-        NSLog(@"symbol manager is not thread safe");
     }
     
     return methodSymbol;

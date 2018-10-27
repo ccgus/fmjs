@@ -205,7 +205,7 @@ static JSValueRef FJS_convertToType(JSContextRef ctx, JSObjectRef object, JSType
 
 
 - (void)pushAsCurrentFJS {
-    // FIXME: This doesn't nest at all.
+    // FIXME: This doesn't nest at all. Also, it's not thread safe hahaha.
     [self setPreviousRuntime:FJSCurrentRuntime];
     FJSCurrentRuntime = self;
 }
@@ -745,6 +745,7 @@ JSValueRef FJS_getProperty(JSContextRef ctx, JSObjectRef object, JSStringRef pro
     FJSRuntime *runtime = [FJSRuntime runtimeInContext:ctx];
     
     if ([propertyName isEqualToString:@"toString"] || [propertyName isEqualToString:@"Symbol.toStringTag"]/* || [propertyName isEqualToString:@"Symbol.toPrimitive"]*/) {
+        FMAssert(NO); // Do we still need this?
         FJSValue *w = [FJSValue valueForJSValue:object inRuntime:runtime];
         
         return [w toJSString];
@@ -924,7 +925,7 @@ static JSValueRef FJS_callAsFunction(JSContextRef context, JSObjectRef functionJ
         [runtime pushAsCurrentFJS];
     }
     else if ([FJSRuntime currentRuntime] != runtime) {
-        // WTF is going on? Is one runtime calling into another? NOPE
+        // WTF is going on? Is one runtime calling into another? NOPE OMG WHAT ABOUT THREADED TESTS?
         assert(NO);
     }
     

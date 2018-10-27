@@ -27,13 +27,13 @@ static NSMutableDictionary *FJSFFIStructureLookup;
 @implementation FJSFFI
 
 
-+ (instancetype)ffiWithFunction:(FJSValue*)f caller:(nullable FJSValue*)caller arguments:(NSArray*)args cos:(FJSRuntime*)cos {
++ (instancetype)ffiWithFunction:(FJSValue*)f caller:(nullable FJSValue*)caller arguments:(NSArray*)args runtime:(FJSRuntime*)runtime {
     
     FJSFFI *ffi = [FJSFFI new];
     [ffi setF:f];
     [ffi setCaller:caller];
     [ffi setArgs:args];
-    [ffi setRuntime:cos];
+    [ffi setRuntime:runtime];
     
     return ffi;
 }

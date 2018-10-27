@@ -43,9 +43,12 @@ static void FJS_finalize(JSObjectRef object);
 JSValueRef FJS_getProperty(JSContextRef ctx, JSObjectRef object, JSStringRef propertyNameJS, JSValueRef *exception);
 static bool FJS_setProperty(JSContextRef ctx, JSObjectRef object, JSStringRef propertyNameJS, JSValueRef value, JSValueRef* exception);
 static bool FJS_hasProperty(JSContextRef ctx, JSObjectRef object, JSStringRef propertyName);
+static JSObjectRef FJS_callAsConstructor(JSContextRef ctx, JSObjectRef constructor, size_t argumentCount, const JSValueRef arguments[], JSValueRef* exception);
 static JSValueRef FJS_callAsFunction(JSContextRef ctx, JSObjectRef functionJS, JSObjectRef thisObject, size_t argumentCount, const JSValueRef arguments[], JSValueRef *exception);
 static JSValueRef FJS_convertToType(JSContextRef ctx, JSObjectRef object, JSType type, JSValueRef* exception);
-
+static bool FJS_deleteProperty(JSContextRef ctx, JSObjectRef object, JSStringRef propertyName, JSValueRef* exception);
+static void FJS_getPropertyNames(JSContextRef ctx, JSObjectRef object, JSPropertyNameAccumulatorRef propertyNames);
+static bool FJS_hasInstance(JSContextRef ctx, JSObjectRef constructor, JSValueRef possibleInstance, JSValueRef* exception);
 
 @implementation FJSRuntime
 
@@ -66,9 +69,12 @@ static JSValueRef FJS_convertToType(JSContextRef ctx, JSObjectRef object, JSType
         return NULL;
     }
     
-    FJSValue *value = (__bridge FJSValue *)JSObjectGetPrivate((JSObjectRef)jsValue);
+    if (JSValueIsObject(context, jsValue)) {
+        FJSValue *value = (__bridge FJSValue *)JSObjectGetPrivate((JSObjectRef)jsValue);
+        return [value instance];
+    }
     
-    return [value instance];
+    return nil;
 }
 
 
@@ -125,12 +131,18 @@ static JSValueRef FJS_convertToType(JSContextRef ctx, JSObjectRef object, JSType
     
     JSClassDefinition COSGlobalClassDefinition  = kJSClassDefinitionEmpty;
     COSGlobalClassDefinition.className          = "FMJSClass";
-    COSGlobalClassDefinition.getProperty        = FJS_getProperty;
-    COSGlobalClassDefinition.setProperty        = FJS_setProperty;
     COSGlobalClassDefinition.initialize         = FJS_initialize;
     COSGlobalClassDefinition.finalize           = FJS_finalize;
     COSGlobalClassDefinition.hasProperty        = FJS_hasProperty; // If we don't have this, getProperty gets called twice.
+    COSGlobalClassDefinition.getProperty        = FJS_getProperty;
+    COSGlobalClassDefinition.setProperty        = FJS_setProperty;
+    COSGlobalClassDefinition.deleteProperty     = FJS_deleteProperty;
+    COSGlobalClassDefinition.getPropertyNames   = FJS_getPropertyNames;
+    
     COSGlobalClassDefinition.callAsFunction     = FJS_callAsFunction;
+    COSGlobalClassDefinition.callAsConstructor  = FJS_callAsConstructor;
+    COSGlobalClassDefinition.hasInstance        = FJS_hasInstance;
+    
     COSGlobalClassDefinition.convertToType      = FJS_convertToType;
     
     _globalClass                                = JSClassCreate(&COSGlobalClassDefinition);
@@ -535,7 +547,7 @@ static JSValueRef FJS_convertToType(JSContextRef ctx, JSObjectRef object, JSType
     return [self evaluateScript:script withSourceURL:nil];
 }
 
-- (BOOL)respondsToSelector:(SEL)aSelector {
+- (BOOL)xrespondsToSelector:(SEL)aSelector {
     debug(@"aSelector: '%@'?", NSStringFromSelector(aSelector));
     
     return [super respondsToSelector:aSelector];
@@ -635,54 +647,25 @@ static JSValueRef FJS_convertToType(JSContextRef ctx, JSObjectRef object, JSType
 
 
 
-
-
-
-
-
-
-
-
-
-@end
-
-static void FJS_initialize(JSContextRef ctx, JSObjectRef object) {
+- (void)initializeJSObjectRef:(JSObjectRef)object {
     
-    // debug(@"initialize: %p", object);
-    
-    //debug(@"FJS_initialize: %@", [FJSJSWrapper wrapperForJSObject:object cos:[COScriptLite currentCOScriptLite]]);
-    
-    
-//    debug(@"%s:%d", __FUNCTION__, __LINE__);
-//    id private = (__bridge id)(JSObjectGetPrivate(object));
-//    debug(@"private: '%@'", private);
-//
-//    if (private) {
-
-//        CFRetain((__bridge CFTypeRef)private);
-
-//        if (class_isMetaClass(object_getClass([private representedObject]))) {
-//            debug(@"inited a global class object %@ - going to keep it protected", [private representedObject]);
-//            JSValueProtect(ctx, [private JSObject]);
-//        }
-//    }
-
-
 }
 
-static bool FJS_hasProperty(JSContextRef ctx, JSObjectRef object, JSStringRef propertyNameJS) {
+
+
+- (BOOL)objectRef:(JSObjectRef)object hasProperty:(JSStringRef)propertyNameJS {
+    
     NSString *propertyName = (NSString *)CFBridgingRelease(JSStringCopyCFString(kCFAllocatorDefault, propertyNameJS));
     if ([propertyName isEqualToString:FJSRuntimeLookupKey] || [propertyName isEqualToString:@"Object"]) {
-        return nil;
+        return NO;
     }
     
-    FJSRuntime *runtime   = [FJSRuntime runtimeInContext:ctx];
-    FJSValue *objectValue = [FJSValue valueForJSValue:object inRuntime:runtime];
+    FJSValue *objectValue = [FJSValue valueForJSValue:object inRuntime:self];
     
     if ([objectValue isInstance]) {
-    
+        
         if ([[objectValue instance] respondsToSelector:@selector(hasFJSValueForKeyedSubscript:inRuntime:)]) {
-            if ([[objectValue instance] hasFJSValueForKeyedSubscript:propertyName inRuntime:runtime]) {
+            if ([[objectValue instance] hasFJSValueForKeyedSubscript:propertyName inRuntime:self]) {
                 return YES;
             }
         }
@@ -735,23 +718,17 @@ static bool FJS_hasProperty(JSContextRef ctx, JSObjectRef object, JSStringRef pr
     return NO;
 }
 
-
-JSValueRef FJS_getProperty(JSContextRef ctx, JSObjectRef object, JSStringRef propertyNameJS, JSValueRef *exception) {
+- (JSValueRef)getPropertyNamed:(JSStringRef)propertyNameJS inObject:(JSObjectRef)object exception:(JSValueRef *)exception {
     NSString *propertyName = (NSString *)CFBridgingRelease(JSStringCopyCFString(kCFAllocatorDefault, propertyNameJS));
-    if ([propertyName isEqualToString:FJSRuntimeLookupKey] || [propertyName isEqualToString:@"Object"]) {
-        return nil;
-    }
-    
-    FJSRuntime *runtime = [FJSRuntime runtimeInContext:ctx];
-    
+
     if ([propertyName isEqualToString:@"toString"] || [propertyName isEqualToString:@"Symbol.toStringTag"]/* || [propertyName isEqualToString:@"Symbol.toPrimitive"]*/) {
         FMAssert(NO); // Do we still need this?
-        FJSValue *w = [FJSValue valueForJSValue:object inRuntime:runtime];
+        FJSValue *w = [FJSValue valueForJSValue:object inRuntime:self];
         
         return [w toJSString];
     }
     
-    FJSValue *valueFromJSObject = [FJSValue valueForJSValue:object inRuntime:runtime];
+    FJSValue *valueFromJSObject = [FJSValue valueForJSValue:object inRuntime:self];
     
     // FIXME: package this up in FJSValue, or maybe some other function?
     // Hey, let's look for keyed subscripts!
@@ -760,14 +737,14 @@ JSValueRef FJS_getProperty(JSContextRef ctx, JSObjectRef object, JSStringRef pro
         id objcSubscriptedObject = nil;
         
         if ([[valueFromJSObject instance] respondsToSelector:@selector(FJSValueForKeyedSubscript:inRuntime:)]) {
-            FJSValue *v = [[valueFromJSObject instance] FJSValueForKeyedSubscript:propertyName inRuntime:runtime];
+            FJSValue *v = [[valueFromJSObject instance] FJSValueForKeyedSubscript:propertyName inRuntime:self];
             if (v) {
                 
                 if ([v isJSNative]) {
                     return [v JSValue];
                 }
-                #pragma message "FIXME: Why do we not just call JSValue? Why do I keep on using newJSValueForWrapper?"
-                return [runtime newJSValueForWrapper:v];
+#pragma message "FIXME: Why do we not just call JSValue? Why do I keep on using newJSValueForWrapper?"
+                return [self newJSValueForWrapper:v];
             }
         }
         
@@ -782,10 +759,10 @@ JSValueRef FJS_getProperty(JSContextRef ctx, JSObjectRef object, JSStringRef pro
         if (objcSubscriptedObject) {
             
             JSValueRef subscriptedJSValue = nil;
-            subscriptedJSValue = FJSNativeObjectToJSValue(objcSubscriptedObject, ctx); // Check and see if we can convert objc numbers, strings, or NSNulls to native js types.
+            subscriptedJSValue = FJSNativeObjectToJSValue(objcSubscriptedObject, _jsContext); // Check and see if we can convert objc numbers, strings, or NSNulls to native js types.
             if (!subscriptedJSValue) { //
-                FJSValue *value = [FJSValue valueWithInstance:(__bridge CFTypeRef)(objcSubscriptedObject) inRuntime:runtime];
-                subscriptedJSValue = [runtime newJSValueForWrapper:value];
+                FJSValue *value = [FJSValue valueWithInstance:(__bridge CFTypeRef)(objcSubscriptedObject) inRuntime:self];
+                subscriptedJSValue = [self newJSValueForWrapper:value];
             }
             return subscriptedJSValue;
         }
@@ -810,9 +787,9 @@ JSValueRef FJS_getProperty(JSContextRef ctx, JSObjectRef object, JSStringRef pro
         
         if ([[sym symbolType] isEqualToString:@"function"] || [[sym symbolType] isEqualToString:@"method"]) {
             
-            FJSValue *value = [FJSValue valueWithSymbol:sym inRuntime:runtime];
+            FJSValue *value = [FJSValue valueWithSymbol:sym inRuntime:self];
             
-            JSValueRef jsValue = [runtime newJSValueForWrapper:value];
+            JSValueRef jsValue = [self newJSValueForWrapper:value];
             
             return jsValue;
         }
@@ -821,14 +798,14 @@ JSValueRef FJS_getProperty(JSContextRef ctx, JSObjectRef object, JSStringRef pro
             Class class = NSClassFromString(propertyName);
             assert(class);
             
-            FJSValue *value = [FJSValue valueWithSymbol:sym inRuntime:runtime];
+            FJSValue *value = [FJSValue valueWithSymbol:sym inRuntime:self];
             
             [value setClass:class];
             
             return [value JSValue];
         }
         else if ([[sym symbolType] isEqualToString:@"enum"]) {
-            return JSValueMakeNumber(ctx, [[sym runtimeValue] doubleValue]);
+            return JSValueMakeNumber(_jsContext, [[sym runtimeValue] doubleValue]);
         }
         else if ([[sym symbolType] isEqualToString:@"constant"]) {
             
@@ -838,9 +815,9 @@ JSValueRef FJS_getProperty(JSContextRef ctx, JSObjectRef object, JSStringRef pro
             
             if (dlsymbol) {
                 
-                FJSValue *value = [FJSValue valueWithConstantPointer:dlsymbol withSymbol:sym inRuntime:runtime];
+                FJSValue *value = [FJSValue valueWithConstantPointer:dlsymbol withSymbol:sym inRuntime:self];
                 
-                JSValueRef jsValue = [runtime newJSValueForWrapper:value];
+                JSValueRef jsValue = [self newJSValueForWrapper:value];
                 
                 return jsValue;
                 
@@ -851,23 +828,15 @@ JSValueRef FJS_getProperty(JSContextRef ctx, JSObjectRef object, JSStringRef pro
     return nil;
 }
 
-static bool FJS_setProperty(JSContextRef ctx, JSObjectRef object, JSStringRef propertyNameJS, JSValueRef value, JSValueRef* exception) {
-    NSString *propertyName = (NSString *)CFBridgingRelease(JSStringCopyCFString(kCFAllocatorDefault, propertyNameJS));
-    if ([propertyName isEqualToString:FJSRuntimeLookupKey]) {
-        return NO;
-    }
+
+- (BOOL)setValue:(JSValueRef)value forProperty:(JSStringRef)propertyNameJS inObject:(JSObjectRef)object exception:(JSValueRef*)exception {
     
-    if (!JSObjectGetPrivate(object)) { // We didn't make this object.
-        return NO;
-    }
-    
-    
-    FJSRuntime *runtime         = [FJSRuntime runtimeInContext:ctx];
-    FJSValue *valueFromJSObject = [FJSValue valueForJSValue:object inRuntime:runtime];
-    FJSValue *arg               = [FJSValue valueForJSValue:value inRuntime:runtime];
+    NSString *propertyName      = (NSString *)CFBridgingRelease(JSStringCopyCFString(kCFAllocatorDefault, propertyNameJS));
+    FJSValue *valueFromJSObject = [FJSValue valueForJSValue:object inRuntime:self];
+    FJSValue *arg               = [FJSValue valueForJSValue:value inRuntime:self];
     
     if ([valueFromJSObject isStruct]) {
-        BOOL worked = [valueFromJSObject setValue:[FJSValue valueForJSValue:value inRuntime:runtime] onStructFieldNamed:propertyName];
+        BOOL worked = [valueFromJSObject setValue:[FJSValue valueForJSValue:value inRuntime:self] onStructFieldNamed:propertyName];
         return worked;
     }
     
@@ -877,7 +846,7 @@ static bool FJS_setProperty(JSContextRef ctx, JSObjectRef object, JSStringRef pr
         @try {
             
             if ([[valueFromJSObject instance] respondsToSelector:@selector(setFJSValue:forKeyedSubscript:inRuntime:)]) {
-                [[valueFromJSObject instance] setFJSValue:arg forKeyedSubscript:propertyName inRuntime:runtime];
+                [[valueFromJSObject instance] setFJSValue:arg forKeyedSubscript:propertyName inRuntime:self];
                 return YES;
             }
             
@@ -892,7 +861,7 @@ static bool FJS_setProperty(JSContextRef ctx, JSObjectRef object, JSStringRef pr
             }
         }
         @catch (NSException * e) {
-            [runtime reportNSException:e];
+            [self reportNSException:e];
             return NO;
         }
         
@@ -902,12 +871,12 @@ static bool FJS_setProperty(JSContextRef ctx, JSObjectRef object, JSStringRef pr
         
         FMAssert(([[valueFromJSObject instance] respondsToSelector:NSSelectorFromString(setName)])); // what isn't going to work here?
         if ([[valueFromJSObject instance] respondsToSelector:NSSelectorFromString(setName)]) {
-
-            FJSSymbol *setterMethod = [FJSSymbol symbolForName:setName inObject:[valueFromJSObject instance]];
-            FJSValue *setterValue = [FJSValue valueWithSymbol:setterMethod inRuntime:runtime];
             
-            FJSFFI *ffi = [FJSFFI ffiWithFunction:setterValue caller:valueFromJSObject arguments:@[arg] cos:runtime];
-
+            FJSSymbol *setterMethod = [FJSSymbol symbolForName:setName inObject:[valueFromJSObject instance]];
+            FJSValue *setterValue = [FJSValue valueWithSymbol:setterMethod inRuntime:self];
+            
+            FJSFFI *ffi = [FJSFFI ffiWithFunction:setterValue caller:valueFromJSObject arguments:@[arg] runtime:self];
+            
             [ffi callFunction];
             
             return YES;
@@ -917,21 +886,22 @@ static bool FJS_setProperty(JSContextRef ctx, JSObjectRef object, JSStringRef pr
     return NO;
 }
 
-static JSValueRef FJS_callAsFunction(JSContextRef context, JSObjectRef functionJS, JSObjectRef thisObject, size_t argumentCount, const JSValueRef arguments[], JSValueRef *exception) {
+
+- (JSValueRef)callAsFunction:(JSObjectRef)functionJS onObject:(JSObjectRef)thisObject withArguments:(const JSValueRef*)arguments count:(size_t)argumentCount exception:(JSValueRef *)exception {
     
-    FJSRuntime *runtime = [FJSRuntime runtimeInContext:context];
+    
     BOOL needsToPushRuntime = ![FJSRuntime currentRuntime];
     if (needsToPushRuntime) {
-        [runtime pushAsCurrentFJS];
+        [self pushAsCurrentFJS];
     }
-    else if ([FJSRuntime currentRuntime] != runtime) {
-        // WTF is going on? Is one runtime calling into another? NOPE OMG WHAT ABOUT THREADED TESTS?
+    else if ([FJSRuntime currentRuntime] != self) {
+        // WTF is going on? Is one runtime calling into another? Oh wait- we've go tests set to multi-threaded. Yep, we can ocassionally crash here.
         assert(NO);
     }
     
     
-    FJSValue *objectToCall = [FJSValue valueForJSValue:thisObject inRuntime:runtime];
-    FJSValue *functionToCall = [FJSValue valueForJSValue:functionJS inRuntime:runtime];
+    FJSValue *objectToCall = [FJSValue valueForJSValue:thisObject inRuntime:self];
+    FJSValue *functionToCall = [FJSValue valueForJSValue:functionJS inRuntime:self];
     
     if (FJSTraceFunctionCalls) {
         NSLog(@"FJS_callAsFunction: '%@'", [[functionToCall symbol] name]);
@@ -940,12 +910,12 @@ static JSValueRef FJS_callAsFunction(JSContextRef context, JSObjectRef functionJ
     NSMutableArray *args = [NSMutableArray arrayWithCapacity:argumentCount];
     for (size_t idx = 0; idx < argumentCount; idx++) {
         JSValueRef jsArg = arguments[idx];
-        FJSValue *arg = [FJSValue valueForJSValue:jsArg inRuntime:runtime];
+        FJSValue *arg = [FJSValue valueForJSValue:jsArg inRuntime:self];
         assert(arg);
         [args addObject:arg];
     }
     
-    FJSFFI *ffi = [FJSFFI ffiWithFunction:functionToCall caller:objectToCall arguments:args cos:runtime];
+    FJSFFI *ffi = [FJSFFI ffiWithFunction:functionToCall caller:objectToCall arguments:args runtime:self];
     
     FJSValue *ret = [ffi callFunction];
     
@@ -958,10 +928,87 @@ static JSValueRef FJS_callAsFunction(JSContextRef context, JSObjectRef functionJ
     FMAssert(returnRef);
     
     if (needsToPushRuntime) {
-        [runtime popAsCurrentFJS];
+        [self popAsCurrentFJS];
     }
     
     return returnRef;
+}
+
+
+
+@end
+
+static void FJS_initialize(JSContextRef ctx, JSObjectRef object) {
+    
+    FJSRuntime *runtime = [FJSRuntime runtimeInContext:ctx];
+    [runtime initializeJSObjectRef:object];
+    
+}
+
+static bool FJS_hasProperty(JSContextRef ctx, JSObjectRef object, JSStringRef propertyNameJS) {
+    NSString *propertyName = (NSString *)CFBridgingRelease(JSStringCopyCFString(kCFAllocatorDefault, propertyNameJS));
+    if ([propertyName isEqualToString:FJSRuntimeLookupKey] || [propertyName isEqualToString:@"Object"]) {
+        return NO;
+    }
+    
+    FJSRuntime *runtime   = [FJSRuntime runtimeInContext:ctx];
+    
+    return [runtime objectRef:object hasProperty:propertyNameJS];
+}
+
+
+JSValueRef FJS_getProperty(JSContextRef ctx, JSObjectRef object, JSStringRef propertyNameJS, JSValueRef *exception) {
+    NSString *propertyName = (NSString *)CFBridgingRelease(JSStringCopyCFString(kCFAllocatorDefault, propertyNameJS));
+    if ([propertyName isEqualToString:FJSRuntimeLookupKey] || [propertyName isEqualToString:@"Object"]) {
+        return nil;
+    }
+    
+    FJSRuntime *runtime = [FJSRuntime runtimeInContext:ctx];
+    
+    return [runtime getPropertyNamed:propertyNameJS inObject:object exception:exception];
+    
+}
+
+static bool FJS_deleteProperty(JSContextRef ctx, JSObjectRef object, JSStringRef propertyName, JSValueRef* exception) {
+    return NO;
+}
+
+static void FJS_getPropertyNames(JSContextRef ctx, JSObjectRef object, JSPropertyNameAccumulatorRef propertyNames) {
+    
+}
+
+
+static bool FJS_setProperty(JSContextRef ctx, JSObjectRef object, JSStringRef propertyNameJS, JSValueRef value, JSValueRef* exception) {
+    NSString *propertyName = (NSString *)CFBridgingRelease(JSStringCopyCFString(kCFAllocatorDefault, propertyNameJS));
+    if ([propertyName isEqualToString:FJSRuntimeLookupKey]) {
+        return NO;
+    }
+    
+    if (!JSObjectGetPrivate(object)) { // We didn't make this object.
+        return NO;
+    }
+    
+    FJSRuntime *runtime         = [FJSRuntime runtimeInContext:ctx];
+    
+    return [runtime setValue:value forProperty:propertyNameJS inObject:object exception:exception];
+}
+
+static JSObjectRef FJS_callAsConstructor(JSContextRef ctx, JSObjectRef constructor, size_t argumentCount, const JSValueRef arguments[], JSValueRef* exception) {
+    return nil;
+}
+
+static bool FJS_hasInstance(JSContextRef ctx, JSObjectRef constructor, JSValueRef possibleInstance, JSValueRef* exception) {
+    return NO;
+}
+
+
+static JSValueRef FJS_callAsFunction(JSContextRef context, JSObjectRef functionJS, JSObjectRef thisObject, size_t argumentCount, const JSValueRef arguments[], JSValueRef *exception) {
+    
+    FJSRuntime *runtime = [FJSRuntime runtimeInContext:context];
+    
+    return [runtime callAsFunction:functionJS onObject:thisObject withArguments:arguments count:argumentCount exception:exception];
+    
+    
 }
 
 // This function is only invoked when converting an object to number or string

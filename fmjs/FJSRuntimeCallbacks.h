@@ -16,13 +16,12 @@ NS_ASSUME_NONNULL_BEGIN
 
 - (void)setupJSCallbacks;
 
-- (JSValueRef)convertObject:(FJSValue*)valueObject toType:(JSType)type exception:(JSValueRef*)exception;
-- (JSValueRef)callAsFunction:(FJSValue*)functionToCall onObject:(FJSValue*)objectToCall withArguments:(NSArray*)args exception:(JSValueRef *)exception;
-- (BOOL)setValue:(FJSValue*)arg forProperty:(NSString*)propertyName inObject:(FJSValue*)object exception:(JSValueRef*)exception;
-- (JSValueRef)getPropertyNamed:(NSString*)propertyName inObject:(FJSValue*)valueFromJSObject exception:(JSValueRef *)exception;
-- (BOOL)objectRef:(FJSValue*)objectValue hasProperty:(NSString *)propertyName;
+- (JSValueRef)convertObject:(FJSValue*)valueObject toType:(JSType)type exception:(JSValueRef*)outException;
+- (JSValueRef)invokeFunction:(FJSValue*)function onObject:(FJSValue*)object withArguments:(NSArray*)args exception:(JSValueRef *)outException;
 
-
+- (BOOL)setValue:(FJSValue*)arg forProperty:(NSString*)propertyName inObject:(FJSValue*)object exception:(JSValueRef*)outException;
+- (JSValueRef)getProperty:(NSString*)propertyName inObject:(FJSValue*)object exception:(JSValueRef *)outException;
+- (BOOL)object:(FJSValue*)object hasProperty:(NSString *)propertyName;
 
 @end
 

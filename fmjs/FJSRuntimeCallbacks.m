@@ -49,7 +49,7 @@ static bool FJS_hasInstance(JSContextRef ctx, JSObjectRef constructor, JSValueRe
 
 
 
-- (BOOL)objectRef:(FJSValue*)objectValue hasProperty:(NSString *)propertyName {
+- (BOOL)object:(FJSValue*)objectValue hasProperty:(NSString *)propertyName {
     
     
     if ([objectValue isInstance]) {
@@ -108,7 +108,7 @@ static bool FJS_hasInstance(JSContextRef ctx, JSObjectRef constructor, JSValueRe
     return NO;
 }
 
-- (JSValueRef)getPropertyNamed:(NSString*)propertyName inObject:(FJSValue*)valueFromJSObject exception:(JSValueRef *)exception {
+- (JSValueRef)getProperty:(NSString*)propertyName inObject:(FJSValue*)valueFromJSObject exception:(JSValueRef *)exception {
     
     if ([propertyName isEqualToString:@"toString"] || [propertyName isEqualToString:@"Symbol.toStringTag"]/* || [propertyName isEqualToString:@"Symbol.toPrimitive"]*/) {
         FMAssert(NO); // Do we still need this?
@@ -268,7 +268,7 @@ static bool FJS_hasInstance(JSContextRef ctx, JSObjectRef constructor, JSValueRe
 }
 
 
-- (JSValueRef)callAsFunction:(FJSValue*)functionToCall onObject:(FJSValue*)objectToCall withArguments:(NSArray*)args exception:(JSValueRef *)exception {
+- (JSValueRef)invokeFunction:(FJSValue*)function onObject:(FJSValue*)object withArguments:(NSArray*)args exception:(JSValueRef *)exception {
     
     BOOL needsToPushRuntime = ![FJSRuntime currentRuntime];
     if (needsToPushRuntime) {
@@ -281,11 +281,11 @@ static bool FJS_hasInstance(JSContextRef ctx, JSObjectRef constructor, JSValueRe
     
     
     if (FJSTraceFunctionCalls) {
-        NSLog(@"FJS_callAsFunction: '%@'", [[functionToCall symbol] name]);
+        NSLog(@"FJS_callAsFunction: '%@'", [[function symbol] name]);
     }
     
     
-    FJSFFI *ffi = [FJSFFI ffiWithFunction:functionToCall caller:objectToCall arguments:args runtime:self];
+    FJSFFI *ffi = [FJSFFI ffiWithFunction:function caller:object arguments:args runtime:self];
     
     FJSValue *ret = [ffi callFunction];
     
@@ -347,7 +347,7 @@ static bool FJS_hasProperty(JSContextRef ctx, JSObjectRef object, JSStringRef pr
     
     FJSValue *fobj = [FJSValue valueForJSValue:object inRuntime:runtime];
     
-    return [runtime objectRef:fobj hasProperty:propertyName];
+    return [runtime object:fobj hasProperty:propertyName];
 }
 
 
@@ -360,7 +360,7 @@ JSValueRef FJS_getProperty(JSContextRef ctx, JSObjectRef object, JSStringRef pro
     FJSRuntime *runtime = [FJSRuntime runtimeInContext:ctx];
     FJSValue *valueFromJSObject = [FJSValue valueForJSValue:object inRuntime:runtime];
     
-    return [runtime getPropertyNamed:propertyName inObject:valueFromJSObject exception:exception];
+    return [runtime getProperty:propertyName inObject:valueFromJSObject exception:exception];
     
 }
 
@@ -415,7 +415,7 @@ static JSValueRef FJS_callAsFunction(JSContextRef context, JSObjectRef functionJ
     FJSValue *objectToCall   = [FJSValue valueForJSValue:thisObject inRuntime:runtime];
     FJSValue *functionToCall = [FJSValue valueForJSValue:functionJS inRuntime:runtime];
     
-    return [runtime callAsFunction:functionToCall onObject:objectToCall withArguments:args exception:exception];
+    return [runtime invokeFunction:functionToCall onObject:objectToCall withArguments:args exception:exception];
 }
 
 // This function is only invoked when converting an object to number or string

@@ -1157,6 +1157,21 @@ static NSPointerArray *FJSValueLiveWeakArray;
     
 }
 
+- (void)unprotect {
+    
+    if (!_jsValRef) {
+        return;
+    }
+    
+    FMAssert(_unprotectContextRef);
+    if (_unprotectContextRef) {
+        
+        JSValueUnprotect(_unprotectContextRef, _jsValRef);
+        JSGlobalContextRelease(_unprotectContextRef);
+        _unprotectContextRef = nil;
+    }
+}
+
 - (void)protect {
     
     if (!_jsValRef) {

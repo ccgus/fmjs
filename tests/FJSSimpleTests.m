@@ -678,7 +678,7 @@ int FJSTestCGImageRefExampleCounter;
     
     FJSRuntime *runtime = [FJSRuntime new];
     
-    [runtime setPrintHandler:^(FJSRuntime * _Nonnull runtime, NSString * _Nonnull stringToPrint) {
+    [runtime setPrintHandler:^(FJSRuntime * _Nonnull rt, NSString * _Nonnull stringToPrint) {
         // pass.
     }];
     
@@ -845,7 +845,7 @@ int FJSTestCGImageRefExampleCounter;
     
     FJSRuntime *runtime = [FJSRuntime new];
     
-    [runtime setPrintHandler:^(FJSRuntime * _Nonnull runtime, NSString * _Nonnull stringToPrint) {
+    [runtime setPrintHandler:^(FJSRuntime * _Nonnull rt, NSString * _Nonnull stringToPrint) {
         // pass.
     }];
     
@@ -1096,6 +1096,43 @@ int FJSTestCGImageRefExampleCounter;
     [runtime shutdown];
 }
 
+- (void)testProtect {
+    
+    
+    size_t startInits = FJSSimpleTestsInitHappend;
+    size_t startDeallocs = FJSSimpleTestsDeallocHappend;
+    
+    
+    @autoreleasepool {
+        
+        FJSRuntime *runtime = [FJSRuntime new];
+        
+        [runtime evaluateScript:@"var c = FJSTestClass.new();"];
+        
+        __attribute__((objc_precise_lifetime))
+        FJSValue *v = runtime[@"c"];
+        
+        XCTAssert(v);
+        
+        XCTAssert(FJSSimpleTestsInitHappend == (startInits + 1));
+        
+        [v protect];
+        
+        [runtime evaluateScript:@"c = null;"];
+        
+        
+        XCTAssert(FJSSimpleTestsDeallocHappend == startDeallocs);
+        
+        [v unprotect];
+        
+        [runtime shutdown];
+        
+        v = nil;
+        
+    }
+    
+    XCTAssert(FJSSimpleTestsDeallocHappend == startDeallocs + 1);
+}
 
 
 - (void)xtestPerformanceExample {

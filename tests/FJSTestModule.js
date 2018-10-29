@@ -6,12 +6,12 @@ module.exports = {
         console.log("Goodbye, " + name);
     },
     callTestFunc: function() {
-        print("This is the test funk");
+        //print("This is the test funk");
         testFunction();
     },
     someVal: 0,
     callInc: function () {
-        print("Calling callInc! Currently at " + this.someVal)
+        //print("Calling callInc! Currently at " + this.someVal)
         this.someVal = this.someVal + 1;
         return this.someVal;
     }

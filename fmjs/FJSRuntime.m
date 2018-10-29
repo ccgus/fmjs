@@ -338,7 +338,7 @@ static FJSRuntime *FJSCurrentRuntime;
                 [self popAsCurrentFJS];
             }
             else {
-                returnValue = [FJSValue valueForJSValue:(JSObjectRef)jsFunctionReturnValue inRuntime:self];
+                returnValue = [FJSValue valueWithJSValueRef:(JSObjectRef)jsFunctionReturnValue inRuntime:self];
             }
         }
         @catch (NSException * e) {
@@ -391,7 +391,7 @@ static FJSRuntime *FJSCurrentRuntime;
             [self reportPossibleJSException:exception];
         }
         else {
-            obj = [FJSValue valueForJSValue:jsValue inRuntime:self];
+            obj = [FJSValue valueWithJSValueRef:jsValue inRuntime:self];
         }
     //});
     
@@ -483,7 +483,7 @@ static FJSRuntime *FJSCurrentRuntime;
             JSStringRelease(jsScriptPath);
         }
         
-        returnValue = [FJSValue valueForJSValue:result inRuntime:self];
+        returnValue = [FJSValue valueWithJSValueRef:result inRuntime:self];
     }
     @catch (NSException *exception) {
         debug(@"Exception: %@", exception);

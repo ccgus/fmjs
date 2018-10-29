@@ -345,7 +345,7 @@ static bool FJS_hasProperty(JSContextRef ctx, JSObjectRef object, JSStringRef pr
     
     FJSRuntime *runtime   = [FJSRuntime runtimeInContext:ctx];
     
-    FJSValue *fobj = [FJSValue valueForJSValue:object inRuntime:runtime];
+    FJSValue *fobj = [FJSValue valueWithJSValueRef:object inRuntime:runtime];
     
     return [runtime object:fobj hasProperty:propertyName];
 }
@@ -358,7 +358,7 @@ JSValueRef FJS_getProperty(JSContextRef ctx, JSObjectRef object, JSStringRef pro
     }
     
     FJSRuntime *runtime = [FJSRuntime runtimeInContext:ctx];
-    FJSValue *valueFromJSObject = [FJSValue valueForJSValue:object inRuntime:runtime];
+    FJSValue *valueFromJSObject = [FJSValue valueWithJSValueRef:object inRuntime:runtime];
     
     return [runtime getProperty:propertyName inObject:valueFromJSObject exception:exception];
     
@@ -384,8 +384,8 @@ static bool FJS_setProperty(JSContextRef ctx, JSObjectRef object, JSStringRef pr
     }
     
     FJSRuntime *runtime  = [FJSRuntime runtimeInContext:ctx];
-    FJSValue *fvalue     = [FJSValue valueForJSValue:value inRuntime:runtime];
-    FJSValue *fobject    = [FJSValue valueForJSValue:object inRuntime:runtime];
+    FJSValue *fvalue     = [FJSValue valueWithJSValueRef:value inRuntime:runtime];
+    FJSValue *fobject    = [FJSValue valueWithJSValueRef:object inRuntime:runtime];
     
     return [runtime setValue:fvalue forProperty:propertyName inObject:fobject exception:exception];
 }
@@ -407,13 +407,13 @@ static JSValueRef FJS_callAsFunction(JSContextRef context, JSObjectRef functionJ
     NSMutableArray *args = [NSMutableArray arrayWithCapacity:argumentCount];
     for (size_t idx = 0; idx < argumentCount; idx++) {
         JSValueRef jsArg = arguments[idx];
-        FJSValue *arg = [FJSValue valueForJSValue:jsArg inRuntime:runtime];
+        FJSValue *arg = [FJSValue valueWithJSValueRef:jsArg inRuntime:runtime];
         assert(arg);
         [args addObject:arg];
     }
     
-    FJSValue *objectToCall   = [FJSValue valueForJSValue:thisObject inRuntime:runtime];
-    FJSValue *functionToCall = [FJSValue valueForJSValue:functionJS inRuntime:runtime];
+    FJSValue *objectToCall   = [FJSValue valueWithJSValueRef:thisObject inRuntime:runtime];
+    FJSValue *functionToCall = [FJSValue valueWithJSValueRef:functionJS inRuntime:runtime];
     
     return [runtime invokeFunction:functionToCall onObject:objectToCall withArguments:args exception:exception];
 }
@@ -421,7 +421,7 @@ static JSValueRef FJS_callAsFunction(JSContextRef context, JSObjectRef functionJ
 // This function is only invoked when converting an object to number or string
 static JSValueRef FJS_convertToType(JSContextRef context, JSObjectRef object, JSType type, JSValueRef* exception) {
     FJSRuntime *runtime       = [FJSRuntime runtimeInContext:context];
-    FJSValue *objectToConvert = [FJSValue valueForJSValue:object inRuntime:runtime];
+    FJSValue *objectToConvert = [FJSValue valueWithJSValueRef:object inRuntime:runtime];
     
     return [runtime convertObject:objectToConvert toType:type exception:exception];
     

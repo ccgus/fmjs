@@ -66,7 +66,7 @@ static NSMutableDictionary *FJSFFIStructureLookup;
         
         NSUInteger methodArgumentCount = [methodSignature numberOfArguments] - 2;
         if (methodArgumentCount != [_args count]) {
-            debug(@"_args: %@", _args);
+            
             NSString *reason = [NSString stringWithFormat:@"ObjC method %@ requires %lu %@, but JavaScript passed %zd %@", NSStringFromSelector(selector), methodArgumentCount, (methodArgumentCount == 1 ? @"argument" : @"arguments"), [_args count], ([_args count] == 1 ? @"argument" : @"arguments")];
             
             [_runtime reportNSException:[NSException exceptionWithName:FMJavaScriptExceptionName reason:reason userInfo:nil]];
@@ -102,7 +102,7 @@ static NSMutableDictionary *FJSFFIStructureLookup;
         JSValueRef returnValue = NULL;
         if (FJSCharEquals(returnType, @encode(void))) {
             returnValue = JSValueMakeUndefined([_runtime contextRef]);
-            returnFValue = [FJSValue valueForJSValue:(JSObjectRef)returnValue inRuntime:_runtime];
+            returnFValue = [FJSValue valueWithJSValueRef:(JSObjectRef)returnValue inRuntime:_runtime];
         }
         // id
         else if (FJSCharEquals(returnType, @encode(id)) || FJSCharEquals(returnType, @encode(Class))) {
@@ -225,7 +225,7 @@ static NSMutableDictionary *FJSFFIStructureLookup;
                 [arg setSymbol:argSym];
             }
             else if (!([arg isInstance] || [arg isClass] || [arg isBlock]) && [[argSym runtimeType] hasPrefix:@"@"]) {
-                debug(@"fffffffff- need to push to a native type I guess? W");
+                // This is probably a CFTypeRef.
                 //FMAssert(NO);
             }
             

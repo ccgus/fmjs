@@ -678,6 +678,10 @@ int FJSTestCGImageRefExampleCounter;
     
     FJSRuntime *runtime = [FJSRuntime new];
     
+    [runtime setPrintHandler:^(FJSRuntime * _Nonnull runtime, NSString * _Nonnull stringToPrint) {
+        // pass.
+    }];
+    
     XCTAssert([[runtime evaluateScript:@"FJSMethodPleasePassCCharM(FJSTestAddSignedChar('l'));"] toBOOL]);
     
     XCTAssert([[runtime evaluateScript:@"FJSMethodPleasePassUnsignedCCharM(FJSTestAddUnsignedChar('l'));"] toBOOL]);
@@ -754,8 +758,6 @@ int FJSTestCGImageRefExampleCounter;
     
     [runtime shutdown];
     
-    printf("All done\n");
-    
 }
 
 - (void)testFunctionLookup {
@@ -779,6 +781,10 @@ int FJSTestCGImageRefExampleCounter;
 - (void)testMakeFunction {
     
     FJSRuntime *runtime = [FJSRuntime new];
+    
+    [runtime setPrintHandler:^(FJSRuntime * _Nonnull rt, NSString * _Nonnull stringToPrint) {
+        // pass
+    }];
     
     JSStringRef functionName = JSStringCreateWithCFString((__bridge CFStringRef)@"__runtimeFunction");
     JSStringRef functionBody = JSStringCreateWithCFString((__bridge CFStringRef)@"{print('Hello from func'); FJSMethodPleasePassSignedShortNumber3(3); return 12;}");
@@ -839,6 +845,10 @@ int FJSTestCGImageRefExampleCounter;
     
     FJSRuntime *runtime = [FJSRuntime new];
     
+    [runtime setPrintHandler:^(FJSRuntime * _Nonnull runtime, NSString * _Nonnull stringToPrint) {
+        // pass.
+    }];
+    
     __block int foo = 0;
     __block BOOL calledFunk = NO;
     
@@ -883,6 +893,10 @@ int FJSTestCGImageRefExampleCounter;
 - (void)testRandomCrasher1 {
     
     FJSRuntime *runtime = [FJSRuntime new];
+    
+    [runtime setPrintHandler:^(FJSRuntime * _Nonnull rt, NSString * _Nonnull stringToPrint) {
+        // pass
+    }];
     
     [runtime evaluateScript:@"var x = {name:'a'}; print(x); var y = {name:'me'}; function foof() { print('Hello, world')}; y.f = foof; print(y);"];
     
@@ -1048,8 +1062,6 @@ int FJSTestCGImageRefExampleCounter;
     "var r = c.getRect()\n"
     "c.checkRect(r);\n"
     "r = null; c = null;\n";
-    
-    FJSTraceFunctionCalls = YES;
     
     FJSRuntime *runtime = [FJSRuntime new];
     [runtime evaluateScript:code];

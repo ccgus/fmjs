@@ -4,11 +4,21 @@
 #import "FJSFFI.h"
 #import "FJSUtil.h"
 
+#define FJSRuntimeLookupKey @"fmjs"
+
 NS_ASSUME_NONNULL_BEGIN
 
 @interface FJSRuntime (Private)
+@property (assign) JSGlobalContextRef jsContext;
+@property (assign) JSClassRef globalClass;
+
+
 - (void)reportNSException:(NSException*)e;
 - (void)reportPossibleJSException:(nullable JSValueRef)exception;
++ (instancetype)runtimeInContext:(JSContextRef)context;
+
+- (void)pushAsCurrentFJS;
+- (void)popAsCurrentFJS;
 
 @end
 

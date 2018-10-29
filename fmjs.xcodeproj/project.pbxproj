@@ -38,6 +38,8 @@
 		CC4C3C8D21504638005CA4A6 /* JavaScriptCore.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = CC4C3C89215045E0005CA4A6 /* JavaScriptCore.framework */; };
 		CC5153752153004D0076B554 /* FJSTests.bridgesupport in Resources */ = {isa = PBXBuildFile; fileRef = CC5153742153004D0076B554 /* FJSTests.bridgesupport */; };
 		CC515376215300A20076B554 /* FJSTests.bridgesupport in Resources */ = {isa = PBXBuildFile; fileRef = CC5153742153004D0076B554 /* FJSTests.bridgesupport */; };
+		CC5792552186AB64008073B7 /* FJSRuntimeCallbacks.h in Headers */ = {isa = PBXBuildFile; fileRef = CC5792532186AB64008073B7 /* FJSRuntimeCallbacks.h */; };
+		CC5792562186AB64008073B7 /* FJSRuntimeCallbacks.m in Sources */ = {isa = PBXBuildFile; fileRef = CC5792542186AB64008073B7 /* FJSRuntimeCallbacks.m */; };
 		CC5DAA8C2157095A0089A633 /* TDConglomerate.h in Headers */ = {isa = PBXBuildFile; fileRef = CC5DAA8A2157095A0089A633 /* TDConglomerate.h */; };
 		CC5DAA8D2157095A0089A633 /* TDConglomerate.m in Sources */ = {isa = PBXBuildFile; fileRef = CC5DAA8B2157095A0089A633 /* TDConglomerate.m */; settings = {COMPILER_FLAGS = "-fno-objc-arc"; }; };
 		CC887A0D2180E6E400FC9BFB /* FJSTestModule.js in Resources */ = {isa = PBXBuildFile; fileRef = CC887A0C2180E6E400FC9BFB /* FJSTestModule.js */; };
@@ -119,6 +121,8 @@
 		CC4C3C8321501940005CA4A6 /* FJSTestApp.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = FJSTestApp.entitlements; sourceTree = "<group>"; };
 		CC4C3C89215045E0005CA4A6 /* JavaScriptCore.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = JavaScriptCore.framework; path = System/Library/Frameworks/JavaScriptCore.framework; sourceTree = SDKROOT; };
 		CC5153742153004D0076B554 /* FJSTests.bridgesupport */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.xml; path = FJSTests.bridgesupport; sourceTree = "<group>"; };
+		CC5792532186AB64008073B7 /* FJSRuntimeCallbacks.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = FJSRuntimeCallbacks.h; sourceTree = "<group>"; };
+		CC5792542186AB64008073B7 /* FJSRuntimeCallbacks.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = FJSRuntimeCallbacks.m; sourceTree = "<group>"; };
 		CC5DAA7021558FC50089A633 /* FJSSimpleTests.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = FJSSimpleTests.h; sourceTree = "<group>"; };
 		CC5DAA8A2157095A0089A633 /* TDConglomerate.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = TDConglomerate.h; sourceTree = "<group>"; };
 		CC5DAA8B2157095A0089A633 /* TDConglomerate.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = TDConglomerate.m; sourceTree = "<group>"; };
@@ -217,6 +221,8 @@
 				CC1A28142154245F003B72BF /* FJSPrivate.h */,
 				CCB18560214D7B3000346D2F /* FJSRuntime.h */,
 				CCB18561214D7B3000346D2F /* FJSRuntime.m */,
+				CC5792532186AB64008073B7 /* FJSRuntimeCallbacks.h */,
+				CC5792542186AB64008073B7 /* FJSRuntimeCallbacks.m */,
 				CCC0EE28217A6BDB00527B23 /* FJSSymbol.h */,
 				CCC0EE29217A6BDB00527B23 /* FJSSymbol.m */,
 				CCB1855C214D7B3000346D2F /* FJSSymbolManager.h */,
@@ -303,6 +309,7 @@
 			files = (
 				CCB18569214D7B3000346D2F /* FJS.h in Headers */,
 				CC2F6739217E8D750095FCEB /* FJSSuite.h in Headers */,
+				CC5792552186AB64008073B7 /* FJSRuntimeCallbacks.h in Headers */,
 				CCB1856E214D7B3000346D2F /* FJSRuntime.h in Headers */,
 				CCB1856A214D7B3000346D2F /* FJSSymbolManager.h in Headers */,
 				CC2F6733217E7C640095FCEB /* FJSResultSet.h in Headers */,
@@ -481,6 +488,7 @@
 				CC2F6734217E7C640095FCEB /* FJSResultSet.m in Sources */,
 				CC2F672C217E7C640095FCEB /* FJSDatabaseAdditions.m in Sources */,
 				CCB1856B214D7B3000346D2F /* FJSSymbolManager.m in Sources */,
+				CC5792562186AB64008073B7 /* FJSRuntimeCallbacks.m in Sources */,
 				CC2F6730217E7C640095FCEB /* FJSDatabaseQueue.m in Sources */,
 				CC15CD0421811BFC0036CC57 /* FJSModule.m in Sources */,
 				CC2F673A217E8D750095FCEB /* FJSSuite.m in Sources */,

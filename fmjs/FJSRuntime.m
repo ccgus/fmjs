@@ -151,7 +151,7 @@ static bool FJS_hasInstance(JSContextRef ctx, JSObjectRef constructor, JSValueRe
     
     FJSValue *value = [FJSValue valueWithWeakInstance:self inRuntime:self];
     
-    JSValueRef jsValue = [value JSValue];
+    JSValueRef jsValue = [value JSValueRef];
     
     JSValueRef exception = NULL;
     JSStringRef jsName = JSStringCreateWithUTF8CString([FJSRuntimeLookupKey UTF8String]);
@@ -347,7 +347,7 @@ static bool FJS_hasInstance(JSContextRef ctx, JSObjectRef constructor, JSValueRe
                     id argument = [arguments objectAtIndex:i];
                     
                     FJSValue *v = [FJSValue valueWithInstance:(__bridge CFTypeRef)(argument) inRuntime:self];
-                    jsArgumentsArray[i] = [v JSValue];
+                    jsArgumentsArray[i] = [v JSValueRef];
                 }
             }
             
@@ -453,7 +453,7 @@ static bool FJS_hasInstance(JSContextRef ctx, JSObjectRef constructor, JSValueRe
     
     dispatch_sync(_evaluateQueue, ^{
         
-        JSValueRef jsValue = [value JSValue];
+        JSValueRef jsValue = [value JSValueRef];
         
         FMAssert(jsValue);
         
@@ -718,17 +718,12 @@ static bool FJS_hasInstance(JSContextRef ctx, JSObjectRef constructor, JSValueRe
     return NO;
 }
 
-- (JSValueRef)getPropertyNamed:(JSStringRef)propertyNameJS inObject:(JSObjectRef)object exception:(JSValueRef *)exception {
-    NSString *propertyName = (NSString *)CFBridgingRelease(JSStringCopyCFString(kCFAllocatorDefault, propertyNameJS));
-
+- (JSValueRef)getPropertyNamed:(NSString*)propertyName inObject:(FJSValue*)valueFromJSObject exception:(JSValueRef *)exception {
+    
     if ([propertyName isEqualToString:@"toString"] || [propertyName isEqualToString:@"Symbol.toStringTag"]/* || [propertyName isEqualToString:@"Symbol.toPrimitive"]*/) {
         FMAssert(NO); // Do we still need this?
-        FJSValue *w = [FJSValue valueForJSValue:object inRuntime:self];
-        
-        return [w toJSString];
+        return [valueFromJSObject toJSString];
     }
-    
-    FJSValue *valueFromJSObject = [FJSValue valueForJSValue:object inRuntime:self];
     
     // FIXME: package this up in FJSValue, or maybe some other function?
     // Hey, let's look for keyed subscripts!
@@ -741,7 +736,7 @@ static bool FJS_hasInstance(JSContextRef ctx, JSObjectRef constructor, JSValueRe
             if (v) {
                 
                 if ([v isJSNative]) {
-                    return [v JSValue];
+                    return [v JSValueRef];
                 }
 #pragma message "FIXME: Why do we not just call JSValue? Why do I keep on using newJSValueForWrapper?"
                 return [self newJSValueForWrapper:v];
@@ -772,7 +767,7 @@ static bool FJS_hasInstance(JSContextRef ctx, JSObjectRef constructor, JSValueRe
         
         FJSValue *value = [valueFromJSObject valueFromStructFieldNamed:propertyName];
         
-        return [value JSValue];
+        return [value JSValueRef];
     }
     
     
@@ -802,7 +797,7 @@ static bool FJS_hasInstance(JSContextRef ctx, JSObjectRef constructor, JSValueRe
             
             [value setClass:class];
             
-            return [value JSValue];
+            return [value JSValueRef];
         }
         else if ([[sym symbolType] isEqualToString:@"enum"]) {
             return JSValueMakeNumber(_jsContext, [[sym runtimeValue] doubleValue]);
@@ -924,7 +919,7 @@ static bool FJS_hasInstance(JSContextRef ctx, JSObjectRef constructor, JSValueRe
     
     FMAssert(ret);
     
-    JSValueRef returnRef = [ret JSValue];
+    JSValueRef returnRef = [ret JSValueRef];
     FMAssert(returnRef);
     
     if (needsToPushRuntime) {
@@ -988,8 +983,9 @@ JSValueRef FJS_getProperty(JSContextRef ctx, JSObjectRef object, JSStringRef pro
     }
     
     FJSRuntime *runtime = [FJSRuntime runtimeInContext:ctx];
+    FJSValue *valueFromJSObject = [FJSValue valueForJSValue:object inRuntime:runtime];
     
-    return [runtime getPropertyNamed:propertyNameJS inObject:object exception:exception];
+    return [runtime getPropertyNamed:propertyName inObject:valueFromJSObject exception:exception];
     
 }
 

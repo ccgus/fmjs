@@ -53,7 +53,7 @@ NS_ASSUME_NONNULL_BEGIN
 
 - (BOOL)hasClassMethodNamed:(NSString*)m;
 
-- (nullable JSValueRef)JSValue;
+- (nullable JSValueRef)JSValueRef;
 - (nullable JSValueRef)toJSString;
 
 - (id)instance;

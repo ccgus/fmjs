@@ -392,7 +392,7 @@ static NSPointerArray *FJSValueLiveWeakArray;
     return nil;
 }
 
-- (nullable JSValueRef)JSValue {
+- (nullable JSValueRef)JSValueRef {
     
     // FIXME: Should we cache our JSValue if we're not native? I mean, that would make sense…
     
@@ -1125,7 +1125,7 @@ static NSPointerArray *FJSValueLiveWeakArray;
                 v = [FJSValue valueWithInstance:(__bridge CFTypeRef)(v) inRuntime:[self runtime]];
             }
             
-            jsArgumentsArray[i] = [v JSValue];
+            jsArgumentsArray[i] = [v JSValueRef];
         }
     }
     

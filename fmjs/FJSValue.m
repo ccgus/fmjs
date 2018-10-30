@@ -1127,7 +1127,6 @@ static NSPointerArray *FJSValueLiveWeakArray;
             }
             
             jsArgumentsArray[i] = [v JSValueRef];
-            debug(@"jsArgumentsArray[i]: %p", jsArgumentsArray[i]);
         }
     }
     
@@ -1173,6 +1172,8 @@ static NSPointerArray *FJSValueLiveWeakArray;
 }
 
 - (void)protect {
+    
+    // FIXME: Should we keep a list of FJSObjects in the runtime that need to be unprotected?
     
     if (!_jsValRef) {
         return;

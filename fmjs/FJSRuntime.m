@@ -27,7 +27,6 @@ static const void * const kDispatchQueueSpecificKey = &kDispatchQueueSpecificKey
     
 }
 
-@property (weak) FJSRuntime *previousRuntime;
 @property (assign) JSGlobalContextRef jsContext;
 @property (assign) JSClassRef globalClass;
 @property (strong) NSMutableSet<NSString*> *runtimeObjectNames;
@@ -36,13 +35,8 @@ static const void * const kDispatchQueueSpecificKey = &kDispatchQueueSpecificKey
 @end
 
 
-static FJSRuntime *FJSCurrentRuntime;
-
 @implementation FJSRuntime
 
-+ (FJSRuntime*)currentRuntime {
-    return FJSCurrentRuntime;
-}
 
 + (instancetype)runtimeInContext:(JSContextRef)context {
     
@@ -187,15 +181,33 @@ static FJSRuntime *FJSCurrentRuntime;
 }
 
 
+#define FJSThreadDictCurrentRuntimeStack @"fmjs.currentRuntime"
 - (void)pushAsCurrentFJS {
-    // FIXME: This doesn't nest at all. Also, it's not thread safe hahaha.
-    [self setPreviousRuntime:FJSCurrentRuntime];
-    FJSCurrentRuntime = self;
+    NSMutableArray *ar = [[[NSThread currentThread] threadDictionary] objectForKey:FJSThreadDictCurrentRuntimeStack];
+    if (!ar) {
+        ar = [NSMutableArray array];
+        [[[NSThread currentThread] threadDictionary] setObject:ar forKey:FJSThreadDictCurrentRuntimeStack];
+    }
+    
+    [ar addObject:self];
 }
 
 - (void)popAsCurrentFJS {
-    FJSCurrentRuntime = [self previousRuntime];
+    
+    FJSRuntime *rt = [[[[NSThread currentThread] threadDictionary] objectForKey:FJSThreadDictCurrentRuntimeStack] lastObject];
+    FMAssert(rt == self);
+    if (rt == self) {
+        [[[[NSThread currentThread] threadDictionary] objectForKey:FJSThreadDictCurrentRuntimeStack] removeLastObject];
+    }
+    else {
+        NSLog(@"popAsCurrentFJS: BAD THINGS ARE HAPPENING- trying to pop as current Runtime, when we're not the current runtime");
+    }
 }
+
++ (FJSRuntime*)currentRuntime {
+    return [[[[NSThread currentThread] threadDictionary] objectForKey:FJSThreadDictCurrentRuntimeStack] lastObject];
+}
+
 
 - (void)reportNSException:(NSException*)e {
     

@@ -306,7 +306,7 @@ static bool FJS_hasInstance(JSContextRef ctx, JSObjectRef constructor, JSValueRe
 
 - (JSValueRef)convertObject:(FJSValue*)valueObject toType:(JSType)type exception:(JSValueRef*)exception {
     
-    if ([valueObject isInstance]) {
+    if ([valueObject isInstance] || [valueObject isBlock] || [valueObject isClass]) {
         
         id o = [valueObject instance];
         

@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		CC1543A2218A36A8004E2146 /* FJSRuntimeCallbacks.m in Sources */ = {isa = PBXBuildFile; fileRef = CC5792542186AB64008073B7 /* FJSRuntimeCallbacks.m */; };
 		CC15CD0321811BFC0036CC57 /* FJSModule.h in Headers */ = {isa = PBXBuildFile; fileRef = CC15CD0121811BFC0036CC57 /* FJSModule.h */; };
 		CC15CD0421811BFC0036CC57 /* FJSModule.m in Sources */ = {isa = PBXBuildFile; fileRef = CC15CD0221811BFC0036CC57 /* FJSModule.m */; };
 		CC1A28152154245F003B72BF /* FJSPrivate.h in Headers */ = {isa = PBXBuildFile; fileRef = CC1A28142154245F003B72BF /* FJSPrivate.h */; };
@@ -527,6 +528,7 @@
 				CC2F673C217E8D750095FCEB /* FJSSuite.m in Sources */,
 				CC2F6736217E7C640095FCEB /* FJSResultSet.m in Sources */,
 				CC92AE3321618720001F0CA4 /* FJSInterpreter.m in Sources */,
+				CC1543A2218A36A8004E2146 /* FJSRuntimeCallbacks.m in Sources */,
 				CC92AE2D21618506001F0CA4 /* FJSRuntime.m in Sources */,
 				CC2F672A217E7C640095FCEB /* FJSDatabase.m in Sources */,
 				CC92AE2E21618506001F0CA4 /* FJSUtil.m in Sources */,

@@ -72,6 +72,10 @@
          </CommandLineArgument>
          <CommandLineArgument
             argument = "/Users/gus/Dropbox/Rainier/suite.js"
+            isEnabled = "NO">
+         </CommandLineArgument>
+         <CommandLineArgument
+            argument = "/Users/gus/Dropbox/Rainier/junk.js"
             isEnabled = "YES">
          </CommandLineArgument>
       </CommandLineArguments>

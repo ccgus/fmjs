@@ -48,6 +48,20 @@ static NSMutableDictionary *FJSFFIStructureLookup;
     assert([_caller cValue].value.pointerValue);
     FJSSymbol *functionSymbol = [_f symbol];
     assert(functionSymbol);
+    
+    #pragma message "FIXME: Uh, we need to figure out how to match types to args for objcInvoke"
+//    NSError *argsErr = nil;
+//    if (![self checkArgumentsWithSymbol:functionSymbol error:&argsErr]) {
+//        FMAssert(argsErr);
+//        NSString *reason = [argsErr localizedDescription];
+//        [_runtime reportNSException:[NSException exceptionWithName:FMJavaScriptExceptionName reason:reason userInfo:nil]];
+//        return [FJSValue valueWithUndefinedInRuntime:_runtime];
+//    }
+    
+    
+    
+    
+    
     NSString *methodName = [functionSymbol name];
     FJSValue *returnFValue = nil;
     
@@ -84,6 +98,7 @@ static NSMutableDictionary *FJSFFIStructureLookup;
             if ([v isJSNative]) {
                 [v pushJSValueToNativeType:[argSymbol runtimeType]];
             }
+            #pragma message "FIXME: Big problem- what if we're printing a CGRect? We need to push a native C value to an object."
             
             void *arg = [v objectStorage];
             [invocation setArgument:arg atIndex:objcIndex];
@@ -136,6 +151,55 @@ static NSMutableDictionary *FJSFFIStructureLookup;
     return returnFValue ? returnFValue : [FJSValue valueWithUndefinedInRuntime:_runtime];
 }
 
+- (BOOL)checkArgumentsWithSymbol:(FJSSymbol*)functionSymbol error:(NSError **)outError {
+    
+    size_t functionArgumentCount = [[functionSymbol arguments] count];
+    if ([_args count] != functionArgumentCount) {
+        NSString *reason = [NSString stringWithFormat:@"Method %@ requires %lu %@, but JavaScript passed %zd %@", [functionSymbol name], functionArgumentCount, (functionArgumentCount == 1 ? @"argument" : @"arguments"), [_args count], ([_args count] == 1 ? @"argument" : @"arguments")];
+        
+        *outError = [NSError errorWithDomain:FMJavaScriptExceptionName code:1 userInfo:@{NSLocalizedDescriptionKey : reason}];
+        
+        return NO;
+    }
+    
+    
+    NSUInteger idx = 0;
+    for (FJSValue *v in _args) {
+        FJSSymbol *argSym = [[functionSymbol arguments] objectAtIndex:idx];
+        FJSSymbol *jsSymbol = [v symbol];
+        
+        if ([v isJSNative]) {
+            
+        }
+        else if (jsSymbol) {
+            
+            if (![[argSym runtimeType] isEqualToString:[jsSymbol runtimeType]]) {
+                
+                BOOL looksReasonable = ([[argSym runtimeType] isEqualToString:@"@"] && [[jsSymbol runtimeType] hasPrefix:@"^{C"]);
+                
+                if (!looksReasonable) {
+                    
+                    debug(@"Bad argument at index %ld", idx);
+                    NSString *reason = [NSString stringWithFormat:@"Argument at index %ld is of the wrong type. Got %@ when %@ was needed.", idx, [argSym runtimeType], [jsSymbol runtimeType]];
+                    *outError = [NSError errorWithDomain:FMJavaScriptExceptionName code:2 userInfo:@{NSLocalizedDescriptionKey : reason}];
+                    return NO;
+                }
+            }
+            
+        }
+        
+        
+            
+        
+        
+        debug(@"argSym: '%@'", argSym);
+        debug(@"v: '%@'", v);
+        idx++;
+    }
+    
+    return YES;
+}
+
 
 - (nullable FJSValue*)callFunction {
     
@@ -171,6 +235,17 @@ static NSMutableDictionary *FJSFFIStructureLookup;
         callAddress = dlsym(RTLD_DEFAULT, [[functionSymbol name] UTF8String]);
     }
     
+    NSError *argsErr = nil;
+    if (![self checkArgumentsWithSymbol:functionSymbol error:&argsErr]) {
+        
+        FMAssert(argsErr);
+        
+        NSString *reason = [argsErr localizedDescription];
+        FMAssert(reason);
+        [_runtime reportNSException:[NSException exceptionWithName:FMJavaScriptExceptionName reason:reason userInfo:nil]];
+        
+        return [FJSValue valueWithUndefinedInRuntime:_runtime];
+    }
     
 
     if (!callAddress) {
@@ -186,14 +261,6 @@ static NSMutableDictionary *FJSFFIStructureLookup;
     ffi_type** ffiArgs = NULL;
     void** ffiValues = NULL;
     
-    size_t functionArgumentCount = [[functionSymbol arguments] count];
-    if ([_args count] != functionArgumentCount) {
-        NSString *reason = [NSString stringWithFormat:@"Method %@ requires %lu %@, but JavaScript passed %zd %@", [functionSymbol name], functionArgumentCount, (functionArgumentCount == 1 ? @"argument" : @"arguments"), [_args count], ([_args count] == 1 ? @"argument" : @"arguments")];
-        
-        [_runtime reportNSException:[NSException exceptionWithName:FMJavaScriptExceptionName reason:reason userInfo:nil]];
-        
-        return [FJSValue valueWithUndefinedInRuntime:_runtime];
-    }
     
     
     // Build the arguments
@@ -219,13 +286,19 @@ static NSMutableDictionary *FJSFFIStructureLookup;
             FJSSymbol *argSym = [[[_f symbol] arguments] objectAtIndex:symbolArgIndex];
             assert(argSym);
             
+            debug(@"[argSym runtimeType]: '%@'", [argSym runtimeType]);
+            
             if ([arg isJSNative]) {
                 // Convert this to the argSymTupe?
                 [arg pushJSValueToNativeType:[argSym runtimeType]];
                 [arg setSymbol:argSym];
             }
             else if (!([arg isInstance] || [arg isClass] || [arg isBlock]) && [[argSym runtimeType] hasPrefix:@"@"]) {
-                // This is probably a CFTypeRef.
+                
+                if ([[argSym runtimeType] isEqualToString:@"^"]) {
+                    // This is probably a CFTypeRef, but how do we check?
+                }
+                
                 //FMAssert(NO);
             }
             

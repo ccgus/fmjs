@@ -533,6 +533,32 @@ APPKIT_EXTERN const CGRect FJSRuntimeTestCGRect;
     
 }
 
+
+- (void)testPrintCGRect {
+    
+    
+    FJSRuntime *rt = [FJSRuntime new];
+    
+    __block NSString *foundString = nil;
+    [rt setPrintHandler:^(FJSRuntime * _Nonnull runtime, NSString * _Nonnull stringToPrint) {
+        foundString = stringToPrint;
+    }];
+    
+    [rt setExceptionHandler:^(FJSRuntime * _Nonnull runtime, NSException * _Nonnull exception) {
+        
+    }];
+    
+    [rt evaluateScript:@"print(CGRectMake(324,12,23,1));"];
+    
+    XCTAssert(![foundString isEqualToString:NSStringFromRect(CGRectMake(324,12,23,1))]);
+    
+    
+    [rt evaluateScript:@"print(NSStringFromRect(CGRectMake(324,12,23,1)));"];
+    XCTAssert([foundString isEqualToString:NSStringFromRect(CGRectMake(324,12,23,1))]);
+    
+    [rt shutdown];
+}
+
 @end
 
 BOOL FJSTestCGRect(CGRect r) {

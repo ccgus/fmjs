@@ -1089,7 +1089,7 @@ int FJSTestCGImageRefExampleCounter;
     XCTAssert([printedString isEqualToString:s], @"Got: %@", printedString);
     
     #pragma message "FIXME: What do we do with rects where instances are expected?"
-//    [runtime evaluateScript:@"print(CGRectMake(1, 2, 3, 4));"];
+//    [runtime evaluateScript:@"printjsv(CGRectMake(1, 2, 3, 4));"];
 //    XCTAssert(printedString);
 //    XCTAssert([printedString isEqualToString:@"1"], @"Got: %@", printedString);
     
@@ -1134,6 +1134,23 @@ int FJSTestCGImageRefExampleCounter;
     XCTAssert(FJSSimpleTestsDeallocHappend == startDeallocs + 1);
 }
 
+- (void)testImageIOLookup {
+    
+    [FJSRuntime loadFrameworkAtPath:@"/System/Library/Frameworks/ImageIO.framework"];
+    
+    __block NSString *printedString;
+    FJSRuntime *runtime = [FJSRuntime new];
+    [runtime setPrintHandler:^(FJSRuntime * _Nonnull rt, NSString * _Nonnull stringToPrint) {
+        printedString = stringToPrint;
+    }];
+    
+    [runtime evaluateScript:@"print(kCGImagePropertyExifDateTimeOriginal);"]; // DateTimeOriginal
+    
+    XCTAssert([printedString isEqualToString:(id)kCGImagePropertyExifDateTimeOriginal]);
+    
+    [runtime shutdown];
+    
+}
 
 - (void)xtestPerformanceExample {
     // This is an example of a performance test case.

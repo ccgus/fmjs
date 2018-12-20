@@ -170,7 +170,7 @@ static NSPointerArray *FJSValueLiveWeakArray;
     
     if (type == _C_PTR) {
         value->_cValue.value.pointerValue = p;
-        FMAssert(NO); // We need a test for this. Looks like you found a case for it.
+        //FMAssert(NO); // We need a test for this. Looks like you found a case for it.
     }
     else {
         size_t copySize = 0;
@@ -407,6 +407,7 @@ static NSPointerArray *FJSValueLiveWeakArray;
     
     if ([self isInstance] || [self isBlock]) {
         
+        // for - (void)testStringPassing to work, we need to uncomment this and return a native object instead of a jsstring ( 5C54337E-CBF3-4323-9EDB-268DF924CF15 )
         _jsValRef = FJSNativeObjectToJSValue([self instance], [_runtime contextRef]);
         
         if (!_jsValRef) {

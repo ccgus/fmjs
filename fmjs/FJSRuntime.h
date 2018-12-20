@@ -43,6 +43,9 @@ extern NSString *FMJavaScriptExceptionName;
 - (void)shutdown;
 - (void)garbageCollect;
 
+- (void)installRunloop;
++ (void)setUseSynchronousGarbageCollectForDebugging:(BOOL)flag;
+
 - (JSValueRef)newJSValueForWrapper:(FJSValue*)w;
 
 - (JSContextRef)contextRef;

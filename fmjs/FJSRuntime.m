@@ -13,6 +13,7 @@
 #import "FJSRuntime.h"
 #import "FJSRuntimeCallbacks.h"
 #import "FJSPrivate.h"
+#import "FJSRunLoopThread.h"
 
 #import <objc/runtime.h>
 #import <dlfcn.h>
@@ -31,6 +32,7 @@ static const void * const kDispatchQueueSpecificKey = &kDispatchQueueSpecificKey
 @property (assign) JSClassRef globalClass;
 @property (strong) NSMutableSet<NSString*> *runtimeObjectNames;
 @property (strong) NSMutableDictionary *cachedModules;
+@property (strong) FJSRunLoopThread *runloopThread;
 
 @end
 
@@ -144,6 +146,12 @@ static const void * const kDispatchQueueSpecificKey = &kDispatchQueueSpecificKey
         }
     };
     
+    self[@"printjsv"] = ^(FJSValue *v) {
+        
+        FMAssert([v isKindOfClass:[FJSValue class]]);
+    };
+    
+    
     
     self[@"require"] = ^(NSString *modulePath) {
         return [weakSelf require:modulePath];
@@ -219,7 +227,6 @@ static const void * const kDispatchQueueSpecificKey = &kDispatchQueueSpecificKey
         NSLog(@"%@", e);
         FMAssert(NO);
     }
-    
 }
 
 - (void)reportPossibleJSException:(nullable JSValueRef)exception {
@@ -626,6 +633,16 @@ static const void * const kDispatchQueueSpecificKey = &kDispatchQueueSpecificKey
     //        return module.exports;
     return [FJSValue valueWithNewObjectInRuntime:self];
     
+}
+
+- (void)installRunloop {
+    
+    // Why a runloop? I think it'll help with some memory things in background threads.
+    // Maybe.
+    // That's the theory anyway.
+    _runloopThread = [[FJSRunLoopThread alloc] initWithRuntime:self];
+    [_runloopThread start];
+    [_runloopThread join];
 }
 
 @end

@@ -360,8 +360,9 @@ JSValueRef FJS_getProperty(JSContextRef ctx, JSObjectRef object, JSStringRef pro
     FJSRuntime *runtime = [FJSRuntime runtimeInContext:ctx];
     FJSValue *valueFromJSObject = [FJSValue valueWithJSValueRef:object inRuntime:runtime];
     
-    return [runtime getProperty:propertyName inObject:valueFromJSObject exception:exception];
+    JSValueRef propertyValueRef = [runtime getProperty:propertyName inObject:valueFromJSObject exception:exception];
     
+    return propertyValueRef;
 }
 
 static bool FJS_deleteProperty(JSContextRef ctx, JSObjectRef object, JSStringRef propertyName, JSValueRef* exception) {

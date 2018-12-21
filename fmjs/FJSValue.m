@@ -408,7 +408,7 @@ static NSPointerArray *FJSValueLiveWeakArray;
     if ([self isInstance] || [self isBlock]) {
         
         // for - (void)testStringPassing to work, we need to uncomment this and return a native object instead of a jsstring ( 5C54337E-CBF3-4323-9EDB-268DF924CF15 )
-        _jsValRef = FJSNativeObjectToJSValue([self instance], [_runtime contextRef]);
+        // _jsValRef = FJSNativeObjectToJSValue([self instance], [_runtime contextRef]);
         
         if (!_jsValRef) {
             

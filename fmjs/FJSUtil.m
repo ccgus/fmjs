@@ -306,9 +306,9 @@ JSValueRef FJSNativeObjectToJSValue(id o, JSContextRef context) {
             return JSValueMakeNumber(context, [o doubleValue]);
         }
     }
-    else if ([o isKindOfClass:[NSNull class]]) {
-        return JSValueMakeNull(context);
-    }
+//    else if ([o isKindOfClass:[NSNull class]]) {
+//        return JSValueMakeNull(context);
+//    }
     
     return nil;
 }

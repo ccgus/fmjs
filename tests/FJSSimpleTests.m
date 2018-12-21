@@ -146,9 +146,9 @@ int FJSTestCGImageRefExampleCounter;
             
             FJSValue *v = [ar pointerAtIndex:idx];
             if (v) {
-                debug(@"v: '%@' (Finalized? %d)", v, [v debugFinalizeCalled]);
-                debug(@"[v toObject]: '%@'", [v toObject]);
-                debug(@"%@", [v debugStackFromInit]);
+                debug(@"%@ (Finalized? %d)", v, [v debugFinalizeCalled]);
+                debug(@"As object: '%@'", [v toObject]);
+                debug(@"Leaked object created at: %@", [v debugStackFromInit]);
             }
         }
         
@@ -728,7 +728,7 @@ int FJSTestCGImageRefExampleCounter;
     
     XCTAssert([[runtime evaluateScript:@"FJSMethodPleasePassUnsignedIntNumber3(3);"] toBOOL]);
     
-    XCTAssert([[runtime evaluateScript:@"NSNull.null() == null;"] toBOOL]);
+    XCTAssert([[runtime evaluateScript:@"NSNull.null() != null;"] toBOOL]); // NSNull is still an object.
     
     XCTAssert([[runtime evaluateScript:@"FJSTestReturnNil() == undefined;"] toBOOL]);
     
@@ -1022,6 +1022,9 @@ int FJSTestCGImageRefExampleCounter;
     NSString *c = [f toObject];
     XCTAssert([c isEqualToString:@"FJS Missing Underscore"]);
     
+    #pragma message "FIXME: Why do we need to do this now?"
+    [runtime evaluateScript:@"c = null;"];
+    
     FJSValue *u = [runtime evaluateScript:@"NSURL.URLWithString('https://flyingmeat.com').URLByAppendingPathComponent('acorn');"];
     XCTAssert(u);
     
@@ -1152,7 +1155,7 @@ int FJSTestCGImageRefExampleCounter;
     
 }
 
-- (void)xtestStringPassing { // Currently failing, look for 5C54337E-CBF3-4323-9EDB-268DF924CF15 for a fix.
+- (void)testStringPassing { // Currently failing, look for 5C54337E-CBF3-4323-9EDB-268DF924CF15 for a fix.
     
     __block NSString *printedString;
     FJSRuntime *runtime = [FJSRuntime new];
@@ -1160,15 +1163,29 @@ int FJSTestCGImageRefExampleCounter;
         printedString = stringToPrint;
     }];
     
-    [runtime setExceptionHandler:^(FJSRuntime * _Nonnull runtime, NSException * _Nonnull exception) {
+    [runtime setExceptionHandler:^(FJSRuntime * _Nonnull rt, NSException * _Nonnull exception) {
         NSLog(@"exception: %@", exception);
         XCTAssert(NO);
     }];
     
-    [runtime evaluateScript:@"var s = NSString.stringWithString('/foo/bar.png').lastPathComponent().stringByDeletingPathExtension(); print(s);"]; // DateTimeOriginal
+    [runtime evaluateScript:@"var s = NSString.stringWithString('/foo/bar.png').lastPathComponent().stringByDeletingPathExtension(); print(s);"];
     
     XCTAssert([printedString isEqualToString:@"bar"]);
     
+    [runtime evaluateScript:@"print('foo' + s); s = null;"];
+    
+    XCTAssert([printedString isEqualToString:@"foobar"], @"Got '%@'", printedString);
+    
+    
+    [runtime shutdown];
+    
+}
+
+- (void)testNSNullNull {
+    
+    
+    FJSRuntime *runtime = [FJSRuntime new];
+    XCTAssert([[runtime evaluateScript:@"NSNull.null() != null;"] toBOOL]); // This guy is still an object that can be passed around.
     [runtime shutdown];
     
 }

@@ -1137,7 +1137,7 @@ int FJSTestCGImageRefExampleCounter;
     XCTAssert(FJSSimpleTestsDeallocHappend == startDeallocs + 1);
 }
 
-- (void)xtestImageIOLookup { // Currently failing.
+- (void)testImageIOLookup { // Currently failing.
     
     [FJSRuntime loadFrameworkAtPath:@"/System/Library/Frameworks/ImageIO.framework"];
     
@@ -1147,9 +1147,21 @@ int FJSTestCGImageRefExampleCounter;
         printedString = stringToPrint;
     }];
     
-    [runtime evaluateScript:@"print(kCGImagePropertyExifDateTimeOriginal);"]; // DateTimeOriginal
     
-    XCTAssert([printedString isEqualToString:(id)kCGImagePropertyExifDateTimeOriginal]);
+    void *addr = dlsym(RTLD_DEFAULT, "kCGImagePropertyExifDateTimeOriginal");
+    XCTAssert(addr == &kCGImagePropertyExifDateTimeOriginal);
+    
+    id foo = (__bridge id)(*(void**) addr);
+    
+    XCTAssert([foo isEqualToString:(id)kCGImagePropertyExifDateTimeOriginal]);
+    
+    [runtime evaluateScript:@"print(kCGImagePropertyExifDateTimeOriginal + '');"]; // DateTimeOriginal
+    
+    XCTAssert([printedString isEqualToString:(id)kCGImagePropertyExifDateTimeOriginal], @"Got: '%@'", printedString);
+    
+    [runtime evaluateScript:@"print(kCGImagePropertyExifDateTimeOriginal);"]; // DateTimeOriginal
+    XCTAssert([printedString isEqualToString:(id)kCGImagePropertyExifDateTimeOriginal], @"Got: '%@'", printedString);
+    
     
     [runtime shutdown];
     

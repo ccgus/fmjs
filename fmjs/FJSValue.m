@@ -169,8 +169,7 @@ static NSPointerArray *FJSValueLiveWeakArray;
     value->_cValue.type = type;
     
     if (type == _C_PTR) {
-        value->_cValue.value.pointerValue = p;
-        //FMAssert(NO); // We need a test for this. Looks like you found a case for it.
+        value->_cValue.value.pointerValue = (*(void**)p);
     }
     else {
         size_t copySize = 0;
@@ -278,7 +277,17 @@ static NSPointerArray *FJSValueLiveWeakArray;
 }
 
 - (BOOL)isInstance {
-    return _cValue.type == _C_ID;
+    if (_cValue.type == _C_ID) {
+        return YES;
+    }
+    
+    #pragma message "FIXME: How can we check and see if all CFTypes can bridge to an object?"
+    if (_cValue.type == _C_PTR && [[_symbol runtimeType] isEqualToString:@"^{CFString=}"]) {
+        return YES;
+    }
+    
+    
+    return NO;
 }
 
 - (BOOL)isBlock {
@@ -299,6 +308,12 @@ static NSPointerArray *FJSValueLiveWeakArray;
     
     if (_weakInstance) {
         return _weakInstance;
+    }
+    
+    if (_cValue.type == _C_PTR && [[_symbol runtimeType] hasPrefix:@"^{CF"]) {
+        
+        CFTypeRef r = _cValue.value.pointerValue;
+        return (__bridge id)r;
     }
     
     return (__bridge id)_cValue.value.pointerValue;

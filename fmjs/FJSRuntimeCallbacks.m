@@ -342,7 +342,7 @@ static bool FJS_hasProperty(JSContextRef ctx, JSObjectRef object, JSStringRef pr
     if ([propertyName isEqualToString:FJSRuntimeLookupKey] || [propertyName isEqualToString:@"Object"]) {
         return NO;
     }
-    
+        
     FJSRuntime *runtime   = [FJSRuntime runtimeInContext:ctx];
     
     FJSValue *fobj = [FJSValue valueWithJSValueRef:object inRuntime:runtime];

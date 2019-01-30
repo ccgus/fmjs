@@ -306,7 +306,7 @@ static bool FJS_hasInstance(JSContextRef ctx, JSObjectRef constructor, JSValueRe
 
 - (JSValueRef)convertObject:(FJSValue*)valueObject toType:(JSType)type exception:(JSValueRef*)exception {
     
-    if ([valueObject isInstance] || [valueObject isBlock] || [valueObject isClass]) {
+    if ([valueObject isInstance] || [valueObject isBlock] || [valueObject isClass] || [[[valueObject symbol] runtimeType] hasPrefix:@"^{C"]) {
         
         id o = [valueObject instance];
         

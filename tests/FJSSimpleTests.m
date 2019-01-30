@@ -109,6 +109,14 @@ int FJSTestCGImageRefExampleCounter;
     assert(CGRectEqualToRect(r, CGRectMake(10, 11, 12, 13)));
 }
 
+
++ (void)checkImageIsGood:(CGImageRef)r {
+    if (r) {
+        FJSTestCGImageRefExampleCounter++;
+    }
+}
+
+
 @end
 
 
@@ -1054,6 +1062,40 @@ int FJSTestCGImageRefExampleCounter;
     
     XCTAssert(FJSTestCGImageRefExampleCounter = countStart + 1);
     
+    
+    [runtime shutdown];
+    
+}
+
+- (void)testCGImageSourceThumb {
+    
+    int countStart = FJSTestCGImageRefExampleCounter;
+    
+    NSString *code = @"\
+    var url = NSURL.fileURLWithPath_('/Library/Desktop Pictures/Yosemite.jpg');\n\
+    var imgSrc = CGImageSourceCreateWithURL(url, null)\n\
+    var thumb = CGImageSourceCreateThumbnailAtIndex(imgSrc, 0, {kCGImageSourceCreateThumbnailFromImageIfAbsent: false});\n\
+    FJSTestClass.checkImageIsGood(thumb);\n\
+    print('Got thumb: ' + thumb);\n\
+    CFRelease(thumb);\n\
+    CFRelease(imgSrc);\n\
+    url = null; imgSrc = null; thumb = null;";
+    
+    [FJSRuntime loadFrameworkAtPath:@"/System/Library/Frameworks/ImageIO.framework"];
+    
+    FJSRuntime *runtime = [FJSRuntime new];
+    
+    [runtime setExceptionHandler:^(FJSRuntime * _Nonnull rt, NSException * _Nonnull exception) {
+        NSLog(@"exception: %@", exception);
+        XCTAssert(NO);
+    }];
+    [runtime setPrintHandler:^(FJSRuntime * _Nonnull rt, NSString * _Nonnull stringToPrint) {
+        debug(@"printedString: '%@'", stringToPrint);
+    }];
+    
+    [runtime evaluateScript:code];
+    
+    XCTAssert(FJSTestCGImageRefExampleCounter = countStart + 1);
     
     [runtime shutdown];
     

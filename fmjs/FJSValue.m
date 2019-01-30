@@ -302,7 +302,7 @@ static NSPointerArray *FJSValueLiveWeakArray;
     
 #ifdef DEBUG
     if (_weakInstance || _cValue.value.pointerValue) {
-        FMAssert([self isInstance] || [self isClass] || [self isBlock]);
+        FMAssert([self isInstance] || [self isClass] || [self isBlock] || ((_cValue.type == _C_PTR && [[_symbol runtimeType] hasPrefix:@"^{C"])));
     }
 #endif
     
@@ -310,7 +310,7 @@ static NSPointerArray *FJSValueLiveWeakArray;
         return _weakInstance;
     }
     
-    if (_cValue.type == _C_PTR && [[_symbol runtimeType] hasPrefix:@"^{CF"]) {
+    if (_cValue.type == _C_PTR && [[_symbol runtimeType] hasPrefix:@"^{C"]) {
         
         CFTypeRef r = _cValue.value.pointerValue;
         return (__bridge id)r;

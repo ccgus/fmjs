@@ -310,6 +310,10 @@ static bool FJS_hasInstance(JSContextRef ctx, JSObjectRef constructor, JSValueRe
         
         id o = [valueObject instance];
         
+        if (!o) {
+            return JSValueMakeNull([self contextRef]);
+        }
+        
         if (type == kJSTypeNumber) {
             
             if ([o isKindOfClass:[NSNumber class]] || (([o isKindOfClass:[NSString class]] && FJSStringIsNumber(o)))) {

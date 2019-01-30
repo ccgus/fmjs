@@ -1101,6 +1101,37 @@ int FJSTestCGImageRefExampleCounter;
     
 }
 
+- (void)testNullCGImage {
+    
+    NSString *code = @"\
+    var img = CGImageCreateCopy(null);\n\
+    print('img ' + img);\n\
+    img = null;";
+    
+    [FJSRuntime loadFrameworkAtPath:@"/System/Library/Frameworks/ImageIO.framework"];
+    
+    FJSRuntime *runtime = [FJSRuntime new];
+    
+    [runtime setExceptionHandler:^(FJSRuntime * _Nonnull rt, NSException * _Nonnull exception) {
+        NSLog(@"exception: %@", exception);
+        XCTAssert(NO);
+    }];
+    
+    __block NSString *passedString;
+    
+    [runtime setPrintHandler:^(FJSRuntime * _Nonnull rt, NSString * _Nonnull stringToPrint) {
+        debug(@"printedString: '%@'", stringToPrint);
+        passedString = stringToPrint;
+    }];
+    
+    [runtime evaluateScript:code];
+    
+    
+    XCTAssert([passedString isEqualToString:@"img null"]);
+    
+    [runtime shutdown];
+}
+
 - (void)testRectCheckTestThing {
     
     NSString *code = @"var c = FJSTestClass.new()\n"

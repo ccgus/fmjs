@@ -74,11 +74,15 @@ static const void * const kDispatchQueueSpecificKey = &kDispatchQueueSpecificKey
         
         static dispatch_once_t onceToken;
         dispatch_once(&onceToken, ^{
+            
+            // The order this happens in is important, so when CG or CF function return values and arguments are unmangled,
+            // the right CFTypes are swapped in. Search for 98335485-e79d-4ad3-b2d1-91a4c4c56da1 
             [FJSRuntime loadFrameworkAtPath:@"/System/Library/Frameworks/Foundation.framework"];
-            [FJSRuntime loadFrameworkAtPath:@"/System/Library/Frameworks/AppKit.framework"];
-            [FJSRuntime loadFrameworkAtPath:@"/System/Library/Frameworks/CoreGraphics.framework"];
-            [FJSRuntime loadFrameworkAtPath:@"/System/Library/Frameworks/CoreImage.framework"];
             [FJSRuntime loadFrameworkAtPath:@"/System/Library/Frameworks/CoreFoundation.framework"];
+            [FJSRuntime loadFrameworkAtPath:@"/System/Library/Frameworks/CoreGraphics.framework"];
+            [FJSRuntime loadFrameworkAtPath:@"/System/Library/Frameworks/ImageIO.framework"];
+            [FJSRuntime loadFrameworkAtPath:@"/System/Library/Frameworks/AppKit.framework"];
+            [FJSRuntime loadFrameworkAtPath:@"/System/Library/Frameworks/CoreImage.framework"];
             
             /* If we have custom functions again, we'll need this.
             NSString *xml =

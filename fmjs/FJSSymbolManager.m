@@ -204,6 +204,7 @@ static FJSSymbolManager *FJSSymbolManagerSharedInstance = nil;
     
     if (_currentFunction && [elementName isEqualToString:@"arg"]) {
         
+        // Bookmark: 98335485-e79d-4ad3-b2d1-91a4c4c56da1
         FJSSymbol *cfSym = [_cfTypeToSymbolLUT objectForKey:type];
         if (cfSym) {
             sym = cfSym;
@@ -213,6 +214,7 @@ static FJSSymbolManager *FJSSymbolManagerSharedInstance = nil;
     }
     else if (_currentFunction && [elementName isEqualToString:@"retval"]) {
         
+        // Bookmark: 98335485-e79d-4ad3-b2d1-91a4c4c56da1
         FJSSymbol *cfSym = [_cfTypeToSymbolLUT objectForKey:type];
         if (cfSym) {
             sym = [cfSym copy];

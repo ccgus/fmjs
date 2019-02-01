@@ -349,6 +349,13 @@ static NSMutableDictionary *FJSFFIStructureLookup;
         return [FJSValue valueWithUndefinedInRuntime:_runtime];
     }
     
+#ifdef DEBUG
+    if ([[[_f symbol] name] isEqualToString:@"CGImageSourceCreateThumbnailAtIndex"]) {
+        FMAssert([returnValue isCFType]);
+    }
+#endif
+    
+    
     //debug(@"[returnValue isInstance]: %ld", [returnValue isInstance]);
     //debug(@"[returnValue instance]: %ld", [returnValue instance]);
     

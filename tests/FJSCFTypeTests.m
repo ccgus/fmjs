@@ -171,6 +171,48 @@ extern int FJSTestCGImageRefExampleCounter;
     
 }
 
+- (void)testCGImageSourceThumb2 {
+    
+    NSString *code = @"\
+    var f = function() {\n\
+        var foundThumb = false;\n\
+        var url = NSURL.fileURLWithPath_('/Library/Desktop Pictures/Reflection 1.jpg');\n\
+        var imgSrc = CGImageSourceCreateWithURL(url, null)\n\
+        thumb = CGImageSourceCreateThumbnailAtIndex(imgSrc, 0, {kCGImageSourceCreateThumbnailFromImageIfAbsent: false});\n\
+        if (thumb) { print('thumb is good?'); foundThumb = true; } else { print('thumb is bad!') }\n\
+        return foundThumb;\n\
+    }";
+    
+    printf("%s\n", [code UTF8String]);
+    
+    FJSRuntime *runtime = [FJSRuntime new];
+    
+    [FJSRuntime loadFrameworkAtPath:@"/System/Library/Frameworks/ImageIO.framework"];
+    
+    
+    [runtime setExceptionHandler:^(FJSRuntime * _Nonnull rt, NSException * _Nonnull exception) {
+        NSLog(@"exception: %@", exception);
+        XCTAssert(NO);
+    }];
+    
+    __block NSString *lastPrintedString;
+    [runtime setPrintHandler:^(FJSRuntime * _Nonnull rt, NSString * _Nonnull stringToPrint) {
+        debug(@"printedString: '%@'", stringToPrint);
+        lastPrintedString = stringToPrint;
+    }];
+    
+    [runtime evaluateScript:code];
+    
+    FJSValue *v = [runtime callFunctionNamed:@"f" withArguments:@[]];
+    
+    XCTAssert(![v toBOOL]);
+    
+    
+    [runtime shutdown];
+    
+}
+
+
 - (void)testNullCGImage {
     
     NSString *code = @"\

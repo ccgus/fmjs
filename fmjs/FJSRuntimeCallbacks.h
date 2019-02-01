@@ -9,9 +9,6 @@
 #import <Foundation/Foundation.h>
 #import "FJSRuntime.h"
 
-
-NS_ASSUME_NONNULL_BEGIN
-
 @interface FJSRuntime (JSCallbacks)
 
 - (void)setupJSCallbacks;
@@ -24,5 +21,3 @@ NS_ASSUME_NONNULL_BEGIN
 - (BOOL)object:(FJSValue*)object hasProperty:(NSString *)propertyName;
 
 @end
-
-NS_ASSUME_NONNULL_END

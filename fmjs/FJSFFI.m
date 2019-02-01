@@ -114,13 +114,17 @@ static NSMutableDictionary *FJSFFIStructureLookup;
         }
         
         const char *returnType = [methodSignature methodReturnType];
+        
         JSValueRef returnValue = NULL;
         if (FJSCharEquals(returnType, @encode(void))) {
             returnValue = JSValueMakeUndefined([_runtime contextRef]);
             returnFValue = [FJSValue valueWithJSValueRef:(JSObjectRef)returnValue inRuntime:_runtime];
         }
         // id
-        else if (FJSCharEquals(returnType, @encode(id)) || FJSCharEquals(returnType, @encode(Class))) {
+        else if (FJSCharEquals(returnType, @encode(id)) ||
+                 FJSCharEquals(returnType, @encode(Class)) ||
+                 [FJSSymbol symbolForCFType:[NSString stringWithUTF8String:returnType]])
+        {
             
             // Using CFTypeRef with libffi is a great way to workaround ARC getting in the way of things.
             CFTypeRef cfobject = nil;
@@ -128,13 +132,14 @@ static NSMutableDictionary *FJSFFIStructureLookup;
             
             returnFValue = [FJSValue valueWithInstance:cfobject inRuntime:_runtime];
             
-            if ([functionSymbol returnsRetained]) {
+            if (cfobject && [functionSymbol returnsRetained]) {
                 // We're already +2 on the object now. Time to bring it back down with CFRelease
                 CFRelease(cfobject);
             }
             
         }
         else  {
+            
             
             if ([functionSymbol returnValue]) {
                 returnFValue = [FJSValue valueWithSymbol:[functionSymbol returnValue] inRuntime:_runtime];
@@ -148,7 +153,7 @@ static NSMutableDictionary *FJSFFIStructureLookup;
         return NULL;
     }
     
-    return returnFValue ? returnFValue : [FJSValue valueWithUndefinedInRuntime:_runtime];
+    return returnFValue ? returnFValue : [FJSValue valueWithNullInRuntime:_runtime];
 }
 
 - (BOOL)checkArgumentsWithSymbol:(FJSSymbol*)functionSymbol error:(NSError **)outError {
@@ -234,6 +239,8 @@ static NSMutableDictionary *FJSFFIStructureLookup;
         FMAssert(functionSymbol);
         callAddress = dlsym(RTLD_DEFAULT, [[functionSymbol name] UTF8String]);
     }
+    
+    
     
     NSError *argsErr = nil;
     if (![self checkArgumentsWithSymbol:functionSymbol error:&argsErr]) {
@@ -337,7 +344,23 @@ static NSMutableDictionary *FJSFFIStructureLookup;
         free(ffiValues);
     }
     
-    return returnValue ? returnValue : [FJSValue valueWithUndefinedInRuntime:_runtime];
+    if (returnType == &ffi_type_void) {
+        #pragma message "FIXME: Write a test for this- that we return undefined."
+        return [FJSValue valueWithUndefinedInRuntime:_runtime];
+    }
+    
+    //debug(@"[returnValue isInstance]: %ld", [returnValue isInstance]);
+    //debug(@"[returnValue instance]: %ld", [returnValue instance]);
+    
+    BOOL isNullInstance = ([returnValue isInstance] && ![returnValue instance]);
+    BOOL isNullCFType   = ([returnValue isCFType]   && ![returnValue CFTypeRef]);
+    
+    if (isNullInstance || isNullCFType) {
+        debug(@"IT'S NULL.");
+        return [FJSValue valueWithNullInRuntime:_runtime];
+    }
+    
+    return returnValue ? returnValue : [FJSValue valueWithNullInRuntime:_runtime];
 }
 
 + (ffi_type *)ffiTypeAddressForTypeEncoding:(char)encoding {
@@ -361,6 +384,7 @@ static NSMutableDictionary *FJSFFIStructureLookup;
         case _C_DBL:        return &ffi_type_double;
         case _C_BOOL:       return &ffi_type_sint8;
         case _C_VOID:       return &ffi_type_void;
+        case _C_CONST:      return &ffi_type_pointer; // FIXME: is this right?
     }
     
     // FFI_TYPE_STRUCT

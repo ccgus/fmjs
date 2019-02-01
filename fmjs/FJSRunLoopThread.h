@@ -8,8 +8,6 @@
 
 #import <Foundation/Foundation.h>
 #import "FJSValue.h"
-NS_ASSUME_NONNULL_BEGIN
-
 
 @interface FJSBasicRunLoopThread : NSObject
 
@@ -40,5 +38,3 @@ typedef void* (*FJSThreadMainType)(void*);
 
 @end
 
-
-NS_ASSUME_NONNULL_END

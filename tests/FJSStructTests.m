@@ -3,7 +3,7 @@
 #import "FJSFFI.h"
 #import "FJSUtil.h"
 #import "FJSSymbol.h"
-#import <FMJS/FJS.h>
+#import <fmjs/FJS.h>
 #import <dlfcn.h>
 
 // This is in FJSRuntime, as CGRectMake(74, 78, 11, 16)

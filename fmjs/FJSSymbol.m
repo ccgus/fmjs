@@ -16,6 +16,7 @@
 
 @interface FJSSymbolManager (Private)
 @property (strong) NSMutableDictionary *symbols;
+@property (strong) NSMutableDictionary *cfTypeToSymbolLUT;
 - (void)addSymbol:(FJSSymbol*)symbol;
 @end
 
@@ -26,6 +27,34 @@
 @end
 
 @implementation FJSSymbol
+
+
+
+- (id)copyWithZone:(NSZone *)zone {
+    
+    FJSSymbol *sym = [[[self class] allocWithZone:zone] init];
+    
+    sym->_structSymbols = _structSymbols;
+    sym->_symbolType = _symbolType;
+    sym->_name = _name;
+    sym->_runtimeType = _runtimeType;
+    sym->_runtimeValue = _runtimeValue;
+    sym->_selector = _selector;
+    sym->_arguments = _arguments;
+    sym->_classMethods = _classMethods;
+    sym->_instanceMethods = _instanceMethods;
+    sym->_returnValue = _returnValue;
+    sym->_isClassMethod = _isClassMethod;
+    sym->_isCFType = _isCFType;
+    sym->_cfTypeReturnsRetained = _cfTypeReturnsRetained;
+    
+    return sym;
+    
+}
+
+
+
+
 
 - (void)parseStruct {
     
@@ -370,7 +399,18 @@
     return methodSymbol;
 }
 
++ (FJSSymbol*)symbolForCFType:(NSString*)cftype {
+    
+    cftype = [cftype stringByReplacingOccurrencesOfString:@"^{__" withString:@"^{"];
+    
+    return [[[FJSSymbolManager sharedManager] cfTypeToSymbolLUT] objectForKey:cftype];
+}
+
 - (BOOL)returnsRetained {
+    
+    if (_cfTypeReturnsRetained) {
+        return YES;
+    }
     
     // FIXME: Maybe look up the actual +1 rules. Isn't it create anywhere in the name? Holy shit I wish bridge.xml files had returns_retained in there.
     if ([_symbolType isEqualToString:@"method"]) {
@@ -381,6 +421,19 @@
     FMAssert(NO);
     
     return NO;
+}
+
+- (void)unmangleCFArgs {
+    
+    // ^{__CFAllocator=}'/>
+    
+    /*
+    Gus, this is where you are promiting ^{CGImage=} to CGImageRef
+    
+    <function name='CGImageCreateCopy'>
+    <arg type='^{CGImage=}'/>
+    <retval already_retained='true' type='^{CGImage=}'/>
+    </function>*/
 }
 
 @end

@@ -27,6 +27,8 @@ NS_ASSUME_NONNULL_BEGIN
 @property (strong) NSMutableArray *instanceMethods;
 @property (strong) FJSSymbol *returnValue;
 @property (assign) BOOL isClassMethod;
+@property (assign) BOOL isCFType;
+@property (assign) BOOL cfTypeReturnsRetained;
 
 - (void)addArgument:(FJSSymbol*)sym;
 
@@ -38,6 +40,8 @@ NS_ASSUME_NONNULL_BEGIN
 + (FJSSymbol*)symbolForName:(NSString*)name;
 + (FJSSymbol*)symbolForName:(NSString*)name inObject:(nullable id)object;
 + (FJSSymbol*)symbolForBlockTypeEncoding:(const char*)typeEncoding;
++ (FJSSymbol*)symbolForCFType:(NSString*)cftype;
+
 - (BOOL)returnsRetained;
 
 - (NSString*)structName;
@@ -45,7 +49,7 @@ NS_ASSUME_NONNULL_BEGIN
 - (size_t)structSize;
 - (FJSStructSymbol*)structFieldNamed:(NSString*)name;
 
-
+- (void)unmangleCFArgs;
 
 @end
 

@@ -23,9 +23,10 @@
 @property (strong) FJSSymbol *currentFunction;
 @property (strong) FJSSymbol *currentClass;
 @property (strong) FJSSymbol *currentMethod;
+@property (strong) FJSSymbol *currentCFType;
 @property (strong) NSMutableDictionary *symbols;
+@property (strong) NSMutableDictionary *cfTypeToSymbolLUT;
 @property (strong) NSArray *symNames;
-
 
 @end
 
@@ -52,6 +53,7 @@ static FJSSymbolManager *FJSSymbolManagerSharedInstance = nil;
     self = [super init];
     if (self) {
         _symbols = [NSMutableDictionary dictionary];
+        _cfTypeToSymbolLUT = [NSMutableDictionary dictionary];
     }
     
     return self;
@@ -186,13 +188,41 @@ static FJSSymbolManager *FJSSymbolManagerSharedInstance = nil;
             [sym setSelector:NSSelectorFromString(s)];
         }
     }
-    
+    else if ([elementName isEqualToString:@"cftype"]) {
+        _currentCFType = sym;
+        [_currentCFType setIsCFType:YES];
+        [_cfTypeToSymbolLUT setObject:_currentCFType forKey:type];
+        
+        
+#ifdef DEBUG
+        // <cftype gettypeid_func='CGImageGetTypeID' name='CGImageRef' tollfree='__NSCFType' type='^{CGImage=}'/>
+      // Well, are there types that don't start with C?
+        FMAssert([[attributeDict objectForKey:@"name"] hasPrefix:@"C"]);
+#endif
+    }
     
     
     if (_currentFunction && [elementName isEqualToString:@"arg"]) {
+        
+        FJSSymbol *cfSym = [_cfTypeToSymbolLUT objectForKey:type];
+        if (cfSym) {
+            sym = cfSym;
+        }
+        
         [_currentFunction addArgument:sym];
     }
     else if (_currentFunction && [elementName isEqualToString:@"retval"]) {
+        
+        FJSSymbol *cfSym = [_cfTypeToSymbolLUT objectForKey:type];
+        if (cfSym) {
+            sym = [cfSym copy];
+            [sym setSymbolType:@"retval"];
+        }
+        
+        if ([[attributeDict objectForKey:@"already_retained"] boolValue]) {
+            [_currentFunction setCfTypeReturnsRetained:YES];
+        }
+        
         [_currentFunction setReturnValue:sym];
     }
     else if (_currentClass && [elementName isEqualToString:@"method"]) {
@@ -207,7 +237,7 @@ static FJSSymbolManager *FJSSymbolManagerSharedInstance = nil;
         }
     }
     
-    if ([sym name] && ([elementName isEqualToString:@"class"] || [elementName isEqualToString:@"constant"] || [elementName isEqualToString:@"function"] || [elementName isEqualToString:@"enum"] || [elementName isEqualToString:@"struct"])) {
+    if ([sym name] && ([elementName isEqualToString:@"class"] || [elementName isEqualToString:@"constant"] || [elementName isEqualToString:@"function"] || [elementName isEqualToString:@"enum"] || [elementName isEqualToString:@"struct"] || [elementName isEqualToString:@"cftype"])) {
         [_symbols setObject:sym forKey:[sym name]];
     }
     
@@ -216,20 +246,16 @@ static FJSSymbolManager *FJSSymbolManagerSharedInstance = nil;
 // sent when an end tag is encountered. The various parameters are supplied as above.
 - (void)parser:(NSXMLParser *)parser didEndElement:(NSString *)elementName namespaceURI:(nullable NSString *)namespaceURI qualifiedName:(nullable NSString *)qName {
     if ([elementName isEqualToString:@"function"]) {
-//        debug(@"Clearing function %@", [_currentFunction name]);
-//        debug(@"args: %@", [_currentFunction arguments]);
-//        debug(@"retr: %@", [_currentFunction returnValue]);
-//
-//
         _currentFunction = nil;
     }
     else if ([elementName isEqualToString:@"class"]) {
-        
         _currentClass = nil;
-        
     }
     else if ([elementName isEqualToString:@"method"]) {
         _currentMethod = nil;
+    }
+    else if ([elementName isEqualToString:@"cftype"]) {
+        _currentCFType = nil;
     }
 }
 

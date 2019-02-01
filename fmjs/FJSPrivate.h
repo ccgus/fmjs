@@ -53,6 +53,7 @@ NS_ASSUME_NONNULL_BEGIN
 
 - (BOOL)isClass;
 - (BOOL)isInstance;
+- (BOOL)isCFType;
 - (BOOL)isBlock;
 - (BOOL)isStruct;
 - (BOOL)isSymbol;
@@ -66,7 +67,7 @@ NS_ASSUME_NONNULL_BEGIN
 - (nullable JSValueRef)JSValueRef;
 - (nullable JSValueRef)toJSString;
 
-- (id)instance;
+- (nullable id)instance;
 - (Class)rtClass;
 - (void)setClass:(Class)c;
 - (void)retainReturnValue;

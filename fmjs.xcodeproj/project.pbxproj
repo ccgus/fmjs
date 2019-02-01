@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		CC01111B220377B8002787C1 /* FJSCFTypeTests.m in Sources */ = {isa = PBXBuildFile; fileRef = CC01111A220377B8002787C1 /* FJSCFTypeTests.m */; };
 		CC1543A2218A36A8004E2146 /* FJSRuntimeCallbacks.m in Sources */ = {isa = PBXBuildFile; fileRef = CC5792542186AB64008073B7 /* FJSRuntimeCallbacks.m */; };
 		CC15CD0321811BFC0036CC57 /* FJSModule.h in Headers */ = {isa = PBXBuildFile; fileRef = CC15CD0121811BFC0036CC57 /* FJSModule.h */; };
 		CC15CD0421811BFC0036CC57 /* FJSModule.m in Sources */ = {isa = PBXBuildFile; fileRef = CC15CD0221811BFC0036CC57 /* FJSModule.m */; };
@@ -98,6 +99,7 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
+		CC01111A220377B8002787C1 /* FJSCFTypeTests.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = FJSCFTypeTests.m; sourceTree = "<group>"; };
 		CC15CD0121811BFC0036CC57 /* FJSModule.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = FJSModule.h; sourceTree = "<group>"; };
 		CC15CD0221811BFC0036CC57 /* FJSModule.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = FJSModule.m; sourceTree = "<group>"; };
 		CC1A28142154245F003B72BF /* FJSPrivate.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = FJSPrivate.h; sourceTree = "<group>"; };
@@ -261,6 +263,7 @@
 				CC310014215AB24800B270F5 /* FJSStructTests.m */,
 				CC2F20B1214D7A3700F38D03 /* FJSSimpleTests.m */,
 				CC5DAA7021558FC50089A633 /* FJSSimpleTests.h */,
+				CC01111A220377B8002787C1 /* FJSCFTypeTests.m */,
 				CC2F20B3214D7A3700F38D03 /* Info.plist */,
 			);
 			path = tests;
@@ -524,6 +527,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				CC2F20B2214D7A3700F38D03 /* FJSSimpleTests.m in Sources */,
+				CC01111B220377B8002787C1 /* FJSCFTypeTests.m in Sources */,
 				CC310016215AB2DD00B270F5 /* FJSStructTests.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

@@ -276,15 +276,22 @@ static NSPointerArray *FJSValueLiveWeakArray;
     return _cValue.type == _C_CLASS;
 }
 
+// <cftype gettypeid_func='CGImageGetTypeID' name='CGImageRef' tollfree='__NSCFType' type='^{CGImage=}'/>
+// <cftype gettypeid_func='CFStringGetTypeID' name='CFStringRef' tollfree='__NSCFString' type='^{__CFString=}'/>
+
+- (BOOL)isCFType {
+    return [[self symbol] isCFType];
+}
+
 - (BOOL)isInstance {
     if (_cValue.type == _C_ID) {
         return YES;
     }
     
-    #pragma message "FIXME: How can we check and see if all CFTypes can bridge to an object?"
-    if (_cValue.type == _C_PTR && [[_symbol runtimeType] isEqualToString:@"^{CFString=}"]) {
-        return YES;
-    }
+//    #pragma message "FIXME: How can we check and see if all CFTypes can bridge to an object?"
+//    if (_cValue.type == _C_PTR && [[_symbol runtimeType] isEqualToString:@"^{CFString=}"]) {
+//        return YES;
+//    }
     
     
     return NO;
@@ -298,7 +305,7 @@ static NSPointerArray *FJSValueLiveWeakArray;
     return _cValue.type == _C_STRUCT_B;
 }
 
-- (id)instance {
+- (nullable id)instance {
     
 #ifdef DEBUG
     if (_weakInstance || _cValue.value.pointerValue) {

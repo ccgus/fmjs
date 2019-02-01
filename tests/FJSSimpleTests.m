@@ -10,7 +10,7 @@
 #import "FJSFFI.h"
 #import "FJSSymbol.h"
 #import "FJSPrivate.h"
-#import <FMJS/FJS.h>
+#import <fmjs/FJS.h>
 #import <dlfcn.h>
 
 @interface FJSValue (PrivateTestThings)
@@ -1040,94 +1040,6 @@ int FJSTestCGImageRefExampleCounter;
     XCTAssert([url isKindOfClass:[NSURL class]]);
     
     XCTAssert([[url absoluteString] isEqualToString:@"https://flyingmeat.com/acorn"]);
-    
-    [runtime shutdown];
-}
-
-- (void)testCGImageRefExample {
-    
-    int countStart = FJSTestCGImageRefExampleCounter;
-    
-    NSString *code = @"\
-    var url = NSURL.fileURLWithPath_('/Library/Desktop Pictures/Yosemite.jpg');\n\
-    var img = CIImage.imageWithContentsOfURL_(url)\n\
-    var ctx = CIContext.new();\n\
-    var cgimg = ctx.createCGImage_fromRect_(img, CGRectMake(0, 0, 400, 400));\n\
-    FJSTestClass.testCGImageIs400x400_(cgimg);\n\
-    CFRelease(cgimg);\n\
-    url = null; img = null; ctx = null; cgimg = null;";
-    
-    FJSRuntime *runtime = [FJSRuntime new];
-    [runtime evaluateScript:code];
-    
-    XCTAssert(FJSTestCGImageRefExampleCounter = countStart + 1);
-    
-    
-    [runtime shutdown];
-    
-}
-
-- (void)testCGImageSourceThumb {
-    
-    int countStart = FJSTestCGImageRefExampleCounter;
-    
-    NSString *code = @"\
-    var url = NSURL.fileURLWithPath_('/Library/Desktop Pictures/Yosemite.jpg');\n\
-    var imgSrc = CGImageSourceCreateWithURL(url, null)\n\
-    var thumb = CGImageSourceCreateThumbnailAtIndex(imgSrc, 0, {kCGImageSourceCreateThumbnailFromImageIfAbsent: false});\n\
-    FJSTestClass.checkImageIsGood(thumb);\n\
-    print('Got thumb: ' + thumb);\n\
-    CFRelease(thumb);\n\
-    CFRelease(imgSrc);\n\
-    url = null; imgSrc = null; thumb = null;";
-    
-    [FJSRuntime loadFrameworkAtPath:@"/System/Library/Frameworks/ImageIO.framework"];
-    
-    FJSRuntime *runtime = [FJSRuntime new];
-    
-    [runtime setExceptionHandler:^(FJSRuntime * _Nonnull rt, NSException * _Nonnull exception) {
-        NSLog(@"exception: %@", exception);
-        XCTAssert(NO);
-    }];
-    [runtime setPrintHandler:^(FJSRuntime * _Nonnull rt, NSString * _Nonnull stringToPrint) {
-        debug(@"printedString: '%@'", stringToPrint);
-    }];
-    
-    [runtime evaluateScript:code];
-    
-    XCTAssert(FJSTestCGImageRefExampleCounter = countStart + 1);
-    
-    [runtime shutdown];
-    
-}
-
-- (void)testNullCGImage {
-    
-    NSString *code = @"\
-    var img = CGImageCreateCopy(null);\n\
-    print('img ' + img);\n\
-    img = null;";
-    
-    [FJSRuntime loadFrameworkAtPath:@"/System/Library/Frameworks/ImageIO.framework"];
-    
-    FJSRuntime *runtime = [FJSRuntime new];
-    
-    [runtime setExceptionHandler:^(FJSRuntime * _Nonnull rt, NSException * _Nonnull exception) {
-        NSLog(@"exception: %@", exception);
-        XCTAssert(NO);
-    }];
-    
-    __block NSString *passedString;
-    
-    [runtime setPrintHandler:^(FJSRuntime * _Nonnull rt, NSString * _Nonnull stringToPrint) {
-        debug(@"printedString: '%@'", stringToPrint);
-        passedString = stringToPrint;
-    }];
-    
-    [runtime evaluateScript:code];
-    
-    
-    XCTAssert([passedString isEqualToString:@"img null"]);
     
     [runtime shutdown];
 }

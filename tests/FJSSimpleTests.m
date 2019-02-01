@@ -1226,6 +1226,17 @@ int FJSTestCGImageRefExampleCounter;
     
     XCTAssert([module[@"aFuncNotThere"] isUndefined]);
     
+    [runtime evaluateScript:@"d = {}"];
+    XCTAssert([runtime[@"d"][@"foo"] isUndefined]);
+    
+    
+    // What does JSC do? It should also return undefined.
+    JSContext *ctx = [[JSContext alloc] init];
+    [ctx evaluateScript:@"d = {}"];
+    JSValue *jsv = ctx[@"d"];
+    XCTAssert(jsv);
+    XCTAssert([jsv[@"blah"] isUndefined]);
+    
     
 }
 

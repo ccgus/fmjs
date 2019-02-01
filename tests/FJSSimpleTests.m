@@ -18,6 +18,10 @@
 + (NSPointerArray*)liveInstancesPointerArray;
 @end
 
+@interface FJSRuntime (PrivateTestThings)
+- (FJSValue*)evaluateAsModule:(NSString*)script;
+@end
+
 const NSString *FJSTestConstString = @"HELLO I'M FJSTestConstString";
 const int FJSTestConstInt = 74;
 

@@ -32,6 +32,7 @@ extern NSString *FMJavaScriptExceptionName;
 - (FJSValue*)evaluateScript:(NSString *)script withSourceURL:(nullable NSURL *)sourceURL;
 
 - (FJSValue*)require:(NSString*)modulePath;
+- (FJSValue*)evaluateAsModule:(NSString*)script;
 
 // This gets us context["foo"] = @"Hi"; support
 // Object can either be a FJSValue object, objc block, or an objc instance (which will be wrapped in a FJSValue)

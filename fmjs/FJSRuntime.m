@@ -582,6 +582,15 @@ static const void * const kDispatchQueueSpecificKey = &kDispatchQueueSpecificKey
     return r;
 }
 
+- (FJSValue*)evaluateAsModule:(NSString*)script {
+    #pragma message "FIXME: If evaluateAsModule is called outside of a script, it needs to be on the queue"
+    NSString *module = [NSString stringWithFormat:@"(function() { var module = { exports : {} }; var exports = module.exports; %@ ; return module.exports; })()", script];
+    
+    FJSValue *moduleValue = [self evaluateNoQueue:module withSourceURL:nil];
+    
+    return moduleValue;
+}
+
 - (FJSValue*)evaluateModuleAtURL:(NSURL*)scriptURL {
     
     if (scriptURL) {

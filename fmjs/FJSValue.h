@@ -67,6 +67,9 @@ typedef struct {
 - (CGRect)toCGRect;
 - (CFTypeRef)CFTypeRef;
 
+- (BOOL)isUndefined;
+- (BOOL)isNull;
+
 - (void*)objectStorage;
 - (BOOL)pushJSValueToNativeType:(NSString*)type;
 
@@ -75,7 +78,6 @@ typedef struct {
 
 - (FJSValue*)valueFromStructFieldNamed:(NSString*)structFieldName;
 - (BOOL)setValue:(FJSValue*)value onStructFieldNamed:(NSString*)structFieldName;
-
 
 - (FJSValue *)invokeMethodNamed:(NSString *)method withArguments:(nullable NSArray *)arguments;
 

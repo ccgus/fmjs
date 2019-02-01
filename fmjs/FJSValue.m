@@ -272,6 +272,26 @@ static NSPointerArray *FJSValueLiveWeakArray;
     return nil;
 }
 
+- (BOOL)isUndefined {
+    
+    if (_isJSNative) {
+        FMAssert(_jsValRef);
+        return _jsValueType == kJSTypeUndefined;
+    }
+    
+    return NO;
+}
+
+- (BOOL)isNull {
+    
+    if (_isJSNative) {
+        FMAssert(_jsValRef);
+        return _jsValueType == kJSTypeNull;
+    }
+    
+    return NO;
+}
+
 - (BOOL)isClass {
     return _cValue.type == _C_CLASS;
 }
@@ -1111,7 +1131,7 @@ static NSPointerArray *FJSValueLiveWeakArray;
     
     #pragma message "FIXME: Report the exception?"
     
-    if (!ref) {
+    if (!ref || JSValueIsNull([_runtime contextRef], ref)) {
         return nil;
     }
     

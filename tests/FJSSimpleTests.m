@@ -1187,6 +1187,48 @@ int FJSTestCGImageRefExampleCounter;
     
 }
 
+- (void)testFalseIsFalseAndTrueIsTrue {
+    
+    
+    FJSRuntime *runtime = [FJSRuntime new];
+    XCTAssert(![[runtime evaluateScript:@"false;"] toBOOL]);
+    XCTAssert([[runtime evaluateScript:@"true;"] toBOOL]);
+    XCTAssert(![[runtime evaluateScript:@"var x = true; x = false; x;"] toBOOL]);
+    [runtime shutdown];
+    
+}
+
+- (void)testBoolFunctionReturnValue {
+    
+    FJSRuntime *runtime = [FJSRuntime new];
+    [runtime evaluateScript:@"ft = function() { var f = false; return f }"];
+    
+    FJSValue *v = [runtime callFunctionNamed:@"ft" withArguments:@[]];
+    
+    XCTAssert(![v toBOOL]);
+    
+    [runtime shutdown];
+    
+}
+
+- (void)testModuleFunctionExists {
+    
+    NSString *moduleScript = @"module.exports = { aFunc: function(a) { return a + 1; }, };";
+    FJSRuntime *runtime = [FJSRuntime new];
+    FJSValue *module = [runtime evaluateAsModule:moduleScript];
+    
+    XCTAssert(module);
+    
+    XCTAssert(module[@"aFunc"]);
+    
+    FJSValue *v = [module invokeMethodNamed:@"aFunc" withArguments:@[@"1"]];
+    XCTAssert([v toInt] == 2);
+    
+    XCTAssert([module[@"aFuncNotThere"] isUndefined]);
+    
+    
+}
+
 - (void)xtestPerformanceExample {
     // This is an example of a performance test case.
     [self measureBlock:^{

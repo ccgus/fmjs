@@ -35,9 +35,14 @@ static char ** runtimeCompletion(const char * text, int start, int end);
 //    MOMethod *exit = [MOMethod methodWithTarget:self selector:@selector(exit)];
 //    [runtime setValue:exit forKey:@"exit"];
     
+    [runtime setObject:self forKeyedSubscript:@"console"];
     
     
     
+}
+
+- (void)log:(NSString*)s {
+    printf("%s\n", [[s description] UTF8String]);
 }
 
 - (void)run {

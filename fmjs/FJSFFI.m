@@ -193,12 +193,6 @@ static NSMutableDictionary *FJSFFIStructureLookup;
             
         }
         
-        
-            
-        
-        
-        debug(@"argSym: '%@'", argSym);
-        debug(@"v: '%@'", v);
         idx++;
     }
     
@@ -292,8 +286,6 @@ static NSMutableDictionary *FJSFFIStructureLookup;
             FJSValue *arg     = [_args objectAtIndex:symbolArgIndex];
             FJSSymbol *argSym = [[[_f symbol] arguments] objectAtIndex:symbolArgIndex];
             assert(argSym);
-            
-            debug(@"[argSym runtimeType]: '%@'", [argSym runtimeType]);
             
             if ([arg isJSNative]) {
                 // Convert this to the argSymTupe?

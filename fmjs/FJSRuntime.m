@@ -151,16 +151,14 @@ static const void * const kDispatchQueueSpecificKey = &kDispatchQueueSpecificKey
     };
     
     self[@"printjsv"] = ^(FJSValue *v) {
-        
         FMAssert([v isKindOfClass:[FJSValue class]]);
     };
-    
-    
     
     self[@"require"] = ^(NSString *modulePath) {
         return [weakSelf require:modulePath];
     };
     
+    [self evaluateScript:@"var console={}; console.log=print;"];
     
 }
 

@@ -281,6 +281,10 @@ id FJSNativeObjectFromJSValue(JSValueRef jsValue, NSString *typeEncoding, JSCont
         return nil;
     }
     
+    if ([typeEncoding isEqualToString:@"^@"]) { // Pointer to an object. Possibly a block?
+        
+    }
+    
     debug(@"Not sure what to do with type encoding '%@'", typeEncoding);
     
     //assert(NO);

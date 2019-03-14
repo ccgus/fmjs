@@ -166,6 +166,8 @@ static const void * const kDispatchQueueSpecificKey = &kDispatchQueueSpecificKey
     
     if (_jsContext) {
         
+        [self removeRuntimeValueWithName:@"console"];
+        
         for (NSString *name in [_runtimeObjectNames copy]) {
             [self removeRuntimeValueWithName:name];
         }

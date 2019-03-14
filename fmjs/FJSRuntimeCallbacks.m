@@ -17,6 +17,8 @@ static bool FJS_deleteProperty(JSContextRef ctx, JSObjectRef object, JSStringRef
 static void FJS_getPropertyNames(JSContextRef ctx, JSObjectRef object, JSPropertyNameAccumulatorRef propertyNames);
 static bool FJS_hasInstance(JSContextRef ctx, JSObjectRef constructor, JSValueRef possibleInstance, JSValueRef* exception);
 
+static JSValueRef FJSPrototypeForOBJCInstance(JSContextRef ctx, id instance, NSString *name);
+
 @implementation FJSRuntime (JSCallbacks)
 
 
@@ -103,7 +105,22 @@ static bool FJS_hasInstance(JSContextRef ctx, JSObjectRef constructor, JSValueRe
         return YES;
     }
     
-    // debug(@"No property for %@ on %@", propertyName, objectValue);
+    //debug(@"No property for %@ on %@", propertyName, objectValue);
+    
+    id object = [objectValue isInstance] ? [objectValue toObject] : nil;
+    if ([object isKindOfClass:[NSString class]] || [object isKindOfClass:[NSArray class]]) {
+        // special case bridging of NSString & NSArray w/ JS functions
+        
+        if (FJSPrototypeForOBJCInstance([self contextRef], object, propertyName)) {
+            return YES;
+        }
+        
+        if ([object isKindOfClass:[NSArray class]]) {
+            if ([propertyName isEqualToString:@"length"]) {
+                return YES;
+            }
+        }
+    }
     
     return NO;
 }
@@ -209,6 +226,25 @@ static bool FJS_hasInstance(JSContextRef ctx, JSObjectRef constructor, JSValueRe
             }
         }
     }
+    
+    
+    id object = [valueFromJSObject isInstance] ? [valueFromJSObject toObject] : nil;
+    if ([object isKindOfClass:[NSString class]] || [object isKindOfClass:[NSArray class]]) {
+        // special case bridging of NSString & NSArray w/ JS functions
+        
+        JSValueRef jsPropertyValue = FJSPrototypeForOBJCInstance([self contextRef], object, propertyName);
+        if (jsPropertyValue) {
+            return jsPropertyValue;
+        }
+        
+        if ([object isKindOfClass:[NSArray class]]) {
+            // special case this property.
+            if ([propertyName isEqualToString:@"length"]) {
+                return JSValueMakeNumber([self contextRef], [object count]);
+            }
+        }
+    }
+    
     
     return nil;
 }
@@ -346,6 +382,8 @@ static bool FJS_hasProperty(JSContextRef ctx, JSObjectRef object, JSStringRef pr
     if ([propertyName isEqualToString:FJSRuntimeLookupKey] || [propertyName isEqualToString:@"Object"]) {
         return NO;
     }
+    
+    debug(@"propertyName: '%@'", propertyName);
         
     FJSRuntime *runtime   = [FJSRuntime runtimeInContext:ctx];
     
@@ -455,5 +493,41 @@ static void FJS_finalize(JSObjectRef object) {
         
         CFRelease(value);
     }
+}
+
+
+static JSValueRef FJSPrototypeForOBJCInstance(JSContextRef ctx, id instance, NSString *name) {
+    
+    char *propName = nil;
+    if ([instance isKindOfClass:[NSString class]]) {
+        propName = "String";
+    }
+    else if ([instance isKindOfClass:[NSArray class]]) {
+        propName = "Array";
+    }
+    
+    if (!propName) {
+        return NO;
+    }
+    
+    JSValueRef exception = nil;
+    JSStringRef jsPropertyName = JSStringCreateWithUTF8CString(propName);
+    JSValueRef jsPropertyValue = JSObjectGetProperty(ctx, JSContextGetGlobalObject(ctx), jsPropertyName, &exception);
+    JSStringRelease(jsPropertyName);
+    
+    jsPropertyName = JSStringCreateWithUTF8CString("prototype");
+    jsPropertyValue = JSObjectGetProperty(ctx, JSValueToObject(ctx, jsPropertyValue, nil), jsPropertyName, &exception);
+    JSStringRelease(jsPropertyName);
+    
+    jsPropertyName = JSStringCreateWithUTF8CString([name UTF8String]);
+    jsPropertyValue = JSObjectGetProperty(ctx, JSValueToObject(ctx, jsPropertyValue, nil), jsPropertyName, &exception);
+    JSStringRelease(jsPropertyName);
+    
+    if (jsPropertyValue && JSValueGetType(ctx, jsPropertyValue) == kJSTypeObject) {
+        // OK, there's a JS String method with the same name as propertyName.  Let's use that.
+        return jsPropertyValue;
+    }
+    
+    return nil;
 }
 

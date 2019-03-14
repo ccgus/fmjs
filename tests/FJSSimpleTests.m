@@ -1257,6 +1257,34 @@ int FJSTestCGImageRefExampleCounter;
     
 }
 
+- (void)testStringThing {
+    
+    
+    FJSRuntime *runtime = [FJSRuntime new];
+    
+    FJSValue *v = [runtime evaluateScript:@"NSString.stringWithString('abc')"];
+    
+    XCTAssert([[v toObject] hasPrefix:@"a"]);
+    
+    v = [runtime evaluateScript:@"NSString.stringWithString('abc').startsWith('a')"];
+    
+    
+    XCTAssert([[v toObject] isKindOfClass:[NSNumber class]]);
+    
+    [runtime shutdown];
+}
+
+- (void)testArrayLength {
+    
+    FJSRuntime *runtime = [FJSRuntime new];
+    
+    FJSValue *v = [runtime evaluateScript:@"NSArray.arrayWithObject(1).length"];
+    
+    XCTAssert([v toInt] == 1);
+    
+    [runtime shutdown];
+}
+
 - (void)xtestPerformanceExample {
     // This is an example of a performance test case.
     [self measureBlock:^{

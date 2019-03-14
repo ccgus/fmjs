@@ -120,6 +120,10 @@ int FJSTestCGImageRefExampleCounter;
     }
 }
 
++ (void)checkDictionary:(NSDictionary*)d {
+    assert(d);
+}
+
 
 @end
 
@@ -1241,6 +1245,15 @@ int FJSTestCGImageRefExampleCounter;
     XCTAssert(jsv);
     XCTAssert([jsv[@"blah"] isUndefined]);
     
+}
+
+- (void)testDictionaryTying {
+    FJSRuntime *runtime = [FJSRuntime new];
+    
+    [runtime evaluateScript:@"FJSTestClass.checkDictionary({a:1, b:2, c:3})"];
+    [runtime evaluateScript:@"FJSTestClass.checkDictionary({c:1, b:2, a:3})"];
+    
+    [runtime shutdown];
     
 }
 

@@ -383,9 +383,7 @@ static bool FJS_hasProperty(JSContextRef ctx, JSObjectRef object, JSStringRef pr
         return NO;
     }
     
-    debug(@"propertyName: '%@'", propertyName);
-        
-    FJSRuntime *runtime   = [FJSRuntime runtimeInContext:ctx];
+    FJSRuntime *runtime = [FJSRuntime runtimeInContext:ctx];
     
     FJSValue *fobj = [FJSValue valueWithJSValueRef:object inRuntime:runtime];
     

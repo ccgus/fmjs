@@ -37,7 +37,6 @@ NS_ASSUME_NONNULL_BEGIN
 @property (weak) FJSRuntime *runtime;
 
 
-+ (instancetype)valueWithJSValueRef:(nullable JSValueRef)jso inRuntime:(FJSRuntime*)runtime;
 + (instancetype)valueWithSymbol:(FJSSymbol*)sym inRuntime:(FJSRuntime*)runtime;
 + (instancetype)valueWithBlock:(CFTypeRef)block inRuntime:(FJSRuntime*)runtime;
 + (instancetype)valueWithInstance:(CFTypeRef)instance inRuntime:(FJSRuntime*)runtime;

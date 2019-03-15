@@ -113,6 +113,30 @@ int FJSTestCGImageRefExampleCounter;
     assert(CGRectEqualToRect(r, CGRectMake(10, 11, 12, 13)));
 }
 
+- (void)randomSelector:(id)a withArgument:(id)b {
+    FMAssert(NO);
+}
+
+- (BOOL)doFJSFunction:(FJSValue*)function inRuntime:(FJSRuntime*)runtime withValues:(NSArray<FJSValue*>*)values returning:(FJSValue**)returnValue {
+    
+    SEL methodSelector = NSSelectorFromString([[function symbol] name]);
+    
+
+    if (methodSelector == @selector(randomSelector:withArgument:)) {
+
+        assert([values count] == 2);
+
+        FJSSimpleTestsMethodCalled++;
+
+        *returnValue = [FJSValue valueWithJSValueRef:JSValueMakeNumber([runtime contextRef], 2011) inRuntime:runtime];
+        
+        return YES;
+    }
+    
+    
+    return NO;
+    
+}
 
 + (void)checkImageIsGood:(CGImageRef)r {
     if (r) {
@@ -1284,6 +1308,31 @@ int FJSTestCGImageRefExampleCounter;
     
     [runtime shutdown];
 }
+
+
+
+- (void)testCommandSelector {
+    
+    FJSSimpleTestsMethodCalled = 0;
+    
+    FJSRuntime *runtime = [FJSRuntime new];
+    
+    FJSValue *v = [runtime evaluateScript:@"var f = FJSTestClass.new(); f.randomSelector_withArgument(1, 2);"];
+    
+    XCTAssert([v toInt] == 2011);
+    
+    [runtime evaluateScript:@"f = null;"];
+    
+    [runtime shutdown];
+    
+    XCTAssert(FJSSimpleTestsMethodCalled == 1);
+    
+}
+
+
+
+
+
 
 - (void)xtestPerformanceExample {
     // This is an example of a performance test case.

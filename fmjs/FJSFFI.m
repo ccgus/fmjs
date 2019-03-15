@@ -68,8 +68,13 @@ static NSMutableDictionary *FJSFFIStructureLookup;
     @try {
         
         SEL selector = NSSelectorFromString(methodName);
+        id object    = [_caller instance];
         
-        id object = [_caller instance];
+        FJSValue *doFJSFunctionReturnValue;
+        if ([object respondsToSelector:@selector(doFJSFunction:inRuntime:withValues:returning:)] && [object doFJSFunction:_f inRuntime:_runtime withValues:_args returning:&doFJSFunctionReturnValue]) {
+            #pragma message "FIXME: Need to check retain counts here."
+            return doFJSFunctionReturnValue ? doFJSFunctionReturnValue : [FJSValue valueWithUndefinedInRuntime:_runtime];
+        }
         
         NSMethodSignature *methodSignature = [object methodSignatureForSelector:selector];
         NSInvocation *invocation = [NSInvocation invocationWithMethodSignature:methodSignature];

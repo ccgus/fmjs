@@ -13,6 +13,8 @@
 #import "FJSSymbol.h"
 #import "FJSPrivate.h"
 
+#pragma message "FIXME: Take out the obviously private interfaces from FJSValue's header."
+
 #import <objc/runtime.h>
 
 @interface FJSValue ()

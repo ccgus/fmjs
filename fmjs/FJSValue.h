@@ -53,6 +53,8 @@ typedef struct {
 
 #endif
 
++ (instancetype)valueWithJSValueRef:(nullable JSValueRef)jso inRuntime:(FJSRuntime*)runtime;
+
 - (id)toObject;
 - (BOOL)toBOOL;
 - (float)toFloat;

@@ -117,6 +117,10 @@ int FJSTestCGImageRefExampleCounter;
     FMAssert(NO);
 }
 
+- (void)callFunction:(id)whatever {
+    FMAssert(NO);
+}
+
 - (BOOL)doFJSFunction:(FJSValue*)function inRuntime:(FJSRuntime*)runtime withValues:(NSArray<FJSValue*>*)values returning:(FJSValue**)returnValue {
     
     SEL methodSelector = NSSelectorFromString([[function symbol] name]);
@@ -133,6 +137,15 @@ int FJSTestCGImageRefExampleCounter;
         return YES;
     }
     
+    if (methodSelector == @selector(callFunction:)) {
+        
+        assert([values count] == 1);
+        assert([[values firstObject] isJSFunction]);
+        
+        *returnValue = [[values firstObject] callWithArguments:@[]];
+        
+        return YES;
+    }
     
     return NO;
     
@@ -1329,10 +1342,23 @@ int FJSTestCGImageRefExampleCounter;
     
 }
 
+- (void)testCommandSelector2 {
 
+    FJSSimpleTestsMethodCalled = 0;
+    
+    FJSRuntime *runtime = [FJSRuntime new];
+    
+    FJSValue *v = [runtime evaluateScript:@"var f = FJSTestClass.new(); f.callFunction(function() { f.randomSelector_withArgument(1, 2); return 1978;});"];
+    
+    XCTAssert([v toInt] == 1978, @"Got: %d", [v toInt]);
+    
+    [runtime evaluateScript:@"f = null;"];
+    
+    [runtime shutdown];
+    
+    XCTAssert(FJSSimpleTestsMethodCalled == 1);
 
-
-
+}
 
 - (void)xtestPerformanceExample {
     // This is an example of a performance test case.

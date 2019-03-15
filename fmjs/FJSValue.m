@@ -443,6 +443,17 @@ static NSPointerArray *FJSValueLiveWeakArray;
     return nil;
 }
 
+- (FJSValue *)callWithArguments:(NSArray *)arguments {
+    FMAssert([self isJSFunction]);
+    
+#pragma message "FIXME: callWithArguments: needs to actually take arguments"
+    JSValueRef exception = nil;
+    JSObjectRef jsFunction = JSValueToObject([_runtime contextRef], [self jsValRef], nil);
+    JSValueRef jsFunctionReturnValue = JSObjectCallAsFunction([_runtime jsContext], jsFunction, NULL, 0, 0, &exception);
+    
+    return [FJSValue valueWithJSValueRef:jsFunctionReturnValue inRuntime:_runtime];
+}
+
 - (nullable JSValueRef)JSValueRef {
     
     if (_jsValRef) {

@@ -82,6 +82,7 @@ typedef struct {
 - (BOOL)setValue:(FJSValue*)value onStructFieldNamed:(NSString*)structFieldName;
 
 - (FJSValue *)invokeMethodNamed:(NSString *)method withArguments:(nullable NSArray *)arguments;
+- (FJSValue *)callWithArguments:(NSArray *)arguments;
 
 - (void)protect;
 - (void)unprotect;

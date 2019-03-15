@@ -438,21 +438,6 @@ static NSPointerArray *FJSValueLiveWeakArray;
     return [[self rtClass] respondsToSelector:NSSelectorFromString(m)];
 }
 
-- (id)callMethod {
-    
-    return nil;
-}
-
-- (FJSValue *)callWithArguments:(NSArray *)arguments {
-    FMAssert([self isJSFunction]);
-    
-#pragma message "FIXME: callWithArguments: needs to actually take arguments"
-    JSValueRef exception = nil;
-    JSObjectRef jsFunction = JSValueToObject([_runtime contextRef], [self jsValRef], nil);
-    JSValueRef jsFunctionReturnValue = JSObjectCallAsFunction([_runtime jsContext], jsFunction, NULL, 0, 0, &exception);
-    
-    return [FJSValue valueWithJSValueRef:jsFunctionReturnValue inRuntime:_runtime];
-}
 
 - (nullable JSValueRef)JSValueRef {
     
@@ -1153,7 +1138,7 @@ static NSPointerArray *FJSValueLiveWeakArray;
     return val;
 }
 
-- (FJSValue *)invokeMethodNamed:(NSString *)method withArguments:(NSArray *)arguments {
+- (FJSValue *)invokeMethodNamed:(NSString *)method withArguments:(NSArray <FJSValue *> *)arguments {
     
     if (!_isJSNative) {
         FMAssert(NO);
@@ -1165,7 +1150,7 @@ static NSPointerArray *FJSValueLiveWeakArray;
         return nil;
     }
     
-    FJSValue *functionValue = self[method];
+    FJSValue *functionValue = [method length] ? self[method] : self;
     if (!functionValue) {
         return nil;
     }
@@ -1210,6 +1195,11 @@ static NSPointerArray *FJSValueLiveWeakArray;
     
     return returnValue;
     
+}
+
+
+- (FJSValue *)callWithArguments:(NSArray *)arguments {
+    return [self invokeMethodNamed:@"" withArguments:arguments];
 }
 
 - (void)unprotect {

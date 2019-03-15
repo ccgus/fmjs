@@ -142,7 +142,7 @@ int FJSTestCGImageRefExampleCounter;
         assert([values count] == 1);
         assert([[values firstObject] isJSFunction]);
         
-        *returnValue = [[values firstObject] callWithArguments:@[]];
+        *returnValue = [[values firstObject] callWithArguments:@[[FJSValue valueWithJSValueRef:JSValueMakeNumber([runtime contextRef], 3) inRuntime:runtime]]];
         
         return YES;
     }
@@ -1348,7 +1348,7 @@ int FJSTestCGImageRefExampleCounter;
     
     FJSRuntime *runtime = [FJSRuntime new];
     
-    FJSValue *v = [runtime evaluateScript:@"var f = FJSTestClass.new(); f.callFunction(function() { f.randomSelector_withArgument(1, 2); return 1978;});"];
+    FJSValue *v = [runtime evaluateScript:@"var f = FJSTestClass.new(); f.callFunction(function(foo) { if (foo == 3) { f.randomSelector_withArgument(1, 2); }; return 1978;});"];
     
     XCTAssert([v toInt] == 1978, @"Got: %d", [v toInt]);
     

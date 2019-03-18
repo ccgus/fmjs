@@ -1138,7 +1138,7 @@ static NSPointerArray *FJSValueLiveWeakArray;
     return val;
 }
 
-- (FJSValue *)invokeMethodNamed:(NSString *)method withArguments:(NSArray <FJSValue *> *)arguments {
+- (FJSValue *)invokeMethodNamed:(NSString *)method withArguments:(NSArray *)arguments {
     
     if (!_isJSNative) {
         FMAssert(NO);

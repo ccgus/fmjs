@@ -275,4 +275,24 @@ extern int FJSTestCGImageRefExampleCounter;
     
 }
 
+- (void)testImageDestination {
+    
+    
+    
+    FJSRuntime *runtime = [FJSRuntime new];
+    
+    [runtime setExceptionHandler:^(FJSRuntime * _Nonnull rt, NSException * _Nonnull exception) {
+        NSLog(@"exception: %@", exception);
+        XCTAssert(NO);
+    }];
+    
+    FJSValue *val = [runtime evaluateScript:@"var data = NSMutableData.data(); var imageDestination = CGImageDestinationCreateWithData(data, 'com.microsoft.ico', 1, null); imageDestination;\n"];
+    
+    XCTAssert([val instance]);
+    
+    [runtime evaluateScript:@"data = null; imageDestination = null;"];
+    [runtime shutdown];
+    
+}
+
 @end

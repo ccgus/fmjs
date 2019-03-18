@@ -122,7 +122,7 @@ id FJSNativeObjectFromJSValue(JSValueRef jsValue, NSString *typeEncoding, JSCont
     
     #pragma message "FIXME: Hey gus add a  || [FJSSymbol symbolForCFType:typeEncoding] and the rest to make that work for getting CGImageRefs out of things."
     // typeEncoding could be '@"NSString"', thanks to blocks!.
-    if ([typeEncoding hasPrefix:@"@"]) {
+    if ([typeEncoding hasPrefix:@"@"] || [typeEncoding hasPrefix:@"^{CF"]) {
         
         if (JSValueIsString(context, jsValue)) {
             JSStringRef resultStringJS = JSValueToStringCopy(context, jsValue, NULL);
@@ -282,6 +282,13 @@ id FJSNativeObjectFromJSValue(JSValueRef jsValue, NSString *typeEncoding, JSCont
     }
     
     if ([typeEncoding isEqualToString:@"^@"]) { // Pointer to an object. Possibly a block?
+        
+    }
+    
+    
+    if ([typeEncoding hasPrefix:@"^{CF"]) { // Pointer to a CF object?
+        
+        FMAssert(NO);
         
     }
     

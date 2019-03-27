@@ -35,7 +35,7 @@ extern NSString *FMJavaScriptExceptionName;
 
 // This gets us context["foo"] = @"Hi"; support
 // Object can either be a FJSValue object, objc block, or an objc instance (which will be wrapped in a FJSValue)
-- (void)setObject:(id)object forKeyedSubscript:(NSString *)key;
+- (void)setObject:(id)object forKeyedSubscript:(nullable NSString *)key;
 - (FJSValue*)objectForKeyedSubscript:(id)key;
 
 - (void)removeRuntimeValueWithName:(NSString*)name;

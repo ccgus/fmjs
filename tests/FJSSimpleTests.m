@@ -1360,6 +1360,25 @@ int FJSTestCGImageRefExampleCounter;
 
 }
 
+- (void)testDictionaryNumber {
+    
+    
+    FJSRuntime *runtime = [FJSRuntime new];
+    
+    [runtime evaluateScript:@"function f (d) { return d['key'] }"];
+    
+    FJSValue *k = [runtime callFunctionNamed:@"f" withArguments:@[@{@"key": @(YES)}]];
+    
+    XCTAssert([k toObject]);
+    XCTAssert([[k toObject] isKindOfClass:[NSNumber class]]);
+    XCTAssert([[k toObject] boolValue]);
+    
+    [runtime shutdown];
+    
+    
+    
+}
+
 - (void)xtestPerformanceExample {
     // This is an example of a performance test case.
     [self measureBlock:^{

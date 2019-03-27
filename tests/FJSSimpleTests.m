@@ -502,6 +502,43 @@ int FJSTestCGImageRefExampleCounter;
 
 
 
+
+- (void)testCoreImageExample3 {
+    
+    
+    NSString *code = @"\
+    var url = NSURL.fileURLWithPath_('/Library/Desktop Pictures/Yosemite.jpg');\n\
+    var img = CIImage.imageWithContentsOfURL_(url)\n\
+    var f = CIFilter.filterWithName('CIComicEffect');\n\
+    f['inputImage'] = img; // Test auto kvc lookup. \n\
+    var r = f.outputImage();\n\
+    checkImage(r);";
+    
+    FJSRuntime *runtime = [FJSRuntime new];
+    
+    runtime[@"checkImage"] = ^(CIImage *img) {
+        XCTAssert(img != nil);
+    };
+    
+    [runtime evaluateScript:code];
+    
+    FJSValue *img = runtime[@"img"];
+    XCTAssert(img);
+    
+    // FIXME: This sucks! Why do we have to nil out our variables to get JSC to call finalize on our objects? We don't need to do this in a cocoa app, which has runloops all set up :/"
+    [runtime evaluateScript:@"url = null; img = null; f = null; r = null;"];
+    
+    [runtime shutdown];
+    
+    XCTAssert([img debugFinalizeCalled]);
+    
+    
+}
+
+
+
+
+
 - (void)testDumbImportThings {
     // Both these work.
     //NSString *code = @"var _ = function(){ var a = {name: 'Gus'};  return a; }(); _;";

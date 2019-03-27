@@ -286,7 +286,6 @@ static JSValueRef FJSPrototypeForOBJCInstance(JSContextRef ctx, id instance, NSS
         setName = [setName stringByAppendingString:[propertyName substringFromIndex:1]];
         setName = [NSString stringWithFormat:@"set%@:", setName];
         
-        FMAssert(([[valueFromJSObject instance] respondsToSelector:NSSelectorFromString(setName)])); // what isn't going to work here?
         if ([[valueFromJSObject instance] respondsToSelector:NSSelectorFromString(setName)]) {
             
             FJSSymbol *setterMethod = [FJSSymbol symbolForName:setName inObject:[valueFromJSObject instance]];
@@ -298,6 +297,14 @@ static JSValueRef FJSPrototypeForOBJCInstance(JSContextRef ctx, id instance, NSS
             
             return YES;
         }
+        
+        NSError *outErr;
+        id obj = [arg toObject];
+        if ([[valueFromJSObject instance] validateValue:&obj forKey:propertyName error:&outErr]) {
+            [[valueFromJSObject instance] setValue:obj forKey:propertyName];
+            return YES;
+        }
+        
     }
     
     return NO;

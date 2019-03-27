@@ -512,7 +512,9 @@ int FJSTestCGImageRefExampleCounter;
     var f = CIFilter.filterWithName('CIComicEffect');\n\
     f['inputImage'] = img; // Test auto kvc lookup. \n\
     var r = f.outputImage();\n\
-    checkImage(r);";
+    checkImage(r);\n\
+    checkImage(f['inputImage'])\n\
+    ";
     
     FJSRuntime *runtime = [FJSRuntime new];
     

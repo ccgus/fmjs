@@ -84,6 +84,13 @@ static JSValueRef FJSPrototypeForOBJCInstance(JSContextRef ctx, id instance, NSS
         if (symbol) {
             return YES;
         }
+        
+        @try {
+            [[objectValue instance] valueForKey:propertyName];
+            return YES;
+        } @catch (NSException *exception) {
+            ;// pass
+        }
     }
     
     
@@ -168,6 +175,7 @@ static JSValueRef FJSPrototypeForOBJCInstance(JSContextRef ctx, id instance, NSS
             }
             return subscriptedJSValue;
         }
+        
     }
     
     if ([valueFromJSObject isStruct]) {
@@ -227,6 +235,18 @@ static JSValueRef FJSPrototypeForOBJCInstance(JSContextRef ctx, id instance, NSS
         }
     }
     
+    if ([valueFromJSObject isInstance]) {
+        @try {
+            id object = [[valueFromJSObject instance] valueForKey:propertyName];
+            
+            FJSValue *value = [FJSValue valueWithInstance:(__bridge CFTypeRef _Nonnull)(object) inRuntime:self];
+            
+            return [value JSValueRef];
+            
+        } @catch (NSException *exception) {
+            ;
+        }
+    }
     
     id object = [valueFromJSObject isInstance] ? [valueFromJSObject toObject] : nil;
     if ([object isKindOfClass:[NSString class]] || [object isKindOfClass:[NSArray class]]) {

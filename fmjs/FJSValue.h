@@ -83,7 +83,7 @@ typedef struct {
 
 // Arguments to invokeMethodNamed:withArguments: and callWithArguments: can be either instances of classes, or FJSValue(s) wrapping a primative or other instance.
 - (FJSValue *)invokeMethodNamed:(NSString *)method withArguments:(nullable NSArray *)arguments;
-- (FJSValue *)callWithArguments:(NSArray <FJSValue *> *)arguments;
+- (FJSValue *)callWithArguments:(nullable NSArray *)arguments;
 
 - (instancetype)protect;
 - (void)unprotect;

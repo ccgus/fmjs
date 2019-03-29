@@ -384,12 +384,12 @@ static const void * const kDispatchQueueSpecificKey = &kDispatchQueueSpecificKey
 
 
 
-- (void)removeRuntimeValueWithName:(NSString*)name {
+- (void)removeRuntimeValueWithName:(NSString*)name inJSObject:(JSObjectRef)jsObject {
     
     dispatch_sync(_evaluateQueue, ^{
         JSValueRef exception = NULL;
         JSStringRef jsName = JSStringCreateWithUTF8CString([name UTF8String]);
-        JSObjectDeleteProperty(self->_jsContext, JSContextGetGlobalObject(self->_jsContext), jsName, &exception);
+        JSObjectDeleteProperty(self->_jsContext, jsObject, jsName, &exception);
         JSStringRelease(jsName);
         
         [self reportPossibleJSException:exception];
@@ -397,9 +397,11 @@ static const void * const kDispatchQueueSpecificKey = &kDispatchQueueSpecificKey
     });
 }
 
+- (void)removeRuntimeValueWithName:(NSString*)name {
+    [self setObject:nil forKeyedSubscript:name];
+}
 
-
-- (FJSValue*)objectForKeyedSubscript:(id)name {
+- (FJSValue*)objectForKeyedSubscript:(id)name inJSObject:(JSObjectRef)jsObject {
     
     __block FJSValue *obj = nil;
     
@@ -407,7 +409,7 @@ static const void * const kDispatchQueueSpecificKey = &kDispatchQueueSpecificKey
         JSValueRef exception = NULL;
         
         JSStringRef jsName = JSStringCreateWithUTF8CString([name UTF8String]);
-        JSValueRef jsValue = JSObjectGetProperty([self contextRef], JSContextGetGlobalObject([self contextRef]), jsName, &exception);
+        JSValueRef jsValue = JSObjectGetProperty([self contextRef], jsObject, jsName, &exception);
         JSStringRelease(jsName);
         
         if (exception) {
@@ -423,14 +425,17 @@ static const void * const kDispatchQueueSpecificKey = &kDispatchQueueSpecificKey
     return obj;
 }
 
-- (void)setObject:(id)object forKeyedSubscript:(NSString *)name {
-    
-    if (object == self) { printf("Nice try.\n"); FMAssert(NO); return; }
+- (FJSValue*)objectForKeyedSubscript:(id)name {
+    return [self objectForKeyedSubscript:name inJSObject:JSContextGetGlobalObject([self contextRef])];
+}
+
+- (void)setObject:(id)object forKeyedSubscript:(NSString *)name inJSObject:(JSObjectRef)jsObject {
     
     if (!object) {
-        [self removeRuntimeValueWithName:name];
+        [self removeRuntimeValueWithName:name inJSObject:jsObject];
         return;
     }
+    
     
     FJSValue *value = nil;
     
@@ -444,7 +449,6 @@ static const void * const kDispatchQueueSpecificKey = &kDispatchQueueSpecificKey
         value = [FJSValue valueWithInstance:(__bridge CFTypeRef _Nonnull)(object) inRuntime:self];
     }
     
-    
     dispatch_sync(_evaluateQueue, ^{
         
         JSValueRef jsValue = [value JSValueRef];
@@ -453,13 +457,25 @@ static const void * const kDispatchQueueSpecificKey = &kDispatchQueueSpecificKey
         
         JSValueRef exception = NULL;
         JSStringRef jsName = JSStringCreateWithUTF8CString([name UTF8String]);
-        JSObjectSetProperty([self contextRef], JSContextGetGlobalObject([self contextRef]), jsName, jsValue, kJSPropertyAttributeNone, &exception);
+        JSObjectSetProperty([self contextRef], jsObject, jsName, jsValue, kJSPropertyAttributeNone, &exception);
         JSStringRelease(jsName);
         
         [[self runtimeObjectNames] addObject:name];
         
         [self reportPossibleJSException:exception];
     });
+    
+    
+    
+    
+}
+
+- (void)setObject:(id)object forKeyedSubscript:(NSString *)name {
+    
+    if (object == self) { printf("Nice try.\n"); FMAssert(NO); return; }
+    
+    [self setObject:object forKeyedSubscript:name inJSObject:JSContextGetGlobalObject([self contextRef])];
+    
 }
 
 - (void)garbageCollect {

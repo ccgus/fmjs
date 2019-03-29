@@ -20,6 +20,9 @@ NS_ASSUME_NONNULL_BEGIN
 - (void)pushAsCurrentFJS;
 - (void)popAsCurrentFJS;
 
+- (void)setObject:(id)object forKeyedSubscript:(NSString *)name inJSObject:(JSObjectRef)jsObject;
+- (FJSValue*)objectForKeyedSubscript:(id)name inJSObject:(JSObjectRef)jsObject;
+
 @end
 
 @interface FJSSymbolManager (Private)

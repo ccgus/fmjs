@@ -1121,24 +1121,8 @@ static NSPointerArray *FJSValueLiveWeakArray;
         return nil;
     }
     
-    JSStringRef jsKey = JSStringCreateWithCFString((__bridge CFStringRef)key);
-    JSValueRef err;
-    JSObjectRef obj = JSValueToObject([_runtime contextRef], _jsValRef, nil);
-    JSValueRef ref = JSObjectGetProperty([_runtime contextRef], obj, jsKey, &err);
-    JSStringRelease(jsKey);
-    
-    if (!ref || JSValueIsNull([_runtime contextRef], ref)) {
-        return nil;
-    }
-    
-    if (JSValueIsUndefined([_runtime contextRef], ref)) {
-        FJSValue *val = [FJSValue valueWithUndefinedInRuntime:_runtime];
-        [val protect];
-    }
-    
-    FJSValue *val = [FJSValue valueWithJSValueRef:ref inRuntime:_runtime];
-    [val protect];
-    return val;
+    JSObjectRef selfObject = JSValueToObject([_runtime contextRef], _jsValRef, nil);
+    return [_runtime objectForKeyedSubscript:key inJSObject:selfObject];
 }
 
 #pragma message "FIXME: Should this be a general method on the runtime class? Set property:forkey:onobject: or something? What about the queue?"
@@ -1154,47 +1138,8 @@ static NSPointerArray *FJSValueLiveWeakArray;
         return;
     }
     
-    if (!object) {
-        #pragma message "FIXME: Need to implement removing objects from js objc."
-        
-        
-        JSValueRef exception = NULL;
-        JSStringRef jsName = JSStringCreateWithUTF8CString([name UTF8String]);
-        JSObjectDeleteProperty([_runtime jsContext], selfObject, jsName, &exception);
-        JSStringRelease(jsName);
-        
-        [_runtime reportPossibleJSException:exception];
-        
-        return;
-    }
+    [_runtime setObject:object forKeyedSubscript:name inJSObject:selfObject];
     
-    FJSValue *value = nil;
-    
-    if ([object isKindOfClass:[FJSValue class]]) {
-        value = object;
-    }
-    else if ([object isKindOfClass:NSClassFromString(@"NSBlock")]) {
-        value = [FJSValue valueWithBlock:(__bridge CFTypeRef _Nonnull)(object) inRuntime:_runtime];
-    }
-    else {
-        value = [FJSValue valueWithInstance:(__bridge CFTypeRef _Nonnull)(object) inRuntime:_runtime];
-    }
-    
-    
-    
-    JSValueRef jsValue = [value JSValueRef];
-    
-    FMAssert(jsValue);
-    FMAssert(selfObject);
-    
-    JSStringRef jsName = JSStringCreateWithUTF8CString([name UTF8String]);
-    JSObjectSetProperty([_runtime contextRef], selfObject, jsName, jsValue, kJSPropertyAttributeNone, &exception);
-    JSStringRelease(jsName);
-    
-    //[[self runtimeObjectNames] addObject:name];
-    
-    [_runtime reportPossibleJSException:exception];
-
 }
 
 

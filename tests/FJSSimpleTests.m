@@ -1033,7 +1033,7 @@ int FJSTestCGImageRefExampleCounter;
     
     XCTAssert(ruuid == uuid, @"Got %@", ruuid);
     
-    [jsuuid unprotect];
+    //[jsuuid unprotect];
     
     d[@"uuid"] = nil;
     

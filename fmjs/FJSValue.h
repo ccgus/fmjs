@@ -85,7 +85,7 @@ typedef struct {
 - (FJSValue *)invokeMethodNamed:(NSString *)method withArguments:(nullable NSArray *)arguments;
 - (FJSValue *)callWithArguments:(NSArray <FJSValue *> *)arguments;
 
-- (void)protect;
+- (instancetype)protect;
 - (void)unprotect;
 
 - (FJSValue *)objectForKeyedSubscript:(NSString*)key;

@@ -1217,12 +1217,12 @@ static NSPointerArray *FJSValueLiveWeakArray;
     }
 }
 
-- (void)protect {
+- (instancetype)protect {
     
     // FIXME: Should we keep a list of FJSObjects in the runtime that need to be unprotected?
     
     if (!_jsValRef) {
-        return;
+        return self;
     }
     
     FMAssert(!_unprotectContextRef);
@@ -1231,6 +1231,8 @@ static NSPointerArray *FJSValueLiveWeakArray;
         _unprotectContextRef = JSGlobalContextRetain((JSGlobalContextRef)[_runtime contextRef]);
         JSValueProtect(_unprotectContextRef, _jsValRef);
     }
+    
+    return self;
 }
 
 @end

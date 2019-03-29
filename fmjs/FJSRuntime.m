@@ -460,6 +460,7 @@ static const void * const kDispatchQueueSpecificKey = &kDispatchQueueSpecificKey
         JSObjectSetProperty([self contextRef], jsObject, jsName, jsValue, kJSPropertyAttributeNone, &exception);
         JSStringRelease(jsName);
         
+        #pragma message "FIXME: [[self runtimeObjectNames] addObject:name]; is completely worthless now with the inJSObject:(JSObjectRef)jsObject param."
         [[self runtimeObjectNames] addObject:name];
         
         [self reportPossibleJSException:exception];

@@ -88,9 +88,11 @@ typedef struct {
 - (instancetype)protect;
 - (void)unprotect;
 
+/* Objects returned from objectForKeyedSubscript are protected. You'll need to call unprotect on them to balance it out. */
 - (FJSValue *)objectForKeyedSubscript:(NSString*)key;
+- (void)setObject:(nullable id)object forKeyedSubscript:(NSObject <NSCopying> *)key;
+
 //- (JSValue *)objectAtIndexedSubscript:(NSUInteger)index;
-//- (void)setObject:(id)object forKeyedSubscript:(NSObject <NSCopying> *)key;
 //- (void)setObject:(id)object atIndexedSubscript:(NSUInteger)index;
 
 

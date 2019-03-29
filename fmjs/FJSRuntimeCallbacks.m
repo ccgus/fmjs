@@ -532,7 +532,7 @@ static JSValueRef FJSPrototypeForOBJCInstance(JSContextRef ctx, id instance, NSS
     }
     
     if (!propName) {
-        return NO;
+        return nil;
     }
     
     JSValueRef exception = nil;

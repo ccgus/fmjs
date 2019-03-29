@@ -1013,6 +1013,45 @@ int FJSTestCGImageRefExampleCounter;
     [runtime shutdown];
 }
 
+- (void)testPropertyAccess {
+    
+    FJSRuntime *runtime = [FJSRuntime new];
+    
+    FJSValue *d = [runtime evaluateScript:@"d = {a: 123, bart: 'bart'}"];
+    
+    FJSValue *a = d[@"a"];
+    XCTAssert([a toLong] == 123, "Got %ld", [a toLong]);
+    
+    XCTAssert([d[@"noProp"] isUndefined]);
+    
+    
+    NSUUID *uuid = [NSUUID UUID];
+    d[@"uuid"] = uuid;
+    
+    FJSValue *jsuuid = d[@"uuid"];
+    NSUUID *ruuid = [jsuuid toObject];
+    
+    XCTAssert(ruuid == uuid, @"Got %@", ruuid);
+    
+    [jsuuid unprotect];
+    
+    d[@"uuid"] = nil;
+    
+    XCTAssert([d[@"uuid"] isUndefined]);
+    
+    [runtime shutdown];
+    
+    
+    
+    // Just checking to see what JSContext does, so we can match it.
+    JSContext *ctx = [JSContext new];
+    JSValue *jsv = [ctx evaluateScript:@"d = {a: 1234, bart: 'bart'}"];
+    JSValue *jsa = jsv[@"a"];
+    XCTAssert([jsa toInt32] == 1234, "Got %d", [jsa toInt32]);
+    XCTAssert([jsv[@"noProp"] isUndefined]);
+    
+}
+
 
 - (void)testArrayAccess {
     

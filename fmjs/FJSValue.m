@@ -1171,10 +1171,9 @@ static NSPointerArray *FJSValueLiveWeakArray;
         }
     }
     
-    
+    [_runtime pushAsCurrentFJS];
     
     JSObjectRef jsFunction = JSValueToObject([_runtime contextRef], [functionValue jsValRef], nil);
-    
     JSObjectRef thisObject = JSValueToObject([_runtime contextRef], _jsValRef, nil);
     JSValueRef exception = nil;
     JSValueRef jsFunctionReturnValue = JSObjectCallAsFunction([_runtime contextRef], jsFunction, thisObject, argumentsCount, jsArgumentsArray, &exception);
@@ -1183,8 +1182,6 @@ static NSPointerArray *FJSValueLiveWeakArray;
         free(jsArgumentsArray);
     }
     
-    #pragma message "FIXME: Do we need to push and pop as the current runtime?"
-    
     FJSValue *returnValue = nil;
     if (exception) {
         [_runtime reportPossibleJSException:exception];
@@ -1192,6 +1189,8 @@ static NSPointerArray *FJSValueLiveWeakArray;
     else {
         returnValue = [FJSValue valueWithJSValueRef:(JSObjectRef)jsFunctionReturnValue inRuntime:_runtime];
     }
+    
+    [_runtime popAsCurrentFJS];
     
     return returnValue;
     

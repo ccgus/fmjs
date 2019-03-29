@@ -120,10 +120,8 @@ static NSMutableDictionary *FJSFFIStructureLookup;
         
         const char *returnType = [methodSignature methodReturnType];
         
-        JSValueRef returnValue = NULL;
         if (FJSCharEquals(returnType, @encode(void))) {
-            returnValue = JSValueMakeUndefined([_runtime contextRef]);
-            returnFValue = [FJSValue valueWithJSValueRef:(JSObjectRef)returnValue inRuntime:_runtime];
+            returnFValue = [FJSValue valueWithUndefinedInRuntime:_runtime];
         }
         // id
         else if (FJSCharEquals(returnType, @encode(id)) ||

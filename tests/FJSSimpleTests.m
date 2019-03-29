@@ -1427,6 +1427,8 @@ int FJSTestCGImageRefExampleCounter;
     
     XCTAssert([u isUndefined]);
     
+    XCTAssert([[runtime evaluateScript:@"FJSReturnVoid()"] isUndefined]);
+    
     [runtime evaluateScript:@"s=null"];
     
     [runtime shutdown];
@@ -1562,6 +1564,10 @@ BOOL FJSTestPassNil(id o) {
 
 void FJSThrowException() {
     @throw [NSException exceptionWithName:NSGenericException reason:FJSTestExceptionReason userInfo:nil];
+}
+
+void FJSReturnVoid() {
+    ;
 }
 
 

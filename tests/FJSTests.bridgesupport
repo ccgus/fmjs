@@ -13,6 +13,8 @@
     <function name='FJSTestReturnNil'>
     </function>
     
+    <function name='FJSReturnVoid' />
+    
     <function name='FJSTestReturnPassedObject'>
         <arg type='@'/>
         <retval type='@'/>

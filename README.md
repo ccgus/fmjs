@@ -11,6 +11,7 @@ Code borrowed liberally from the Mocha project: [https://github.com/logancollins
 * To JS Boolean: BOOL, bool  
 * To JS Number: char, short, int, long, long long, float, double  
 * To JS Object: NSObject, Class, 
+* To JS Undefined: returning void from functions.
 
 Not handled (yet?): Blocks, structs, out pointers
 

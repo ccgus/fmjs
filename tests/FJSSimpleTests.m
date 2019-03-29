@@ -1418,6 +1418,21 @@ int FJSTestCGImageRefExampleCounter;
     
 }
 
+- (void)testUndefinedVoidReturn {
+    
+    
+    FJSRuntime *runtime = [FJSRuntime new];
+    
+    FJSValue *u = [runtime evaluateScript:@"var s = NSMutableSet.set(); s.removeAllObjects();"];
+    
+    XCTAssert([u isUndefined]);
+    
+    [runtime evaluateScript:@"s=null"];
+    
+    [runtime shutdown];
+    
+}
+
 - (void)xtestPerformanceExample {
     // This is an example of a performance test case.
     [self measureBlock:^{

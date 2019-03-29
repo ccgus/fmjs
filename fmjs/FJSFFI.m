@@ -342,7 +342,6 @@ static NSMutableDictionary *FJSFFIStructureLookup;
     }
     
     if (returnType == &ffi_type_void) {
-        #pragma message "FIXME: Write a test for this- that we return undefined."
         return [FJSValue valueWithUndefinedInRuntime:_runtime];
     }
     

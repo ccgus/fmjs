@@ -21,7 +21,7 @@ BOOL FJSStringIsNumber(NSString *ns) {
     
     // return [[NSString stringWithFormat:@"%ld", [s integerValue]] isEqualToString:s];
     // Micro-benchmark says the below is 8x faster than above.
-    
+    // What about [ns rangeOfCharacterFromSet:[[NSCharacterSet decimalDigitCharacterSet] invert]].location == NSNotFound ?
     NSInteger len = [ns length];
     if (len == 0) {
         return NO;

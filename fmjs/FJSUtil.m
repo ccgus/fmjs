@@ -17,12 +17,30 @@ BOOL FJSCharEquals(const char *__s1, const char *__s2) {
     return (strcmp(__s1, __s2) == 0);
 }
 
-BOOL FJSStringIsNumber(NSString *s) {
+BOOL FJSStringIsNumber(NSString *ns) {
     
-    #pragma message "FIXME: we need a much better way to see if a string is a number. This is for looking up indexes on arrays and such."
+    // return [[NSString stringWithFormat:@"%ld", [s integerValue]] isEqualToString:s];
+    // Micro-benchmark says the below is 8x faster than above.
     
-    return [[NSString stringWithFormat:@"%ld", [s integerValue]] isEqualToString:s];
+    NSInteger len = [ns length];
+    if (len == 0) {
+        return NO;
+    }
     
+    unichar *c = malloc(sizeof(unichar) * len);
+    [ns getCharacters:c range:NSMakeRange(0, len)];
+    
+    BOOL isNumber = YES;
+    for (size_t i = 0; i < len; i++) {
+        if(!isdigit(c[i]) ){
+            isNumber = NO;
+            break;
+        }
+    }
+    
+    free(c);
+    
+    return isNumber;
 }
 
 NSString *FJSStructNameFromRuntimeType(NSString *runtimeType) {

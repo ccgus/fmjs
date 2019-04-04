@@ -285,18 +285,32 @@ static const void * const kDispatchQueueSpecificKey = &kDispatchQueueSpecificKey
     return _jsContext;
 }
 
+#pragma message "FIXME: Move all the dispatch_sync(_evaluateQueue calls to this."
+- (void)dispatchOnQueue:(DISPATCH_NOESCAPE dispatch_block_t)block {
+    
+    void *alreadyExecuting = dispatch_get_specific((__bridge const void * _Nonnull)(self));
+    if (alreadyExecuting) {
+        debug(@"Already in the queue!");
+        block();
+        return;
+    }
+
+    dispatch_queue_set_specific(_evaluateQueue, (__bridge const void * _Nonnull)(self), (__bridge void *)self, NULL);
+    dispatch_sync(_evaluateQueue, block);
+    dispatch_queue_set_specific(_evaluateQueue, (__bridge const void * _Nonnull)(self), NULL, NULL);
+}
 
 - (BOOL)hasFunctionNamed:(NSString*)name {
     
     __block BOOL hasFunc = NO;
     
-    dispatch_sync(_evaluateQueue, ^{
+    [self dispatchOnQueue:^{
         JSValueRef exception = nil;
         JSStringRef jsFunctionName = JSStringCreateWithUTF8CString([name UTF8String]);
         JSValueRef jsFunctionValue = JSObjectGetProperty(self->_jsContext, JSContextGetGlobalObject(self->_jsContext), jsFunctionName, &exception);
         JSStringRelease(jsFunctionName);
         hasFunc = jsFunctionValue && (JSValueGetType(self->_jsContext, jsFunctionValue) == kJSTypeObject);
-    });
+    }];
     
     return hasFunc;
 }
@@ -323,7 +337,7 @@ static const void * const kDispatchQueueSpecificKey = &kDispatchQueueSpecificKey
     
     __block FJSValue *returnValue = nil;
     
-    dispatch_sync(_evaluateQueue, ^{
+    [self dispatchOnQueue:^{
         
         @try {
             
@@ -375,7 +389,7 @@ static const void * const kDispatchQueueSpecificKey = &kDispatchQueueSpecificKey
         }
         
         [self popAsCurrentFJS];
-    });
+    }];
     
     return returnValue;
 }
@@ -386,7 +400,7 @@ static const void * const kDispatchQueueSpecificKey = &kDispatchQueueSpecificKey
 
 - (void)removeRuntimeValueWithName:(NSString*)name inJSObject:(JSObjectRef)jsObject {
     
-    dispatch_sync(_evaluateQueue, ^{
+    [self dispatchOnQueue:^{
         JSValueRef exception = NULL;
         JSStringRef jsName = JSStringCreateWithUTF8CString([name UTF8String]);
         JSObjectDeleteProperty(self->_jsContext, jsObject, jsName, &exception);
@@ -394,7 +408,7 @@ static const void * const kDispatchQueueSpecificKey = &kDispatchQueueSpecificKey
         
         [self reportPossibleJSException:exception];
         [[self runtimeObjectNames] removeObject:name];
-    });
+    }];
 }
 
 - (void)removeRuntimeValueWithName:(NSString*)name {
@@ -405,7 +419,7 @@ static const void * const kDispatchQueueSpecificKey = &kDispatchQueueSpecificKey
     
     __block FJSValue *obj = nil;
     
-    //dispatch_sync(_evaluateQueue, ^{
+    [self dispatchOnQueue: ^{
         JSValueRef exception = NULL;
         
         JSStringRef jsName = JSStringCreateWithUTF8CString([name UTF8String]);
@@ -418,7 +432,7 @@ static const void * const kDispatchQueueSpecificKey = &kDispatchQueueSpecificKey
         else {
             obj = [FJSValue valueWithJSValueRef:jsValue inRuntime:self];
         }
-    //});
+    }];
     
     #pragma message "FIXME: Should we call protectNative for these objects? Or mabye even if it isn't native?"
     
@@ -442,14 +456,11 @@ static const void * const kDispatchQueueSpecificKey = &kDispatchQueueSpecificKey
     if ([object isKindOfClass:[FJSValue class]]) {
         value = object;
     }
-    else if ([object isKindOfClass:NSClassFromString(@"NSBlock")]) {
-        value = [FJSValue valueWithBlock:(__bridge CFTypeRef _Nonnull)(object) inRuntime:self];
-    }
     else {
         value = [FJSValue valueWithInstance:(__bridge CFTypeRef _Nonnull)(object) inRuntime:self];
     }
     
-    dispatch_sync(_evaluateQueue, ^{
+    [self dispatchOnQueue: ^{
         
         JSValueRef jsValue = [value JSValueRef];
         
@@ -464,7 +475,7 @@ static const void * const kDispatchQueueSpecificKey = &kDispatchQueueSpecificKey
         [[self runtimeObjectNames] addObject:name];
         
         [self reportPossibleJSException:exception];
-    });
+    }];
     
     
     
@@ -481,7 +492,7 @@ static const void * const kDispatchQueueSpecificKey = &kDispatchQueueSpecificKey
 
 - (void)garbageCollect {
     
-    dispatch_sync(_evaluateQueue, ^{
+    [self dispatchOnQueue:^{
         
         if (FMJSUseSynchronousGarbageCollectForDebugging) {
         
@@ -495,7 +506,7 @@ static const void * const kDispatchQueueSpecificKey = &kDispatchQueueSpecificKey
         else {
             JSGarbageCollect([self jsContext]);
         }
-    });
+    }];
 }
 
 - (FJSValue*)evaluateNoQueue:(NSString *)script withSourceURL:(nullable NSURL *)sourceURL {
@@ -547,9 +558,9 @@ static const void * const kDispatchQueueSpecificKey = &kDispatchQueueSpecificKey
     
     __block FJSValue *returnValue = nil;
     
-    dispatch_sync(_evaluateQueue, ^{
+    [self dispatchOnQueue: ^{
         returnValue = [self evaluateNoQueue:script withSourceURL:sourceURL];
-    });
+    }];
     
     return returnValue;
 }
@@ -654,7 +665,7 @@ static const void * const kDispatchQueueSpecificKey = &kDispatchQueueSpecificKey
         return v;
     }
     
-    
+    FMAssert(NO); // Why would we get here?
     //        JSModule *module = [JSModule require:arg atPath:[[NSFileManager defaultManager] currentDirectoryPath]];
     //        if (!module) {
     //            [[JSContext currentContext] evaluateScript:@"throw 'not found'"];

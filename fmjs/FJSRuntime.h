@@ -33,6 +33,8 @@ extern NSString *FMJavaScriptExceptionName;
 
 - (FJSValue*)require:(NSString*)modulePath;
 
+- (void)dispatchOnQueue:(DISPATCH_NOESCAPE dispatch_block_t)block;
+
 // This gets us context["foo"] = @"Hi"; support
 // Object can either be a FJSValue object, objc block, or an objc instance (which will be wrapped in a FJSValue)
 - (void)setObject:(nullable id)object forKeyedSubscript:(nullable NSString *)key;

@@ -224,6 +224,10 @@ static NSPointerArray *FJSValueLiveWeakArray;
         return [self valueWithNullInRuntime:runtime];
     }
     
+    if (FJSInstanceIsBlock((__bridge id)instance)) {
+        return [self valueWithBlock:instance inRuntime:runtime];
+    }
+    
     FMAssert(runtime);
     FJSValue *value = [[self alloc] init];
     [value setInstance:instance];
@@ -1178,10 +1182,15 @@ static NSPointerArray *FJSValueLiveWeakArray;
     
     [_runtime pushAsCurrentFJS];
     
-    JSObjectRef jsFunction = JSValueToObject([_runtime contextRef], [functionValue jsValRef], nil);
-    JSObjectRef thisObject = JSValueToObject([_runtime contextRef], _jsValRef, nil);
-    JSValueRef exception = nil;
-    JSValueRef jsFunctionReturnValue = JSObjectCallAsFunction([_runtime contextRef], jsFunction, thisObject, argumentsCount, jsArgumentsArray, &exception);
+    __block JSValueRef jsFunctionReturnValue;
+    __block JSValueRef exception = nil;
+    
+    [_runtime dispatchOnQueue:^{
+        JSObjectRef jsFunction = JSValueToObject([_runtime contextRef], [functionValue jsValRef], nil);
+        JSObjectRef thisObject = JSValueToObject([_runtime contextRef], _jsValRef, nil);
+        
+        jsFunctionReturnValue = JSObjectCallAsFunction([_runtime contextRef], jsFunction, thisObject, argumentsCount, jsArgumentsArray, &exception);
+    }];
     
     if (jsArgumentsArray) {
         free(jsArgumentsArray);

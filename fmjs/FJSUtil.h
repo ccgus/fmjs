@@ -18,6 +18,7 @@ id FJSNativeObjectFromJSValue(JSValueRef jsValue, NSString *typeEncoding, JSCont
 JSValueRef FJSNativeObjectToJSValue(id o, JSContextRef context);
 JSValueRef FJSNativeObjectToJSValueOfType(id o, JSContextRef context, JSType type);
 
+BOOL FJSInstanceIsBlock(id possibleBlock);
 void *FJSCallAddressForBlock(id block);
 const char *FJSTypeEncodingForBlock(id theBlock);
 

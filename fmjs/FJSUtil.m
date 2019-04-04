@@ -542,6 +542,10 @@ const char *FJSTypeEncodingForBlock(id theBlock) {
     return descriptor->rest[index];
 }
 
+BOOL FJSInstanceIsBlock(id possibleBlock) {
+    return [possibleBlock isKindOfClass:NSClassFromString(@"NSBlock")];
+}
+
 NSString *FJSUUID(void) {
     CFUUIDRef uuid = CFUUIDCreate(kCFAllocatorDefault);
     NSString *uuidString = (__bridge_transfer NSString *)CFUUIDCreateString(kCFAllocatorDefault, uuid);

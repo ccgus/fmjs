@@ -1474,6 +1474,53 @@ int FJSTestCGImageRefExampleCounter;
     
 }
 
+- (void)testBlockPass {
+    
+    
+    FJSRuntime *runtime = [FJSRuntime new];
+    
+    
+    [runtime evaluateScript:@"function funk (d) { d() }"];
+    
+    __block BOOL blockCalled = NO;
+    
+    [runtime callFunctionNamed:@"funk" withArguments:@[^{
+        blockCalled = YES;
+    }]];
+    
+    XCTAssert(blockCalled);
+    
+    [runtime shutdown];
+    
+    
+}
+
+- (void)testQueueThing {
+    
+    
+    __block BOOL blockCalled = NO;
+    FJSRuntime *runtime = [FJSRuntime new];
+    
+    [runtime dispatchOnQueue:^{
+        
+        [runtime dispatchOnQueue:^{
+            
+            [runtime dispatchOnQueue:^{
+                
+                blockCalled = YES;
+                
+            }];
+            
+            
+        }];
+        
+    }];
+    
+    XCTAssert(blockCalled);
+    
+    [runtime shutdown];
+}
+
 - (void)xtestPerformanceExample {
     // This is an example of a performance test case.
     [self measureBlock:^{

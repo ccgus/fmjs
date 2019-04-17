@@ -106,6 +106,7 @@ static const void * const kDispatchQueueSpecificKey = &kDispatchQueueSpecificKey
 
 - (void)dealloc {
     [self shutdown];
+    _evaluateQueue = nil;
 }
 
 - (void)setupJS {
@@ -285,19 +286,18 @@ static const void * const kDispatchQueueSpecificKey = &kDispatchQueueSpecificKey
     return _jsContext;
 }
 
-#pragma message "FIXME: Move all the dispatch_sync(_evaluateQueue calls to this."
 - (void)dispatchOnQueue:(DISPATCH_NOESCAPE dispatch_block_t)block {
     
-    void *alreadyExecuting = dispatch_get_specific((__bridge const void * _Nonnull)(self));
-    if (alreadyExecuting) {
-        debug(@"Already in the queue!");
+    FMAssert(_evaluateQueue);
+    
+    FJSRuntime *currentRuntimeQueue = (__bridge id)dispatch_get_specific(kDispatchQueueSpecificKey);
+    if (currentRuntimeQueue == self) {
         block();
         return;
     }
-
-    dispatch_queue_set_specific(_evaluateQueue, (__bridge const void * _Nonnull)(self), (__bridge void *)self, NULL);
+    
+    dispatch_assert_queue_not(_evaluateQueue);
     dispatch_sync(_evaluateQueue, block);
-    dispatch_queue_set_specific(_evaluateQueue, (__bridge const void * _Nonnull)(self), NULL, NULL);
 }
 
 - (BOOL)hasFunctionNamed:(NSString*)name {

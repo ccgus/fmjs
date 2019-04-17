@@ -32,18 +32,17 @@ If runtime information is available, we'll try and do the right conversions. If 
 
 ### Pass blocks to the JavaScript runtime and call them as JavaScript functions:
 
-    FJSRuntime *runtime = [FJSRuntime new];
+``` Objective-C
 
-    runtime[@"funkItUp"] = ^(NSString *what) {
-        // Do whatever here
-    };
+FJSRuntime *runtime = [FJSRuntime new];
 
-    [runtime evaluateScript:@"funkItUp('funky');"];
-    
+runtime[@"funkItUp"] = ^(NSString *what) {
+    // Do whatever here
+};
 
+[runtime evaluateScript:@"funkItUp('funky');"];
 
-
-
+```
 
 
 
@@ -56,7 +55,7 @@ A: I hate four letter prefixes, and having it "FJS" always makes me think it sta
 ### Random Todos:
 
  * Stop using NSString for the encodings in the symbols. Try c strings, will ya?
- * Can we bridge to swift some day using Mirror (and once the ABI is finalized?) https://swift.org/blog/how-mirror-works/
+ * Bridge to Swift some day using Mirror, especially now that it has a stable ABI ( https://swift.org/blog/how-mirror-works/ )
  * What should we do about converting js native strings to ints via -[FJSValue toInt]?
   * Should we auto-manage CFTypes? CGImageRef, etc? Probably!
 

@@ -12,8 +12,9 @@ Code borrowed liberally from the Mocha project: [https://github.com/logancollins
 * To JS Number: char, short, int, long, long long, float, double  
 * To JS Object: NSObject, Class, 
 * To JS Undefined: returning void from functions.
+* To JS Fucntions: Blocks
 
-Not handled (yet?): Blocks, structs, out pointers
+Not handled (yet?): out pointers
 
 ### JavaScript to C:
 
@@ -28,6 +29,24 @@ If runtime information is available, we'll try and do the right conversions. If 
 * From JS Undefined: Not handled
 
 
+
+### Pass blocks to the JavaScript runtime and call them as JavaScript functions:
+
+    FJSRuntime *runtime = [FJSRuntime new];
+
+    runtime[@"funkItUp"] = ^(NSString *what) {
+        // Do whatever here
+    };
+
+    [runtime evaluateScript:@"funkItUp('funky');"];
+    
+
+
+
+
+
+
+
 ### Notes
 
 Q: Why is the framework called FMJS, but the class prefixes FJS?  
@@ -39,8 +58,7 @@ A: I hate four letter prefixes, and having it "FJS" always makes me think it sta
  * Stop using NSString for the encodings in the symbols. Try c strings, will ya?
  * Can we bridge to swift some day using Mirror (and once the ABI is finalized?) https://swift.org/blog/how-mirror-works/
  * What should we do about converting js native strings to ints via -[FJSValue toInt]?
- * Maybe FMJS should be a clone of JSContext and JSValue and friends?
- * Should we auto-manage CFTypes? CGImageRef, etc? Probably!
+  * Should we auto-manage CFTypes? CGImageRef, etc? Probably!
 
 
 

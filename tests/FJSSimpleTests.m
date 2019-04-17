@@ -1228,11 +1228,20 @@ int FJSTestCGImageRefExampleCounter;
         XCTAssert(FJSSimpleTestsInitHappend == (startInits + 1));
         
         [v protect];
+        [v protect];
+        [v unprotect];
+        [v protect];
         
         [runtime evaluateScript:@"c = null;"];
         
         
         XCTAssert(FJSSimpleTestsDeallocHappend == startDeallocs);
+        
+        XCTAssert([[v valueForKey:@"protectCount"] integerValue] == 2);
+        
+        [v unprotect];
+        
+        XCTAssert([[v valueForKey:@"protectCount"] integerValue] == 1);
         
         [v unprotect];
         

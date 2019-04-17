@@ -22,6 +22,7 @@
 @property (weak) FJSRuntime *runtime;
 @property (assign) JSValueRef jsValRef;
 @property (assign) JSGlobalContextRef unprotectContextRef;
+@property (assign) NSInteger protectCount; // Why our own protectCount? Because we've also got a unprotectContextRef to manage.
 
 @property (weak) id weakInstance;
 @property (assign) BOOL madePointerMemory;
@@ -1221,12 +1222,21 @@ static NSPointerArray *FJSValueLiveWeakArray;
         return;
     }
     
-    FMAssert(_unprotectContextRef);
-    if (_unprotectContextRef) {
-        
-        JSValueUnprotect(_unprotectContextRef, _jsValRef);
-        JSGlobalContextRelease(_unprotectContextRef);
-        _unprotectContextRef = nil;
+    _protectCount--;
+    
+    if (_protectCount < 0) {
+        NSLog(@"unprotect called too many times for %@. Behavior is undefined for here on out.", self);
+        [[NSException exceptionWithName:@"Unprotect Exception" reason:@"-unprotect called too many times" userInfo:nil] raise];
+        return;
+    }
+    
+    if (_protectCount == 0) {
+        FMAssert(_unprotectContextRef);
+        if (_unprotectContextRef) {
+            JSValueUnprotect(_unprotectContextRef, _jsValRef);
+            JSGlobalContextRelease(_unprotectContextRef);
+            _unprotectContextRef = nil;
+        }
     }
 }
 
@@ -1239,12 +1249,17 @@ static NSPointerArray *FJSValueLiveWeakArray;
         return self;
     }
     
-    FMAssert(!_unprotectContextRef);
-    if (!_unprotectContextRef) {
-        FMAssert(_runtime);
-        _unprotectContextRef = JSGlobalContextRetain((JSGlobalContextRef)[_runtime contextRef]);
-        JSValueProtect(_unprotectContextRef, _jsValRef);
+    if (_protectCount == 0) {
+        FMAssert(!_unprotectContextRef);
+        if (!_unprotectContextRef) {
+            FMAssert(_runtime);
+            FMAssert(!_protectCount);
+            _unprotectContextRef = JSGlobalContextRetain((JSGlobalContextRef)[_runtime contextRef]);
+            JSValueProtect(_unprotectContextRef, _jsValRef);
+        }
     }
+    
+    _protectCount++;
     
     return self;
 }

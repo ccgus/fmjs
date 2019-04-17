@@ -130,6 +130,10 @@ void FJSToolExecuteScript(NSString *script, NSString *path) {
         if (line && column) {
             printf(" line %s:%s", [line UTF8String], [column UTF8String]);
         }
+        else if (line) {
+            printf(" line %s", [line UTF8String]);
+        }
+        
         if (sourceURL) {
             printf(" of %s", [sourceURL UTF8String]);
         }

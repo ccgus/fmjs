@@ -1,7 +1,7 @@
 #!/bin/bash
 
-xcodeversion="Xcode 9.4.1"
-xcodebuild=/Applications/Xcode9.4.1.app/Contents/Developer/usr/bin/xcodebuild
+xcodeversion="Xcode 10.2"
+xcodebuild=/Applications/Xcode10.2.app/Contents/Developer/usr/bin/xcodebuild
 deployTarget=10.12
 
 if [ ! -f  $xcodebuild ]; then
@@ -14,7 +14,23 @@ if [ ! -f  $xcodebuild ]; then
     exit 2
 fi
 
-
+installLoc=""
+while [ "$#" -gt 0 ]
+do
+    #echo "one is: $1"
+    
+    if [ "-i" == $1 ]
+    then
+        installLoc=$2
+        shift
+        echo "Installing to $installLoc"
+    else
+        echo "$CMDNAME: invalid option: $1" 1>&2
+        exit 1
+    fi
+    
+    shift
+done
 
 function xcbuild {
     $xcodebuild $* clean
@@ -49,6 +65,7 @@ echo "Building using $xcv, deploy target $deployTarget"
 
 buildDate=`/bin/date +"%Y.%m.%d.%H"`
 
+
 cd /tmp/
 
 rm -rf fmjs
@@ -66,5 +83,9 @@ xcbuild -configuration Release -target fmjstool OBJROOT=/tmp/fmjs/build SYMROOT=
 
 failForBadBuild "fmjstool"
 
-open  /tmp/fmjs/build
+if [ "$installLoc" != "" ]; then
+    cp /tmp/fmjs/build/Release/fmjs  $installLoc
+else
+    open  /tmp/fmjs/build
 
+fi

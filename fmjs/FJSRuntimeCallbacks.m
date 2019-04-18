@@ -112,7 +112,11 @@ static JSValueRef FJSPrototypeForOBJCInstance(JSContextRef ctx, id instance, NSS
         return YES;
     }
     
-    //debug(@"No property for %@ on %@", propertyName, objectValue);
+    /*
+    if ([propertyName isEqualToString:@"prototype"] && [objectValue isClass]) {
+        return YES;
+    }
+    */
     
     id object = [objectValue isInstance] ? [objectValue toObject] : nil;
     if ([object isKindOfClass:[NSString class]] || [object isKindOfClass:[NSArray class]]) {
@@ -247,6 +251,22 @@ static JSValueRef FJSPrototypeForOBJCInstance(JSContextRef ctx, id instance, NSS
             ;
         }
     }
+    
+    // Hey gus, if we want to be able to extend nsobjects, we need to do this:
+    /*
+    if ([propertyName isEqualToString:@"prototype"] && [valueFromJSObject isClass]) {
+        
+        JSStringRef jsName = JSStringCreateWithUTF8CString("Object");
+        JSValueRef jsValue = JSObjectGetProperty([self contextRef], JSContextGetGlobalObject([self contextRef]), jsName, exception);
+        JSStringRelease(jsName);
+        
+        jsName = JSStringCreateWithUTF8CString("prototype");
+        JSValueRef jsPrototypeValue = JSObjectGetProperty([self contextRef], JSValueToObject([self contextRef], jsValue, nil), jsName, exception);
+        JSStringRelease(jsName);
+        
+        return jsPrototypeValue;
+    }
+    */
     
     id object = [valueFromJSObject isInstance] ? [valueFromJSObject toObject] : nil;
     if ([object isKindOfClass:[NSString class]] || [object isKindOfClass:[NSArray class]]) {

@@ -161,6 +161,9 @@ int FJSTestCGImageRefExampleCounter;
     assert(d);
 }
 
++ (NSInteger)testGetTwelve {
+    return 12;
+}
 
 @end
 
@@ -1529,6 +1532,20 @@ int FJSTestCGImageRefExampleCounter;
     
     [runtime shutdown];
 }
+
+- (void)xtestClassExtension {
+    
+    // Note: this is currently failing, and I'm not sure it's something I want to support yet.
+    FJSRuntime *runtime = [FJSRuntime new];
+    
+    FJSValue *u = [runtime evaluateScript:@"class FakeDate extends FJSTestClass { }; var f = new FakeDate(); f.testGetTwelve();"];
+    
+    XCTAssert([u toInt] == 12);
+    
+    [runtime shutdown];
+    
+}
+
 
 - (void)xtestPerformanceExample {
     // This is an example of a performance test case.

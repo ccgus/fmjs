@@ -12,7 +12,7 @@ Code borrowed liberally from the Mocha project: [https://github.com/logancollins
 * To JS Number: char, short, int, long, long long, float, double  
 * To JS Object: NSObject, Class, 
 * To JS Undefined: returning void from functions.
-* To JS Fucntions: Blocks
+* To JS Functions: Blocks
 
 Not handled (yet?): out pointers
 
@@ -45,6 +45,11 @@ runtime[@"funkItUp"] = ^(NSString *what) {
 ```
 
 
+### Thread Safety
+
+FJSRuntime uses an internal queue when evaluating scripts, and when calling functions. The JavaScriptCore API is thread safe but there are parts of FMJS that aren't without evaluating things on the queue. Because of this, FJSRuntime exposes a method which allows you to interact with it on the same queue it uses internally: `- (void)dispatchOnQueue:(DISPATCH_NOESCAPE dispatch_block_t)block;`
+
+If using FMJS in a multithreaded environment, use this method to help coordinate safe execution across threads.
 
 ### Notes
 

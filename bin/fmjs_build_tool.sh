@@ -1,7 +1,7 @@
 #!/bin/bash
 
-xcodeversion="Xcode 10.2"
-xcodebuild=/Applications/Xcode10.2.app/Contents/Developer/usr/bin/xcodebuild
+xcodeversion="Xcode 10.2.1"
+xcodebuild=/Applications/Xcode10.2.1.app/Contents/Developer/usr/bin/xcodebuild
 deployTarget=10.12
 
 if [ ! -f  $xcodebuild ]; then

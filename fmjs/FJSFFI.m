@@ -45,7 +45,7 @@ static NSMutableDictionary *FJSFFIStructureLookup;
 
 
 - (nullable FJSValue*)objcInvoke {
-    assert([_caller cValue].value.pointerValue);
+    assert([_caller instance]);
     FJSSymbol *functionSymbol = [_f symbol];
     assert(functionSymbol);
     

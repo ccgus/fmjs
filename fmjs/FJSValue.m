@@ -1187,10 +1187,10 @@ static NSPointerArray *FJSValueLiveWeakArray;
     __block JSValueRef exception = nil;
     
     [_runtime dispatchOnQueue:^{
-        JSObjectRef jsFunction = JSValueToObject([_runtime contextRef], [functionValue jsValRef], nil);
-        JSObjectRef thisObject = JSValueToObject([_runtime contextRef], _jsValRef, nil);
+        JSObjectRef jsFunction = JSValueToObject([self->_runtime contextRef], [functionValue jsValRef], nil);
+        JSObjectRef thisObject = JSValueToObject([self->_runtime contextRef], self->_jsValRef, nil);
         
-        jsFunctionReturnValue = JSObjectCallAsFunction([_runtime contextRef], jsFunction, thisObject, argumentsCount, jsArgumentsArray, &exception);
+        jsFunctionReturnValue = JSObjectCallAsFunction([self->_runtime contextRef], jsFunction, thisObject, argumentsCount, jsArgumentsArray, &exception);
     }];
     
     if (jsArgumentsArray) {
@@ -1240,7 +1240,6 @@ static NSPointerArray *FJSValueLiveWeakArray;
     }
 }
 
-#pragma message "FIXME: We need to keep track of how many protects we've had. Because we can't protect the same object twice with the current logic."
 - (instancetype)protect {
     
     // FIXME: Should we keep a list of FJSObjects in the runtime that need to be unprotected?

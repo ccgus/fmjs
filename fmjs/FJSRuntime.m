@@ -430,7 +430,10 @@ static const void * const kDispatchQueueSpecificKey = &kDispatchQueueSpecificKey
             [self reportPossibleJSException:exception];
         }
         else {
-            obj = [FJSValue valueWithJSValueRef:jsValue inRuntime:self];
+            
+            //if (!JSValueIsUndefined([self contextRef], jsValue)) {
+                obj = [FJSValue valueWithJSValueRef:jsValue inRuntime:self];
+            //}
         }
     }];
     

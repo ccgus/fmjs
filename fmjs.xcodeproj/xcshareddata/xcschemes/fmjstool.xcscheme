@@ -80,14 +80,18 @@
          </CommandLineArgument>
          <CommandLineArgument
             argument = "/Users/gus/Projects/fmshared/bin/fmnotarizeapp.js"
-            isEnabled = "YES">
+            isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "/Users/gus/cvsbuilds/Retrobatch1.zip"
-            isEnabled = "YES">
+            isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "com.flyingmeat.Retrobatch"
+            isEnabled = "NO">
+         </CommandLineArgument>
+         <CommandLineArgument
+            argument = "/Users/gus/Desktop/classes.js"
             isEnabled = "YES">
          </CommandLineArgument>
       </CommandLineArguments>

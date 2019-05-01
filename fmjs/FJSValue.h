@@ -54,6 +54,7 @@ typedef struct {
 #endif
 
 + (instancetype)valueWithJSValueRef:(nullable JSValueRef)jso inRuntime:(FJSRuntime*)runtime;
++ (instancetype)valueWithInstance:(CFTypeRef)instance inRuntime:(FJSRuntime*)runtime;
 
 - (id)toObject;
 - (BOOL)toBOOL;
@@ -87,6 +88,9 @@ typedef struct {
 
 - (instancetype)protect;
 - (void)unprotect;
+
+- (nullable JSValueRef)JSValueRef;
+- (nullable JSObjectRef)JSObjectRef; // Only valid if the FJSValue instance is backed by a native JSC JSValueRef
 
 /* Objects returned from objectForKeyedSubscript are protected. You'll need to call unprotect on them to balance it out. */
 - (FJSValue *)objectForKeyedSubscript:(NSString*)key;

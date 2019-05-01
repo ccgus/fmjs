@@ -188,6 +188,97 @@
         XCTAssert(FJSEqualFloats([[runtime evaluateScript:@"f64da[2]"] toDouble], .01));
     }
     
+    
+    {
+        FJSValue *v = [runtime evaluateScript:@"var int8a = new Int8Array([-12, 34, -56]); NSData.dataFromInt8Array(int8a);"];
+        NSData *d = [v toObject];
+        XCTAssert([d isKindOfClass:[NSData class]]);
+        XCTAssert([d length] == 3);
+        sint8 *values = (sint8 *)[d bytes];
+        XCTAssert(values[0] == -12);
+        XCTAssert(values[1] ==  34);
+        XCTAssert(values[2] == -56);
+    }
+    
+    
+    {
+        FJSValue *v = [runtime evaluateScript:@"var uint8a = new Uint8Array([-12, 34, -56]); NSData.dataFromUint8Array(uint8a);"];
+        NSData *d = [v toObject];
+        XCTAssert([d isKindOfClass:[NSData class]]);
+        XCTAssert([d length] == 3);
+        uint8 *values = (uint8 *)[d bytes];
+        XCTAssert(values[0] == 256-12);
+        XCTAssert(values[1] ==  34);
+        XCTAssert(values[2] == 256-56);
+    }
+    
+    {
+        FJSValue *v = [runtime evaluateScript:@"var int16a = new Int16Array([-122, 343, -567]); NSData.dataFromInt16Array(int16a);"];
+        NSData *d = [v toObject];
+        XCTAssert([d isKindOfClass:[NSData class]]);
+        XCTAssert([d length] == 6);
+        sint16 *values = (sint16 *)[d bytes];
+        XCTAssert(values[0] == -122);
+        XCTAssert(values[1] ==  343);
+        XCTAssert(values[2] == -567);
+    }
+    
+    
+    {
+        FJSValue *v = [runtime evaluateScript:@"var uint16a = new Uint16Array([-121, 3444, -561]); NSData.dataFromUint16Array(uint16a);"];
+        NSData *d = [v toObject];
+        XCTAssert([d isKindOfClass:[NSData class]]);
+        XCTAssert([d length] == 6);
+        uint16 *values = (uint16 *)[d bytes];
+        XCTAssert(values[0] == 65536-121);
+        XCTAssert(values[1] ==  3444);
+        XCTAssert(values[2] == 65536-561);
+    }
+    
+    {
+        FJSValue *v = [runtime evaluateScript:@"var int32a = new Int32Array([-1322, 3443, -5617]); NSData.dataFromInt32Array(int32a);"];
+        NSData *d = [v toObject];
+        XCTAssert([d isKindOfClass:[NSData class]]);
+        XCTAssert([d length] == 12);
+        sint32 *values = (sint32 *)[d bytes];
+        XCTAssert(values[0] == -1322);
+        XCTAssert(values[1] ==  3443);
+        XCTAssert(values[2] == -5617);
+    }
+    
+    {
+        FJSValue *v = [runtime evaluateScript:@"var uint32a = new Uint32Array([-1221, 34444, -5615]); NSData.dataFromUint32Array(uint32a);"];
+        NSData *d = [v toObject];
+        XCTAssert([d isKindOfClass:[NSData class]]);
+        XCTAssert([d length] == 12);
+        uint32 *values = (uint32 *)[d bytes];
+        XCTAssert(values[0] == 4294967296-1221);
+        XCTAssert(values[1] ==  34444);
+        XCTAssert(values[2] == 4294967296-5615);
+    }
+    
+    {
+        FJSValue *v = [runtime evaluateScript:@"var f32a = new Float32Array([-74.35, 12.6, 49.2]); NSData.dataFromFloat32Array(f32a);"];
+        NSData *d = [v toObject];
+        XCTAssert([d isKindOfClass:[NSData class]]);
+        XCTAssert([d length] == 12);
+        float *values = (float *)[d bytes];
+        XCTAssert(FJSEqualFloatsSlop(values[0], -74.35));
+        XCTAssert(FJSEqualFloatsSlop(values[1],  12.6));
+        XCTAssert(FJSEqualFloatsSlop(values[2],  49.2));
+    }
+    
+    {
+        FJSValue *v = [runtime evaluateScript:@"var f64a = new Float64Array([-742.35, 123.6, 491.2]); NSData.dataFromFloat64Array(f64a);"];
+        NSData *d = [v toObject];
+        XCTAssert([d isKindOfClass:[NSData class]]);
+        XCTAssert([d length] == 24);
+        double *values = (double *)[d bytes];
+        XCTAssert(FJSEqualFloats(values[0], -742.35));
+        XCTAssert(FJSEqualFloats(values[1],  123.6));
+        XCTAssert(FJSEqualFloats(values[2],  491.2));
+    }
+    
     [runtime shutdown];
 }
 

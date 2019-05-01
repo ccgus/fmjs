@@ -102,6 +102,52 @@ static void FJSTypedArrayBytesDeallocator(void* bytes, void* deallocatorContext)
     return NO;
 }
 
+
++ (BOOL)doFJSFunction:(FJSValue*)function inRuntime:(FJSRuntime*)runtime withValues:(NSArray<FJSValue*>*)values returning:(FJSValue*_Nullable __autoreleasing*_Nullable)returnValue {
+    
+    NSString *methodName = [[function symbol] name];
+    SEL selector = NSSelectorFromString(methodName);
+    
+    if (selector == @selector(dataFromInt8Array:)  || selector == @selector(dataFromUint8Array:) ||
+        selector == @selector(dataFromInt16Array:) || selector == @selector(dataFromUint16Array:) ||
+        selector == @selector(dataFromInt32Array:) || selector == @selector(dataFromUint32Array:) ||
+        selector == @selector(dataFromFloat32Array:) || selector == @selector(dataFromFloat64Array:)) {
+        
+        // FIXME: Can we check the types here? var a = new Int8Array([-122, 343, -567]); NSData.dataFromInt16Array(a); will segfault when you grab the values because the types aren't matching.
+        
+        FJSValue *array = [values firstObject];
+        if (![array isJSNative]) {
+            return NO;
+        }
+        
+        JSValueRef outErr;
+        JSObjectRef jsArrayObject = [array JSObjectRef];
+        
+#ifdef DEBUG
+        size_t byteOffset = JSObjectGetTypedArrayByteOffset([runtime contextRef], jsArrayObject, &outErr);
+        FMAssert(!byteOffset);
+#endif
+        
+        size_t len = JSObjectGetTypedArrayByteLength([runtime contextRef], jsArrayObject, &outErr);
+        
+        void *b = JSObjectGetTypedArrayBytesPtr([runtime contextRef], jsArrayObject, &outErr);
+        
+        NSData *d = [NSData dataWithBytes:b length:len];
+        
+        FJSValue *ret = [FJSValue valueWithInstance:(__bridge CFTypeRef _Nonnull)(d) inRuntime:runtime];
+        *returnValue = ret;
+        
+        return YES;
+    }
+    
+    
+    return NO;
+}
+
+
+
+
+
 // Completely private.
 - (void)timeoutF:(FJSValue *)callbackFunction m:(FJSValue *)milliseconds {
     FMAssert(NO);
@@ -154,5 +200,44 @@ static void FJSTypedArrayBytesDeallocator(void* bytes, void* deallocatorContext)
     return nil;
 }
 
++ (FJSValue*)dataFromInt8Array:(FJSValue*)array {
+    FMAssert(NO);
+    return nil;
+}
+
++ (FJSValue*)dataFromUint8Array:(FJSValue*)array {
+    FMAssert(NO);
+    return nil;
+}
+
++ (FJSValue*)dataFromInt16Array:(FJSValue*)array {
+    FMAssert(NO);
+    return nil;
+}
+
++ (FJSValue*)dataFromUint16Array:(FJSValue*)array {
+    FMAssert(NO);
+    return nil;
+}
+
++ (FJSValue*)dataFromInt32Array:(FJSValue*)array {
+    FMAssert(NO);
+    return nil;
+}
+
++ (FJSValue*)dataFromUint32Array:(FJSValue*)array {
+    FMAssert(NO);
+    return nil;
+}
+
++ (FJSValue*)dataFromFloat32Array:(FJSValue*)array {
+    FMAssert(NO);
+    return nil;
+}
+
++ (FJSValue*)dataFromFloat64Array:(FJSValue*)array {
+    FMAssert(NO);
+    return nil;
+}
 
 @end

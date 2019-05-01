@@ -443,6 +443,19 @@ static NSPointerArray *FJSValueLiveWeakArray;
     return [[self rtClass] respondsToSelector:NSSelectorFromString(m)];
 }
 
+// FIXME: Should JSObjectRef call JSValueRef and then make an object from that?
+- (nullable JSObjectRef)JSObjectRef {
+    
+    if (!_jsValRef) {
+        NSLog(@"-JSObjectRef called on a without a backing _jsValRef");
+        FMAssert(NO);
+        return nil;
+    }
+    
+    
+    return JSValueToObject([_runtime contextRef], _jsValRef, nil);;
+}
+
 
 - (nullable JSValueRef)JSValueRef {
     

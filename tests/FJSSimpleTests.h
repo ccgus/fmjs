@@ -25,3 +25,7 @@ FOUNDATION_STATIC_INLINE BOOL FJSEqualFloats(CGFloat a, CGFloat b) {
 #endif
 }
 
+FOUNDATION_STATIC_INLINE BOOL FJSEqualFloatsSlop(CGFloat a, CGFloat b) {
+    return fabs(a - b) <= .001;
+}
+

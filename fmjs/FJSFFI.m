@@ -69,9 +69,16 @@ static NSMutableDictionary *FJSFFIStructureLookup;
         
         SEL selector = NSSelectorFromString(methodName);
         id object    = [_caller instance];
+        BOOL isInFJSRuntimeCall = NO;
+        NSArray *arguments = _args;
+        
+        if ([methodName hasSuffix:@"nFJSRuntime:"]) {
+            isInFJSRuntimeCall = YES;
+            arguments = [_args arrayByAddingObject:_runtime];
+        }
         
         FJSValue *doFJSFunctionReturnValue;
-        if ([object respondsToSelector:@selector(doFJSFunction:inRuntime:withValues:returning:)] && [object doFJSFunction:_f inRuntime:_runtime withValues:_args returning:&doFJSFunctionReturnValue]) {
+        if (!isInFJSRuntimeCall && [object respondsToSelector:@selector(doFJSFunction:inRuntime:withValues:returning:)] && [object doFJSFunction:_f inRuntime:_runtime withValues:_args returning:&doFJSFunctionReturnValue]) {
             #pragma message "FIXME: Need to check retain counts here."
             return doFJSFunctionReturnValue ? doFJSFunctionReturnValue : [FJSValue valueWithUndefinedInRuntime:_runtime];
         }
@@ -84,7 +91,7 @@ static NSMutableDictionary *FJSFFIStructureLookup;
         [invocation setSelector:selector];
         
         NSUInteger methodArgumentCount = [methodSignature numberOfArguments] - 2;
-        if (methodArgumentCount != [_args count]) {
+        if (methodArgumentCount != [arguments count]) {
             
             NSString *reason = [NSString stringWithFormat:@"ObjC method %@ requires %lu %@, but JavaScript passed %zd %@", NSStringFromSelector(selector), methodArgumentCount, (methodArgumentCount == 1 ? @"argument" : @"arguments"), [_args count], ([_args count] == 1 ? @"argument" : @"arguments")];
             
@@ -94,19 +101,25 @@ static NSMutableDictionary *FJSFFIStructureLookup;
         }
         
         NSInteger currentArgIndex = 0;
-        for (FJSValue *v in _args) {
+        for (FJSValue *v in arguments) {
             NSInteger objcIndex = currentArgIndex + 2;
             
-            FJSSymbol *argSymbol = [[functionSymbol arguments] objectAtIndex:currentArgIndex];
-            FMAssert([argSymbol runtimeType]);
-            
-            if ([v isJSNative]) {
-                [v pushJSValueToNativeType:[argSymbol runtimeType]];
+            if (isInFJSRuntimeCall) {
+                [invocation setArgument:(void*)&v atIndex:objcIndex];
             }
-            #pragma message "FIXME: Big problem- what if we're printing a CGRect? We need to push a native C value to an object."
+            else {
+                FJSSymbol *argSymbol = [[functionSymbol arguments] objectAtIndex:currentArgIndex];
+                FMAssert([argSymbol runtimeType]);
+                
+                if ([v isJSNative]) {
+                    [v pushJSValueToNativeType:[argSymbol runtimeType]];
+                }
+                #pragma message "FIXME: Big problem- what if we're printing a CGRect? We need to push a native C value to an object."
+                
+                void *arg = [v objectStorage];
+                [invocation setArgument:arg atIndex:objcIndex];
+            }
             
-            void *arg = [v objectStorage];
-            [invocation setArgument:arg atIndex:objcIndex];
             currentArgIndex++;
         }
         
@@ -133,7 +146,7 @@ static NSMutableDictionary *FJSFFIStructureLookup;
             CFTypeRef cfobject = nil;
             [invocation getReturnValue:&cfobject];
             
-            returnFValue = [FJSValue valueWithInstance:cfobject inRuntime:_runtime];
+            returnFValue = isInFJSRuntimeCall ? (__bridge id)cfobject : [FJSValue valueWithInstance:cfobject inRuntime:_runtime];
             
             if (cfobject && [functionSymbol returnsRetained]) {
                 // We're already +2 on the object now. Time to bring it back down with CFRelease

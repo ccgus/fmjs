@@ -45,6 +45,19 @@ runtime[@"funkItUp"] = ^(NSString *what) {
 ```
 
 
+### Custom Conversions
+If you have a method on an object where you'd like to have a little bit more control with the values being handed to you, you have two options:
+
+You can implement the following function:
+
+`- (BOOL)doFJSFunction:(FJSValue*)function inRuntime:(FJSRuntime*)runtime withValues:(NSArray<FJSValue*>*)values returning:(FJSValue*_Nullable __autoreleasing*_Nullable)returnValue`
+
+And if you return true from this, the original method being called on your object will be skipped in favor of this (obviously, you'd handle the method call in here). Check out `FJSSimpleTests.m` for an example.
+
+Also, let's say you've got a method named `- (int)fooWithBar:(float)f` on an object, but you'd like to get your hands on the FJSValue or JSValueRefs which are being used for the arguments. You can implement the following method in your object and it will be called instead: `-(FJSValue*)fooWithBar:(FJSValue*)f inFJSRuntime:(FJSRuntime*)runtime`. FMJS will look for a method selector with an additional `inFJSRuntime:` tacked on the end to it (or  `fooWithBarInFJSRuntime:` if there were no aguments previously) and call this instead of the original function.
+
+
+
 ### Thread Safety
 
 FJSRuntime uses an internal queue when evaluating scripts, and when calling functions. The JavaScriptCore API is thread safe but there are parts of FMJS that aren't without evaluating things on the queue. Because of this, FJSRuntime exposes a method which allows you to interact with it on the same queue it uses internally: `- (void)dispatchOnQueue:(DISPATCH_NOESCAPE dispatch_block_t)block;`

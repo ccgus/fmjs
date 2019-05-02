@@ -226,23 +226,32 @@
     return [NSString stringWithFormat:@"<%@: %p %@ %@>", NSStringFromClass([self class]), self, _name, _runtimeType];
 }
 
-- (FJSSymbol*)methodNamed:(NSString*)methodName isClass:(BOOL)isClassMethod {
+- (void)methodNamesForInFJSRuntime:(NSString*)methodName getNoArgs:(NSString*__autoreleasing*)noArgs getWithArgs:(NSString*__autoreleasing*)withArgs {
+    // timeIntervalSinceNow      -> timeIntervalSinceNowInFJSRuntime:
+    // dateByAddingTimeInterval  -> dateByAddingTimeInterval:inFJSRuntime:
+    // dateByAddingTimeInterval: -> dateByAddingTimeInterval:inFJSRuntime:
     
-    // FIXME: Should this be a runtime behavior that we can turn on and off?
-    BOOL lookForMissingColonForArgument = YES;
+    *noArgs   = [methodName stringByAppendingString:@"InFJSRuntime:"];
+    *withArgs = [methodName stringByAppendingString:@":inFJSRuntime:"];
+}
+
+
+- (FJSSymbol*)methodNamed:(NSString*)methodName isClass:(BOOL)isClassMethod {
     
     methodName = [methodName stringByReplacingOccurrencesOfString:@"_" withString:@":"];
     
     NSString *methodNameWithArgAdded = [methodName stringByAppendingString:@":"];
-    
+    NSString *inFJSRuntimeNA, *inFJSRuntimeA;
+    [self methodNamesForInFJSRuntime:methodName getNoArgs:&inFJSRuntimeNA getWithArgs:&inFJSRuntimeA];
+
     assert([[self symbolType] isEqualToString:@"class"]);
     
+    NSArray *methodLookupOrder = @[inFJSRuntimeNA, inFJSRuntimeA, methodName, methodNameWithArgAdded];
     for (FJSSymbol *sym in isClassMethod ? _classMethods : _instanceMethods) {
-        if ([[sym name] isEqualToString:methodName]) {
-            return sym;
-        }
-        else if (lookForMissingColonForArgument && [[sym name] isEqualToString:methodNameWithArgAdded]) {
-            return sym;
+        for (NSString *methodLookup in methodLookupOrder) {
+            if ([[sym name] isEqualToString:methodLookup]) {
+                return sym;
+            }
         }
     }
     
@@ -267,16 +276,17 @@
     Class c = NSClassFromString([self name]);
     assert(c); // We have to exist, right?
     
-    SEL selector = NSSelectorFromString(methodName);
+    SEL selector = nil;
+    Method method = nil;
     
-    Method method = isClassMethod ? class_getClassMethod(c, selector) : class_getInstanceMethod(c, selector);
-    
-    if (lookForMissingColonForArgument && !method) {
-        selector = NSSelectorFromString([methodName stringByAppendingString:@":"]);
+    for (NSString *methodLookup in methodLookupOrder) {
+        selector = NSSelectorFromString(methodLookup);
         method = isClassMethod ? class_getClassMethod(c, selector) : class_getInstanceMethod(c, selector);
-        methodName = [methodName stringByAppendingString:@":"];
+        if (method) {
+            methodName = methodLookup;
+            break;
+        }
     }
-    
     
     if (method) {
         

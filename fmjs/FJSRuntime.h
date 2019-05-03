@@ -25,6 +25,7 @@ extern NSString *FMJavaScriptExceptionName;
 @property (copy) void(^printHandler)(FJSRuntime *runtime, NSString *stringToPrint);
 @property (copy) void(^finalizeHandler)(FJSRuntime *runtime, FJSValue *value);
 @property (strong) dispatch_queue_t evaluateQueue;
+@property (strong) NSURL *moduleSearchPath;
 
 + (void)loadFrameworkAtPath:(NSString*)path;
 
@@ -32,6 +33,8 @@ extern NSString *FMJavaScriptExceptionName;
 - (FJSValue*)evaluateScript:(NSString *)script withSourceURL:(nullable NSURL *)sourceURL;
 
 - (FJSValue*)require:(NSString*)modulePath;
+- (NSArray<FJSValue *>*)modules;
+- (FJSValue*)evaluateModuleAtURL:(NSURL*)scriptURL;
 
 - (void)dispatchOnQueue:(DISPATCH_NOESCAPE dispatch_block_t)block;
 

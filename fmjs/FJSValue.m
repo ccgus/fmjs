@@ -1135,7 +1135,7 @@ static NSPointerArray *FJSValueLiveWeakArray;
     }
     
     if (!JSValueIsObject([_runtime contextRef], _jsValRef)) {
-        FMAssert(NO);
+        debug(@"%@ is not an object, so we're return nil from objectForKeyedSubscript: (%@) (%d)", key, self, JSValueGetType([_runtime contextRef], _jsValRef));
         return nil;
     }
     
@@ -1227,6 +1227,27 @@ static NSPointerArray *FJSValueLiveWeakArray;
 
 - (FJSValue *)callWithArguments:(NSArray *)arguments {
     return [self invokeMethodNamed:@"" withArguments:arguments];
+}
+
+- (NSArray*)propertyNames {
+    
+    if (![self JSObjectRef]) {
+        return nil;
+    }
+    
+    NSMutableArray *ar = [NSMutableArray array];
+    
+    JSPropertyNameArrayRef a = JSObjectCopyPropertyNames([_runtime contextRef], [self JSObjectRef]);
+    size_t ct = JSPropertyNameArrayGetCount(a);
+    for (size_t i = 0; i < ct; i++) {
+        JSStringRef sr = JSPropertyNameArrayGetNameAtIndex(a, i);
+        NSString *s = (NSString *)CFBridgingRelease(JSStringCopyCFString(kCFAllocatorDefault, sr));
+        [ar addObject:s];
+    }
+    
+    JSPropertyNameArrayRelease(a);
+    
+    return ar;
 }
 
 - (void)unprotect {

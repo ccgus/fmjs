@@ -650,7 +650,11 @@ static const void * const kDispatchQueueSpecificKey = &kDispatchQueueSpecificKey
 // FIXME: Should we put this in a queue if we're not in one already?
 - (FJSValue*)require:(NSString*)modulePath {
     
-    NSString *fullPath = FJSResolveModuleAtPath(modulePath, [[NSFileManager defaultManager] currentDirectoryPath]);
+    NSString *fullPath = FJSResolveModuleAtPath(modulePath, _moduleSearchPath ? [_moduleSearchPath path] : [[NSFileManager defaultManager] currentDirectoryPath]);
+    
+    #pragma message "FIXME: Look at FJSResolveModuleAtPath, write some tests for it, and make it actually work."
+    
+    //NSString *fullPath = [(_moduleSearchPath ? [_moduleSearchPath path] : [[NSFileManager defaultManager] currentDirectoryPath]) stringByAppendingPathComponent:modulePath];
     
     if (!fullPath) {
         FMAssert(NO);
@@ -677,6 +681,10 @@ static const void * const kDispatchQueueSpecificKey = &kDispatchQueueSpecificKey
     //        return module.exports;
     return [FJSValue valueWithNewObjectInRuntime:self];
     
+}
+
+- (NSArray<FJSValue *>*)modules {
+    return [_cachedModules allValues];
 }
 
 - (void)installRunloop {

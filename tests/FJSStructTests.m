@@ -535,8 +535,6 @@ APPKIT_EXTERN const CGRect FJSRuntimeTestCGRect;
 
 - (void)testNSRangeReturnValue {
     
-    #pragma message "FIXME: Test NSRangeFromString as well."
-    
     FJSRuntime *rt = [FJSRuntime new];
     
     FJSValue *v = [rt evaluateScript:@"NSString.stringWithString('NSRange test thing').rangeOfString('test')"];
@@ -544,6 +542,13 @@ APPKIT_EXTERN const CGRect FJSRuntimeTestCGRect;
     
     XCTAssert(FJSEqualFloats(r->location, 8), @"Got %ld", r->location);
     XCTAssert(FJSEqualFloats(r->length, 4), @"Got %ld", r->length);
+    
+    
+    v = [rt evaluateScript:@"NSRangeFromString(NSStringFromRange(NSMakeRange(74, 32)));"];
+    r = [v structLocation];
+    
+    XCTAssert(FJSEqualFloats(r->location, 74), @"Got %ld", r->location);
+    XCTAssert(FJSEqualFloats(r->length, 32), @"Got %ld", r->length);
     
     [rt shutdown];
 }

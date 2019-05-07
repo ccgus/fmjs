@@ -61,7 +61,13 @@ NSString *FJSStructNameFromRuntimeType(NSString *runtimeType) {
     }
     
     
-    return [runtimeType substringWithRange:NSMakeRange(1, r.location - 1)];
+    NSString *l = [runtimeType substringWithRange:NSMakeRange(1, r.location - 1)];
+    
+    if ([l hasPrefix:@"_"]) {
+        l = [l substringFromIndex:1];
+    }
+    
+    return l;
 }
 
 NSArray *FJSNativeArrayFromJSObject(JSObjectRef arrayValue, JSContextRef ctx) {

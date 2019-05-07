@@ -72,6 +72,7 @@ typedef struct {
 
 - (BOOL)isUndefined;
 - (BOOL)isNull;
+- (BOOL)isString;
 
 - (void*)objectStorage;
 - (BOOL)pushJSValueToNativeType:(NSString*)type;

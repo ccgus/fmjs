@@ -299,6 +299,20 @@ static NSPointerArray *FJSValueLiveWeakArray;
     return NO;
 }
 
+- (BOOL)isString {
+    
+    if (_isJSNative) {
+        FMAssert(_jsValRef);
+        return _jsValueType == kJSTypeString;
+    }
+    
+    if ([self isInstance]) {
+        return [[self toObject] isKindOfClass:[NSString class]];
+    }
+    
+    return NO;
+}
+
 - (BOOL)isClass {
     return _cValue.type == _C_CLASS;
 }
@@ -553,6 +567,7 @@ static NSPointerArray *FJSValueLiveWeakArray;
             FJSSymbol *structSym = [self symbol];
             NSString *name = [structSym structName];
             FJSSymbol *structInfoSym = [FJSSymbol symbolForName:name];
+            FMAssert(structInfoSym);
             _madePointerMemorySize = [structInfoSym structSize];
             FMAssert(_madePointerMemorySize);
             

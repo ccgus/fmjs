@@ -23,6 +23,7 @@ BOOL FJSTraceFunctionCalls;
 NSString *FMJavaScriptExceptionName = @"FMJavaScriptException";
 const CGRect FJSRuntimeTestCGRect = {74, 78, 11, 16};
 static const void * const kDispatchQueueSpecificKey = &kDispatchQueueSpecificKey;
+static const void * const kDispatchQueueRecursiveSpecificKey = &kDispatchQueueRecursiveSpecificKey;
 
 @interface FJSRuntime () {
     
@@ -290,14 +291,19 @@ static const void * const kDispatchQueueSpecificKey = &kDispatchQueueSpecificKey
     
     FMAssert(_evaluateQueue);
     
-    FJSRuntime *currentRuntimeQueue = (__bridge id)dispatch_get_specific(kDispatchQueueSpecificKey);
+    // We can't use kDispatchQueueSpecificKey, because if we do _evaluateQueue->_fmdbQueue->_evaluateQueue-> then dispatch_assert_queue_not is goign to fail, because dispatch_get_specific looks at the current queue, which might be _fmdbQueue or something else.
+    FJSRuntime *currentRuntimeQueue = (__bridge id)dispatch_queue_get_specific(_evaluateQueue, kDispatchQueueRecursiveSpecificKey);
     if (currentRuntimeQueue == self) {
         block();
         return;
     }
     
     dispatch_assert_queue_not(_evaluateQueue);
-    dispatch_sync(_evaluateQueue, block);
+    dispatch_sync(_evaluateQueue, ^{
+        dispatch_queue_set_specific(self->_evaluateQueue, kDispatchQueueRecursiveSpecificKey, (__bridge void *)self, NULL);
+        block();
+        dispatch_queue_set_specific(self->_evaluateQueue, kDispatchQueueRecursiveSpecificKey, NULL, NULL);
+    });
 }
 
 - (BOOL)hasFunctionNamed:(NSString*)name {
@@ -474,7 +480,7 @@ static const void * const kDispatchQueueSpecificKey = &kDispatchQueueSpecificKey
         JSObjectSetProperty([self contextRef], jsObject, jsName, jsValue, kJSPropertyAttributeNone, &exception);
         JSStringRelease(jsName);
         
-        #pragma message "FIXME: [[self runtimeObjectNames] addObject:name]; is completely worthless now with the inJSObject:(JSObjectRef)jsObject param."
+        #pragma message "FIXME: [[self runtimeObjectNames] addObject:name]; is completely worthless now with the inJSObject:(JSObjectRef)jsObject param. We need to keep a map of things to kill based on the FJSValue we're setting these things on."
         [[self runtimeObjectNames] addObject:name];
         
         [self reportPossibleJSException:exception];

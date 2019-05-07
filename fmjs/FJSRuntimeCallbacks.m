@@ -373,6 +373,7 @@ static JSValueRef FJSPrototypeForOBJCInstance(JSContextRef ctx, id instance, NSS
     FJSValue *ret = [ffi callFunction];
     
     // unwrap does a +1 retain on the value returned. Otherwise it'll be quickly removed from the runtime.
+    FMAssert([ret isKindOfClass:[FJSValue class]]);
     ret = [ret unwrapValue];
     
     FMAssert(ret);

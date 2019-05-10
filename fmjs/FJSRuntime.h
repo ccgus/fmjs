@@ -25,7 +25,6 @@ extern NSString *FMJavaScriptExceptionName;
 @property (copy) void(^printHandler)(FJSRuntime *runtime, NSString *stringToPrint);
 @property (copy) void(^finalizeHandler)(FJSRuntime *runtime, FJSValue *value);
 @property (strong) dispatch_queue_t evaluateQueue;
-@property (strong) NSURL *moduleSearchPath;
 
 + (void)loadFrameworkAtPath:(NSString*)path;
 
@@ -44,6 +43,8 @@ extern NSString *FMJavaScriptExceptionName;
 - (FJSValue*)objectForKeyedSubscript:(id)key;
 
 - (void)removeRuntimeValueWithName:(NSString*)name;
+
+- (void)addURLToModuleSearchPath:(NSURL*)url;
 
 - (void)shutdown;
 - (void)garbageCollect;

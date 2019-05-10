@@ -33,6 +33,7 @@ static const void * const kDispatchQueueRecursiveSpecificKey = &kDispatchQueueRe
 @property (assign) JSClassRef globalClass;
 @property (strong) NSMutableSet<NSString*> *runtimeObjectNames;
 @property (strong) NSMutableDictionary *cachedModules;
+@property (strong) NSMutableArray *moduleSearchPaths;
 @property (strong) FJSRunLoopThread *runloopThread;
 
 @end
@@ -623,6 +624,16 @@ static const void * const kDispatchQueueRecursiveSpecificKey = &kDispatchQueueRe
     return r;
 }
 
+- (void)addURLToModuleSearchPath:(NSURL*)url {
+    
+    if (!_moduleSearchPaths) {
+        _moduleSearchPaths = [NSMutableArray array];
+    }
+    
+    if ([_moduleSearchPaths indexOfObject:url] == NSNotFound) {
+        [_moduleSearchPaths addObject:url];
+    }
+}
 - (FJSValue*)evaluateAsModule:(NSString*)script {
     #pragma message "FIXME: If evaluateAsModule is called outside of a script, it needs to be on the queue"
     NSString *module = [NSString stringWithFormat:@"(function() { var module = { exports : {} }; var exports = module.exports; %@ ; return module.exports; })()", script];
@@ -656,7 +667,26 @@ static const void * const kDispatchQueueRecursiveSpecificKey = &kDispatchQueueRe
 // FIXME: Should we put this in a queue if we're not in one already?
 - (FJSValue*)require:(NSString*)modulePath {
     
-    NSString *fullPath = FJSResolveModuleAtPath(modulePath, _moduleSearchPath ? [_moduleSearchPath path] : [[NSFileManager defaultManager] currentDirectoryPath]);
+    NSString *fullPath = nil;
+    
+    if (!([modulePath hasPrefix:@"./"] || [modulePath hasPrefix:@"/"] || [modulePath hasPrefix:@"../"])) {
+        
+        NSString *fileName = [modulePath stringByAppendingPathExtension:@"js"];
+        for (NSURL *url in _moduleSearchPaths) {
+            
+            if ([[NSFileManager defaultManager] fileExistsAtPath:[[url path] stringByAppendingPathComponent:fileName]]) {
+                fullPath = [[url path] stringByAppendingPathComponent:fileName];
+            }
+            
+            if (fullPath) {
+                break;
+            }
+        }
+    }
+    
+    if (!fullPath) {
+        fullPath = FJSResolveModuleAtPath(modulePath, [[NSFileManager defaultManager] currentDirectoryPath]);
+    }
     
     #pragma message "FIXME: Look at FJSResolveModuleAtPath, write some tests for it, and make it actually work."
     

@@ -86,13 +86,15 @@ static const void * const kDispatchQueueRecursiveSpecificKey = &kDispatchQueueRe
             [FJSRuntime loadFrameworkAtPath:@"/System/Library/Frameworks/AppKit.framework"];
             [FJSRuntime loadFrameworkAtPath:@"/System/Library/Frameworks/CoreImage.framework"];
             
-            /* If we have custom functions again, we'll need this.
+            
             NSString *xml =
                 @"<signatures version='1.0'>"
+                    @"<function name='FJSAssertObject'><arg type='@'/></function>"
+                    @"<function name='FJSAssert'><arg type='B'/></function>"
                 "</signatures>";
             
             [[FJSSymbolManager sharedManager] parseBridgeString:xml];
-            */
+            
         });
         
         _evaluateQueue = dispatch_queue_create([[NSString stringWithFormat:@"fmjs.evaluateQueue.%p", self] UTF8String], NULL);
@@ -438,9 +440,7 @@ static const void * const kDispatchQueueRecursiveSpecificKey = &kDispatchQueueRe
         }
         else {
             
-            //if (!JSValueIsUndefined([self contextRef], jsValue)) {
-                obj = [FJSValue valueWithJSValueRef:jsValue inRuntime:self];
-            //}
+            obj = [FJSValue valueWithJSValueRef:jsValue inRuntime:self];
         }
     }];
     
@@ -528,6 +528,13 @@ static const void * const kDispatchQueueRecursiveSpecificKey = &kDispatchQueueRe
     @try {
         
         
+        id fn = self[@"__filename"];
+        id dn = self[@"__dirname"];
+        
+        self[@"__filename"] = [sourceURL path];
+        self[@"__dirname"]  = [[sourceURL URLByDeletingLastPathComponent] path];
+        
+        
         JSStringRef jsString = JSStringCreateWithCFString((__bridge CFStringRef)script);
         JSStringRef jsScriptPath = (sourceURL != nil ? JSStringCreateWithUTF8CString([[sourceURL path] UTF8String]) : NULL);
         JSValueRef exception = NULL;
@@ -543,6 +550,11 @@ static const void * const kDispatchQueueRecursiveSpecificKey = &kDispatchQueueRe
         if (jsScriptPath != NULL) {
             JSStringRelease(jsScriptPath);
         }
+        
+        
+        self[@"__filename"] = [fn isUndefined] || [fn isNull] ? nil : fn;
+        self[@"__dirname"]  = [dn isUndefined] || [dn isNull] ? nil : dn;
+        
         
         returnValue = [FJSValue valueWithJSValueRef:result inRuntime:self];
     }
@@ -650,9 +662,20 @@ static const void * const kDispatchQueueRecursiveSpecificKey = &kDispatchQueueRe
         NSString *script = [NSString stringWithContentsOfURL:scriptURL encoding:NSUTF8StringEncoding error:&error];
         
         if (script) {
-            NSString *module = [NSString stringWithFormat:@"(function() { var module = { exports : {} }; var exports = module.exports; %@ ; return module.exports; })()", script];
+
+            id fn = self[@"__filename"];
+            id dn = self[@"__dirname"];
+            
+            // __filename and __dirname are node things. I wish we could pass them in as arguments, but I can't seem to massage the js so that'll happen.
+            self[@"__filename"] = [scriptURL path];
+            self[@"__dirname"]  = [[scriptURL URLByDeletingLastPathComponent] path];
+            
+            NSString *module = [NSString stringWithFormat:@"(function() { var module = { exports : {} }; var exports = module.exports; %@;\nreturn module.exports; })()", script];
             
             FJSValue *moduleValue = [self evaluateNoQueue:module withSourceURL:scriptURL];
+            
+            self[@"__filename"] = [fn isUndefined] || [fn isNull] ? nil : fn;
+            self[@"__dirname"]  = [dn isUndefined] || [dn isNull] ? nil : dn;
             
             return moduleValue;
         }
@@ -664,58 +687,143 @@ static const void * const kDispatchQueueRecursiveSpecificKey = &kDispatchQueueRe
     return nil;
 }
 
-// FIXME: Should we put this in a queue if we're not in one already?
-- (FJSValue*)require:(NSString*)modulePath {
+
+
+/// This aims to implement the require resolution algorithm from NodeJS.
+/// Given a `module` string required by a given script at the `currentURL`
+/// using `require('./path/to/module')`, this method returns a URL
+/// corresponding to the `module`.
+/// `module` could also be the name of a core module that we shipped with the app
+/// (for example `util`), in which case, it will return the URL to that one
+/// and set `isRequiringCore` to YES.
+- (NSURL*)resolveModule:(NSString*)module currentURL:(NSURL*)currentURL isRequiringCoreModule:(BOOL*)isRequiringCore {
+    if (![module hasPrefix:@"."] && ![module hasPrefix:@"/"] && ![module hasPrefix:@"~"]) {
+        *isRequiringCore = YES;
+        return _coreModuleMap[module];
+    }
     
-    NSString *fullPath = nil;
+    *isRequiringCore = NO;
     
-    if (!([modulePath hasPrefix:@"./"] || [modulePath hasPrefix:@"/"] || [modulePath hasPrefix:@"../"])) {
+    NSFileManager *fileManager = [NSFileManager defaultManager];
+    BOOL isRelative = [module hasPrefix: @"."];
+    NSString *modulePath = [module stringByStandardizingPath];
+    NSURL *moduleURL = isRelative ? [NSURL URLWithString:modulePath relativeToURL:currentURL] : [NSURL fileURLWithPath:modulePath];
+    
+    if (moduleURL == nil) {
+        return nil;
+    }
+    
+    BOOL isDir;
+    
+    if ([fileManager fileExistsAtPath:moduleURL.path isDirectory:&isDir]) {
+        if (!isDir) {
+            // if the module is a proper path to a file, just use it
+            return moduleURL;
+        }
+        // if it's a path to a directory, let's try to find a package.json
+        NSURL *packageJSONURL = [moduleURL URLByAppendingPathComponent:@"package.json"];
+        NSData *jsonData = [[NSData alloc] initWithContentsOfFile:packageJSONURL.path];
+        if (jsonData != nil) {
+            id packageJSON = [NSJSONSerialization JSONObjectWithData:jsonData options:NSJSONReadingMutableLeaves error:nil];
+            if (packageJSON != nil) {
+                // we have a package.json, so let's find the `main` key
+                NSString *main = [packageJSON objectForKey:@"main"];
+                if (main) {
+                    // main is always a relative path, so let's transform it to one
+                    if ([module hasPrefix: @"/"]) {
+                        main = [@"." stringByAppendingString:main];
+                    } else if (![module hasPrefix: @"."]) {
+                        main = [@"./" stringByAppendingString:main];
+                    }
+                    return [self resolveModule:[moduleURL URLByAppendingPathComponent:main].path currentURL:currentURL isRequiringCoreModule:isRequiringCore];
+                }
+            }
+        }
         
-        NSString *fileName = [modulePath stringByAppendingPathExtension:@"js"];
+        // default to index.js otherwise
+        NSURL *indexURL = [moduleURL URLByAppendingPathComponent:@"index.js"];
+        if ([fileManager fileExistsAtPath:indexURL.path isDirectory:&isDir] && !isDir) {
+            return indexURL;
+        }
+        
+        // couldn't find anything :(
+        return nil;
+    }
+    
+    // try by adding the js extension which can be ommited
+    NSURL *jsURL = [moduleURL URLByAppendingPathExtension:@"js"];
+    if ([fileManager fileExistsAtPath:jsURL.path isDirectory:&isDir] && !isDir) {
+        return jsURL;
+    }
+    
+    // unlucky :(
+    return nil;
+}
+
+
+
+
+
+
+
+
+
+// FIXME: Should we put this in a queue if we're not in one already?
+- (FJSValue*)require:(NSString*)module {
+    
+    debug(@"require: '%@'", module);
+    
+    NSURL *currentURL = [NSURL fileURLWithPath:[[NSFileManager defaultManager] currentDirectoryPath]];
+    BOOL isRequiringCore;
+    NSURL *moduleURL = nil;
+    
+    if (_resolveModuleHandler) {
+        moduleURL = _resolveModuleHandler(self, module);
+    }
+    
+    if (!moduleURL) {
+        moduleURL = [self resolveModule:module currentURL:currentURL isRequiringCoreModule:&isRequiringCore];
+    }
+    
+    if (!moduleURL) {
+        
         for (NSURL *url in _moduleSearchPaths) {
             
-            if ([[NSFileManager defaultManager] fileExistsAtPath:[[url path] stringByAppendingPathComponent:fileName]]) {
-                fullPath = [[url path] stringByAppendingPathComponent:fileName];
-            }
+            // add the ./ so it's not resolved as a core module.
+            moduleURL = [self resolveModule:[@"./" stringByAppendingString:module] currentURL:url isRequiringCoreModule:&isRequiringCore];
             
-            if (fullPath) {
+            if (moduleURL) {
                 break;
             }
         }
     }
     
-    if (!fullPath) {
-        fullPath = FJSResolveModuleAtPath(modulePath, [[NSFileManager defaultManager] currentDirectoryPath]);
+    if (!moduleURL) {
+        return [FJSValue valueWithUndefinedInRuntime:self];
+        
+        @throw [NSException
+                exceptionWithName:NSInvalidArgumentException
+                reason:isRequiringCore
+                ? [NSString stringWithFormat:@"%@ is not a core package", module]
+                : [NSString stringWithFormat:@"Cannot find module %@ from package %@", module, currentURL.path]
+                userInfo:nil];
     }
+    
     
     #pragma message "FIXME: Look at FJSResolveModuleAtPath, write some tests for it, and make it actually work."
     
-    //NSString *fullPath = [(_moduleSearchPath ? [_moduleSearchPath path] : [[NSFileManager defaultManager] currentDirectoryPath]) stringByAppendingPathComponent:modulePath];
-    
-    if (!fullPath) {
-        FMAssert(NO);
-        return [FJSValue valueWithUndefinedInRuntime:self];
-    }
-    
-    if ([_cachedModules objectForKey:fullPath]) {
-        return [_cachedModules objectForKey:fullPath];
+    if ([_cachedModules objectForKey:moduleURL]) {
+        return [_cachedModules objectForKey:moduleURL];
     }
     
     
-    FJSValue *v = [self evaluateModuleAtURL:[NSURL fileURLWithPath:fullPath]];
+    FJSValue *v = [self evaluateModuleAtURL:moduleURL];
     if (v) {
-        [_cachedModules setObject:v forKey:fullPath];
+        [_cachedModules setObject:v forKey:moduleURL];
         return v;
     }
     
-    FMAssert(NO); // Why would we get here?
-    //        JSModule *module = [JSModule require:arg atPath:[[NSFileManager defaultManager] currentDirectoryPath]];
-    //        if (!module) {
-    //            [[JSContext currentContext] evaluateScript:@"throw 'not found'"];
-    //            return [JSValue valueWithUndefinedInContext:[JSContext currentContext]];
-    //        }
-    //        return module.exports;
-    return [FJSValue valueWithNewObjectInRuntime:self];
+    return [FJSValue valueWithUndefinedInRuntime:self];
     
 }
 

@@ -25,6 +25,7 @@ extern NSString *FMJavaScriptExceptionName;
 @property (copy) void(^printHandler)(FJSRuntime *runtime, NSString *stringToPrint);
 @property (copy) void(^finalizeHandler)(FJSRuntime *runtime, FJSValue *value);
 @property (copy) NSURL*(^resolveModuleHandler)(FJSRuntime *runtime, NSString *moduleName);
+@property (copy) void(^moduleWasLoadedHandler)(FJSRuntime *runtime, FJSValue *module, NSURL *moduleURl);
 @property (strong) dispatch_queue_t evaluateQueue;
 @property (strong) NSDictionary* coreModuleMap;
 

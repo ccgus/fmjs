@@ -527,7 +527,6 @@ static const void * const kDispatchQueueRecursiveSpecificKey = &kDispatchQueueRe
     
     @try {
         
-        
         id fn = self[@"__filename"];
         id dn = self[@"__dirname"];
         
@@ -800,17 +799,14 @@ static const void * const kDispatchQueueRecursiveSpecificKey = &kDispatchQueueRe
     
     if (!moduleURL) {
         return [FJSValue valueWithUndefinedInRuntime:self];
-        
+        /*
         @throw [NSException
                 exceptionWithName:NSInvalidArgumentException
                 reason:isRequiringCore
                 ? [NSString stringWithFormat:@"%@ is not a core package", module]
                 : [NSString stringWithFormat:@"Cannot find module %@ from package %@", module, currentURL.path]
-                userInfo:nil];
+                userInfo:nil];*/
     }
-    
-    
-    #pragma message "FIXME: Look at FJSResolveModuleAtPath, write some tests for it, and make it actually work."
     
     if ([_cachedModules objectForKey:moduleURL]) {
         return [_cachedModules objectForKey:moduleURL];
@@ -820,6 +816,11 @@ static const void * const kDispatchQueueRecursiveSpecificKey = &kDispatchQueueRe
     FJSValue *v = [self evaluateModuleAtURL:moduleURL];
     if (v) {
         [_cachedModules setObject:v forKey:moduleURL];
+        
+        if (_moduleWasLoadedHandler) {
+            _moduleWasLoadedHandler(self, v, moduleURL);
+        }
+        
         return v;
     }
     

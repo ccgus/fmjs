@@ -105,6 +105,14 @@ static NSPointerArray *FJSValueLiveWeakArray;
     return [self valueWithJSValueRef:JSObjectMake([runtime contextRef], nil, nil) inRuntime:runtime];
 }
 
++ (instancetype)valueWithString:(NSString*)stringToConvertToJSString inRuntime:(FJSRuntime*)runtime {
+    
+    JSStringRef string = JSStringCreateWithCFString((__bridge CFStringRef)stringToConvertToJSString);
+    JSValueRef value = JSValueMakeString([runtime contextRef], string);
+    JSStringRelease(string);
+    
+    return [self valueWithJSValueRef:value inRuntime:runtime];
+}
 
 + (instancetype)valueWithNullInRuntime:(FJSRuntime*)runtime {
     return [self valueWithJSValueRef:(JSObjectRef)JSValueMakeNull([runtime contextRef]) inRuntime:runtime];

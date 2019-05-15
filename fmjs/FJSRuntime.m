@@ -662,6 +662,19 @@ static const void * const kDispatchQueueRecursiveSpecificKey = &kDispatchQueueRe
         
         if (script) {
 
+#define NODE_STYLE_WRAPPER 1
+#ifdef NODE_STYLE_WRAPPER
+            
+            NSString *moduleWrapper = @"(function(__filename, __dirname) {\nvar module = { exports : {} }; var exports = module.exports;\n%@;\nreturn module.exports;})";
+            
+            moduleWrapper = [NSString stringWithFormat:moduleWrapper, script];
+            
+            FJSValue *moduleValueFunction  = [self evaluateNoQueue:moduleWrapper withSourceURL:scriptURL];
+            
+            FJSValue *moduleValue = [moduleValueFunction callWithArguments:@[[scriptURL path], [[scriptURL URLByDeletingLastPathComponent] path]]];
+            
+#else
+            
             id fn = self[@"__filename"];
             id dn = self[@"__dirname"];
             
@@ -675,7 +688,7 @@ static const void * const kDispatchQueueRecursiveSpecificKey = &kDispatchQueueRe
             
             self[@"__filename"] = [fn isUndefined] || [fn isNull] ? nil : fn;
             self[@"__dirname"]  = [dn isUndefined] || [dn isNull] ? nil : dn;
-            
+#endif
             return moduleValue;
         }
         else if (error) {

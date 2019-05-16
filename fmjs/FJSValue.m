@@ -913,6 +913,12 @@ static NSPointerArray *FJSValueLiveWeakArray;
     }
     
     if (_cValue.value.pointerValue) {
+        
+        // return types like CFURLRef can end up down here.
+        if ([[_symbol runtimeType] hasPrefix:@"^{C"]) {
+            return [self instance];
+        }
+        
         debug(@"Haven't implemented toObject for %c yet (_C_PTR)", _cValue.type);
         return nil;
     }

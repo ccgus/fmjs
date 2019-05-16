@@ -171,6 +171,12 @@ int FJSTestCGImageRefExampleCounter;
     return YES;
 }
 
++ (BOOL)getError:(NSError **)outErr {
+    *outErr = [NSError errorWithDomain:@"Foo" code:78 userInfo:nil];
+    return NO;
+}
+
+
 @end
 
 
@@ -1601,6 +1607,26 @@ int FJSTestCGImageRefExampleCounter;
     
     [runtime evaluateScript:@"ptr=null; scanner=null;"];
     [runtime shutdown];
+}
+
+- (void)testErrHandle {
+    
+    FJSRuntime *runtime = [FJSRuntime new];
+    
+    FJSValue *vu = [runtime evaluateScript:
+                    @"var ptr = FJSPointer.new();\n"
+                    @"FJSTestClass.getError(ptr);\n"
+                    @"ptr\n"];
+    
+    NSError *err = [vu toObject];
+    XCTAssert(err);
+    XCTAssert([[err domain] isEqualToString:@"Foo"]);
+    XCTAssert([err code] == 78);
+    
+    [runtime evaluateScript:@"ptr=null;"];
+    
+    [runtime shutdown];
+    
 }
 
 - (void)xtestClassExtension {

@@ -8,6 +8,8 @@
 
 /* Begin PBXBuildFile section */
 		CC01111B220377B8002787C1 /* FJSCFTypeTests.m in Sources */ = {isa = PBXBuildFile; fileRef = CC01111A220377B8002787C1 /* FJSCFTypeTests.m */; };
+		CC06F9AC228E0A2800CB7DBE /* FJSPointer.h in Headers */ = {isa = PBXBuildFile; fileRef = CC06F9AA228E0A2800CB7DBE /* FJSPointer.h */; };
+		CC06F9AD228E0A2800CB7DBE /* FJSPointer.m in Sources */ = {isa = PBXBuildFile; fileRef = CC06F9AB228E0A2800CB7DBE /* FJSPointer.m */; };
 		CC1543A2218A36A8004E2146 /* FJSRuntimeCallbacks.m in Sources */ = {isa = PBXBuildFile; fileRef = CC5792542186AB64008073B7 /* FJSRuntimeCallbacks.m */; };
 		CC15CD0321811BFC0036CC57 /* FJSModule.h in Headers */ = {isa = PBXBuildFile; fileRef = CC15CD0121811BFC0036CC57 /* FJSModule.h */; };
 		CC15CD0421811BFC0036CC57 /* FJSModule.m in Sources */ = {isa = PBXBuildFile; fileRef = CC15CD0221811BFC0036CC57 /* FJSModule.m */; };
@@ -104,6 +106,8 @@
 
 /* Begin PBXFileReference section */
 		CC01111A220377B8002787C1 /* FJSCFTypeTests.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = FJSCFTypeTests.m; sourceTree = "<group>"; };
+		CC06F9AA228E0A2800CB7DBE /* FJSPointer.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = FJSPointer.h; sourceTree = "<group>"; };
+		CC06F9AB228E0A2800CB7DBE /* FJSPointer.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = FJSPointer.m; sourceTree = "<group>"; };
 		CC15CD0121811BFC0036CC57 /* FJSModule.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = FJSModule.h; sourceTree = "<group>"; };
 		CC15CD0221811BFC0036CC57 /* FJSModule.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = FJSModule.m; sourceTree = "<group>"; };
 		CC1A28142154245F003B72BF /* FJSPrivate.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = FJSPrivate.h; sourceTree = "<group>"; };
@@ -240,6 +244,8 @@
 				CC15CD0221811BFC0036CC57 /* FJSModule.m */,
 				CC91A8BE2279052900AC1A22 /* FJSNSDataAdditions.h */,
 				CC91A8BF2279052900AC1A22 /* FJSNSDataAdditions.m */,
+				CC06F9AA228E0A2800CB7DBE /* FJSPointer.h */,
+				CC06F9AB228E0A2800CB7DBE /* FJSPointer.m */,
 				CC1A28142154245F003B72BF /* FJSPrivate.h */,
 				CC413B0B21A371F000D13E5D /* FJSRunLoopThread.h */,
 				CC413B0C21A371F000D13E5D /* FJSRunLoopThread.m */,
@@ -341,6 +347,7 @@
 				CC5792552186AB64008073B7 /* FJSRuntimeCallbacks.h in Headers */,
 				CCB1856E214D7B3000346D2F /* FJSRuntime.h in Headers */,
 				CCC0EE2A217A6BDB00527B23 /* FJSSymbol.h in Headers */,
+				CC06F9AC228E0A2800CB7DBE /* FJSPointer.h in Headers */,
 				CCB1856A214D7B3000346D2F /* FJSSymbolManager.h in Headers */,
 				CC2F6733217E7C640095FCEB /* FJSResultSet.h in Headers */,
 				CCB18574214D7B3000346D2F /* FJSValue.h in Headers */,
@@ -515,6 +522,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				CC2F6728217E7C640095FCEB /* FJSDatabase.m in Sources */,
+				CC06F9AD228E0A2800CB7DBE /* FJSPointer.m in Sources */,
 				CCB1856F214D7B3000346D2F /* FJSRuntime.m in Sources */,
 				CC2F6734217E7C640095FCEB /* FJSResultSet.m in Sources */,
 				CC413B0E21A371F000D13E5D /* FJSRunLoopThread.m in Sources */,

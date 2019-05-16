@@ -338,9 +338,9 @@ static NSPointerArray *FJSValueLiveWeakArray;
     }
     
 //    #pragma message "FIXME: How can we check and see if all CFTypes can bridge to an object?"
-//    if (_cValue.type == _C_PTR && [[_symbol runtimeType] isEqualToString:@"^{CFString=}"]) {
-//        return YES;
-//    }
+    if (_cValue.type == _C_PTR && [[_symbol runtimeType] hasPrefix:@"^{C"]) {
+        return YES;
+    }
     
     
     return NO;
@@ -913,7 +913,7 @@ static NSPointerArray *FJSValueLiveWeakArray;
     }
     
     if (_cValue.value.pointerValue) {
-        debug(@"Haven't implemented toObject for %c yet", _cValue.type);
+        debug(@"Haven't implemented toObject for %c yet (_C_PTR)", _cValue.type);
         return nil;
     }
     

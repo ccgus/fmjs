@@ -1533,6 +1533,38 @@ int FJSTestCGImageRefExampleCounter;
     [runtime shutdown];
 }
 
+- (void)testDefaultHTTPApp {
+    
+    [FJSRuntime loadFrameworkAtPath:@"/System/Library/Frameworks/CoreServices.framework/Versions/A/Frameworks/LaunchServices.framework"];
+    
+    NSURL *u = CFBridgingRelease(LSCopyDefaultApplicationURLForURL((__bridge CFURLRef)[NSURL URLWithString:@"http://"], kLSRolesNone, nil));
+    XCTAssert(u);
+    
+    // Note: this is currently failing, and I'm not sure it's something I want to support yet.
+    FJSRuntime *runtime = [FJSRuntime new];
+    
+    FJSValue *vu = [runtime evaluateScript:@"LSCopyDefaultApplicationURLForURL(NSURL.URLWithString('http://'), 1, null)"];
+    
+    XCTAssert([[vu toObject] isEqualTo:u]);
+    
+    [runtime shutdown];
+    
+    
+}
+
+- (void)testHandle {
+    
+    FJSRuntime *runtime = [FJSRuntime new];
+    
+    FJSValue *vu = [runtime evaluateScript:@"var scanner = NSScanner.alloc().initWithString_('3.14159');\n"
+                                           @"var ptr = FJSPointer.new();\n"
+                                           @"scanner.scanFloat(ptr);\n"
+                                           @"ptr.value();\n"];
+    
+    XCTAssert(FJSEqualFloats([vu toFloat], 3.14159));
+                    
+}
+
 - (void)xtestClassExtension {
     
     // Note: this is currently failing, and I'm not sure it's something I want to support yet.

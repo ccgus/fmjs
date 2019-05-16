@@ -43,6 +43,7 @@ NS_ASSUME_NONNULL_BEGIN
 + (FJSSymbol*)symbolForCFType:(NSString*)cftype;
 
 - (BOOL)returnsRetained;
+- (BOOL)isPointer;
 
 - (NSString*)structName;
 - (NSArray*)structFields;

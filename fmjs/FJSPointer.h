@@ -8,10 +8,10 @@
 
 #import <Foundation/Foundation.h>
 
-NS_ASSUME_NONNULL_BEGIN
 
-@interface FJSPointer : NSObject
+@interface FJSPointer : NSObject {
+    @public
+    void *value;
+}
 
 @end
-
-NS_ASSUME_NONNULL_END

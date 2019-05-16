@@ -7,6 +7,7 @@
 //
 
 #import "FJSPointer.h"
+#import "FJS.h"
 
 @implementation FJSPointer
 

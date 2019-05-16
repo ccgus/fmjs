@@ -3,6 +3,7 @@
 #import "FJSSymbol.h"
 #import "FJSFFI.h"
 #import "FJSUtil.h"
+#import "FJSPointer.h"
 
 #define FJSRuntimeLookupKey @"fmjs"
 

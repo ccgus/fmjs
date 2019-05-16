@@ -566,6 +566,20 @@ static NSPointerArray *FJSValueLiveWeakArray;
 }
 
 - (void*)objectStorage {
+    return [self objectStorageForSymbol:nil];
+}
+
+- (void*)objectStorageForSymbol:(FJSSymbol *)argSymbol {
+    
+#pragma message "FIXME: Big problem- what if we're printing a CGRect? We need to push a native C value to an object."
+    
+    if ([argSymbol isPointer] && [self isInstance] && [[self instance] isKindOfClass:[FJSPointer class]]) {
+        FJSPointer *p = [self instance];
+        // We get a compiler warning about stack addresses if we don't jump through these hoops.
+        void *l1 = &(p->value);
+        void *l2 = &l1;
+        return l2;
+    }
     
     if (_cValue.type == _C_STRUCT_B) {
         
@@ -1071,6 +1085,14 @@ static NSPointerArray *FJSValueLiveWeakArray;
         return *d;
     }
     
+    
+    if ([self isInstance] && [[self instance] isKindOfClass:[FJSPointer class]]) {
+        FJSPointer *p = [self instance];
+        FMAssert(p->value);
+        double ptr = *(double*)&p->value;
+        return ptr;
+    }
+    
     FMAssert(_cValue.type == _C_DBL);
     return _cValue.value.doubleValue;
 }
@@ -1082,6 +1104,12 @@ static NSPointerArray *FJSValueLiveWeakArray;
     
     if ([self isInstance] && [[self instance] respondsToSelector:@selector(longLongValue)]) {
         return [[self instance] longLongValue];
+    }
+    
+    if ([self isInstance] && [[self instance] isKindOfClass:[FJSPointer class]]) {
+        FJSPointer *p = [self instance];
+        FMAssert(p->value);
+        return (long long)(p->value);
     }
     
     FMAssert(_cValue.type);

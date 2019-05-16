@@ -165,6 +165,12 @@ int FJSTestCGImageRefExampleCounter;
     return 12;
 }
 
++ (BOOL)getInt:(int*)i {
+    assert(i);
+    *i = 74;
+    return YES;
+}
+
 @end
 
 
@@ -1552,17 +1558,49 @@ int FJSTestCGImageRefExampleCounter;
     
 }
 
-- (void)xtestHandle {
+- (void)testHandle {
     
     FJSRuntime *runtime = [FJSRuntime new];
     
-    FJSValue *vu = [runtime evaluateScript:@"var scanner = NSScanner.alloc().initWithString_('3.14159');\n"
-                                           @"var ptr = FJSPointer.new();\n"
-                                           @"scanner.scanFloat(ptr);\n"
-                                           @"ptr\n"];
+    FJSValue *vu = [runtime evaluateScript:
+                    @"var ptr = FJSPointer.new();\n"
+                    @"FJSTestClass.getInt(ptr);\n"
+                    @"ptr\n"];
     
-    XCTAssert(FJSEqualFloats([vu toFloat], 3.14159));
-                    
+    XCTAssert([vu toInt] == 74, @"Got %d", [vu toInt]);
+    
+    [runtime evaluateScript:@"ptr=null;"];
+    
+    vu = nil;
+    
+    [runtime shutdown];
+}
+
+- (void)testHandle2 {
+    
+    NSScanner *s = [[NSScanner alloc] initWithString:@"123 3.14159"];
+    int i;
+    [s scanInt:&i];
+    assert(i == 123);
+    double d;
+    [s scanDouble:&d];
+    XCTAssert(FJSEqualFloats(d, 3.14159), @"Got %f", d);
+    
+    FJSRuntime *runtime = [FJSRuntime new];
+
+    FJSValue *vu = [runtime evaluateScript:@"var scanner = NSScanner.alloc().initWithString_('123 3.14159');\n"
+                                           @"var ptr = FJSPointer.new();\n"
+                                           @"scanner.scanInteger(ptr);\n"
+                    @"ptr;\n"];
+    
+    XCTAssert([vu toInt] == 123, @"Got %ld", [vu toLong]);
+    
+    vu = [runtime evaluateScript:@"scanner.scanDouble(ptr); ptr;"];
+    
+    XCTAssert(FJSEqualFloats([vu toFloat], 3.14159), @"Got %f", [vu toFloat]);
+    
+    [runtime evaluateScript:@"ptr=null; scanner=null;"];
+    [runtime shutdown];
 }
 
 - (void)xtestClassExtension {

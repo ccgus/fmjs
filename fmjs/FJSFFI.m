@@ -114,9 +114,8 @@ static NSMutableDictionary *FJSFFIStructureLookup;
                 if ([v isJSNative]) {
                     [v pushJSValueToNativeType:[argSymbol runtimeType]];
                 }
-                #pragma message "FIXME: Big problem- what if we're printing a CGRect? We need to push a native C value to an object."
                 
-                void *arg = [v objectStorage];
+                void *arg = [v objectStorageForSymbol:argSymbol];
                 [invocation setArgument:arg atIndex:objcIndex];
             }
             

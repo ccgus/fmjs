@@ -433,6 +433,17 @@
     return NO;
 }
 
+- (BOOL)isPointer {
+    
+    if ([_runtimeType hasPrefix:@"^"]) {
+        return YES;
+    }
+    
+    return NO;
+    
+}
+
+
 - (void)unmangleCFArgs {
     
     // ^{__CFAllocator=}'/>

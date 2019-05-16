@@ -338,9 +338,9 @@ static NSPointerArray *FJSValueLiveWeakArray;
     }
     
 //    #pragma message "FIXME: How can we check and see if all CFTypes can bridge to an object?"
-    if (_cValue.type == _C_PTR && [[_symbol runtimeType] hasPrefix:@"^{C"]) {
-        return YES;
-    }
+//    if (_cValue.type == _C_PTR && [[_symbol runtimeType] hasPrefix:@"^{C"]) {
+//        return YES;
+//    }
     
     
     return NO;

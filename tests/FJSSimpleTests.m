@@ -176,6 +176,17 @@ int FJSTestCGImageRefExampleCounter;
     return NO;
 }
 
++ (void)doubleRect:(NSRect*)r {
+    
+    debug(@"r: %p", r);
+    debug(@"&r: %p", &r);
+    
+    r->size.width *= 2;
+    r->size.height *= 2;
+    r->origin.x *= 2;
+    r->origin.y *= 2;
+}
+
 
 @end
 
@@ -1629,6 +1640,25 @@ int FJSTestCGImageRefExampleCounter;
     
 }
 
+
+- (void)testRectHandle {
+    
+    FJSRuntime *runtime = [FJSRuntime new];
+    
+    FJSValue *vu = [runtime evaluateScript:
+                    @"var r = NSMakeRect(1,2,3,4);"
+                    @"FJSTestClass.doubleRect(FJSPointer.pointerWithValue(r));\n"
+                    @"r;\n"];
+    
+    NSRect r = [vu toCGRect];
+    
+    XCTAssert(CGRectEqualToRect(r, NSMakeRect(2, 4, 6, 8)), @"Got %@", NSStringFromRect(r));
+    
+    [runtime evaluateScript:@"r=null;"];
+    
+    [runtime shutdown];
+    
+}
 - (void)xtestClassExtension {
     
     // Note: this is currently failing, and I'm not sure it's something I want to support yet.

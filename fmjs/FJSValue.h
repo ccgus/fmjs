@@ -77,7 +77,7 @@ typedef struct {
 - (BOOL)isString;
 
 - (void*)objectStorage;
-- (void*)objectStorageForSymbol:(FJSSymbol *)argSymbol;
+- (void*)objectStorageForSymbol:(nullable FJSSymbol *)argSymbol;
 - (BOOL)pushJSValueToNativeType:(NSString*)type;
 
 - (ffi_type*)FFIType;

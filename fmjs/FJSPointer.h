@@ -7,11 +7,13 @@
 //
 
 #import <Foundation/Foundation.h>
-
+@class FJSValue;
 
 @interface FJSPointer : NSObject {
     @public
-    void *value;
+    void *ptr;
 }
+
+@property (weak) FJSValue *ptrValue;
 
 @end

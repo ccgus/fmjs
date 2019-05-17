@@ -569,15 +569,23 @@ static NSPointerArray *FJSValueLiveWeakArray;
     return [self objectStorageForSymbol:nil];
 }
 
-- (void*)objectStorageForSymbol:(FJSSymbol *)argSymbol {
+- (void*)objectStorageForSymbol:(nullable FJSSymbol *)argSymbol {
     
 #pragma message "FIXME: Big problem- what if we're printing a CGRect? We need to push a native C value to an object."
     
     if ([argSymbol isPointer] && [self isInstance] && [[self instance] isKindOfClass:[FJSPointer class]]) {
         FJSPointer *p = [self instance];
         // We get a compiler warning about stack addresses if we don't jump through these hoops.
-        void *l1 = &(p->value);
+        
+        FJSValue *v = [p ptrValue];
+        
+        if ([v cValue].type == _C_STRUCT_B) {
+            return &(p->ptr);
+        }
+        
+        void *l1 = &(p->ptr);
         void *l2 = &l1;
+        
         return l2;
     }
     
@@ -913,7 +921,7 @@ static NSPointerArray *FJSValueLiveWeakArray;
         
         if ([[self instance] isKindOfClass:[FJSPointer class]]) {
             FJSPointer *p = [self instance];
-            return (__bridge id)p->value;
+            return (__bridge id)p->ptr;
         }
         
         
@@ -1095,8 +1103,8 @@ static NSPointerArray *FJSValueLiveWeakArray;
     
     if ([self isInstance] && [[self instance] isKindOfClass:[FJSPointer class]]) {
         FJSPointer *p = [self instance];
-        FMAssert(p->value);
-        double ptr = *(double*)&p->value;
+        FMAssert(p->ptr);
+        double ptr = *(double*)&p->ptr;
         return ptr;
     }
     
@@ -1115,8 +1123,8 @@ static NSPointerArray *FJSValueLiveWeakArray;
     
     if ([self isInstance] && [[self instance] isKindOfClass:[FJSPointer class]]) {
         FJSPointer *p = [self instance];
-        FMAssert(p->value);
-        return (long long)(p->value);
+        FMAssert(p->ptr);
+        return (long long)(p->ptr);
     }
     
     FMAssert(_cValue.type);
@@ -1154,6 +1162,11 @@ static NSPointerArray *FJSValueLiveWeakArray;
 - (nullable void*)pointer {
     FMAssert(_cValue.type);
     return _cValue.value.pointerValue;
+}
+
+- (nullable void*)pointerPointer {
+    FMAssert(_cValue.type);
+    return &_cValue.value.pointerValue;
 }
 
 - (CGPoint)toCGPoint {

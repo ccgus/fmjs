@@ -116,6 +116,9 @@ static NSMutableDictionary *FJSFFIStructureLookup;
                 }
                 
                 void *arg = [v objectStorageForSymbol:argSymbol];
+                
+                debug(@"arg: %p", &arg);
+                
                 [invocation setArgument:arg atIndex:objcIndex];
             }
             

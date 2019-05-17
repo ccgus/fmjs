@@ -52,7 +52,7 @@ NS_ASSUME_NONNULL_BEGIN
 + (instancetype)valueWithNullInRuntime:(FJSRuntime*)runtime;
 + (instancetype)valueWithUndefinedInRuntime:(FJSRuntime*)runtime;
 + (instancetype)valueWithSerializedJSFunction:(NSString*)function inRuntime:(FJSRuntime*)runtime;
-
++ (instancetype)valueWithPointer:(void*)p ofType:(char)type inRuntime:(FJSRuntime*)runtime;
 
 - (BOOL)isClass;
 - (BOOL)isInstance;
@@ -76,6 +76,8 @@ NS_ASSUME_NONNULL_BEGIN
 - (void)retainReturnValue;
 
 - (FJSValue*)unwrapValue;
+
+- (nullable void*)pointerPointer;
 
 @end
 

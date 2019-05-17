@@ -8,16 +8,23 @@
 
 #import "FJSPointer.h"
 #import "FJS.h"
+#import "FJSPrivate.h"
 
 @implementation FJSPointer
 
-- (id)init {
-    self = [super init];
-    if (self != nil) {
-        
-    }
-    return self;
++ (id)pointerWithValue:(FJSValue*)v inFJSRuntime:(FJSRuntime*)rt {
+    
+    FJSPointer *p = [FJSPointer new];
+    
+    p->ptr = [v pointer];
+    
+    [p setPtrValue:v];
+    
+    //CGRect *rect = (CGRect*)p->value;
+    //debug(@"r: %@", NSStringFromRect(*((CGRect*)p->value)));
+    
+    return [FJSValue valueWithInstance:(__bridge CFTypeRef _Nonnull)(p) inRuntime:rt];
 }
 
-
 @end
+

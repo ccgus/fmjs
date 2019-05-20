@@ -172,6 +172,12 @@ int FJSTestCGImageRefExampleCounter;
 }
 
 + (BOOL)getError:(NSError **)outErr {
+    
+    FMAssert(!*outErr); // These better be nil coming in.
+    
+    debug(@"outErr: %p", *outErr);
+    debug(@"outErr address: %p", outErr);
+    
     *outErr = [NSError errorWithDomain:@"Foo" code:78 userInfo:nil];
     return NO;
 }
@@ -179,7 +185,6 @@ int FJSTestCGImageRefExampleCounter;
 + (void)doubleRect:(NSRect*)r {
     
     debug(@"r: %p", r);
-    debug(@"&r: %p", &r);
     
     r->size.width *= 2;
     r->size.height *= 2;
@@ -1580,7 +1585,7 @@ int FJSTestCGImageRefExampleCounter;
     FJSRuntime *runtime = [FJSRuntime new];
     
     FJSValue *vu = [runtime evaluateScript:
-                    @"var ptr = FJSPointer.new();\n"
+                    @"var ptr = FJSPointer.valuePointer();\n"
                     @"FJSTestClass.getInt(ptr);\n"
                     @"ptr\n"];
     
@@ -1606,7 +1611,7 @@ int FJSTestCGImageRefExampleCounter;
     FJSRuntime *runtime = [FJSRuntime new];
 
     FJSValue *vu = [runtime evaluateScript:@"var scanner = NSScanner.alloc().initWithString_('123 3.14159');\n"
-                                           @"var ptr = FJSPointer.new();\n"
+                                           @"var ptr = FJSPointer.valuePointer();\n"
                                            @"scanner.scanInteger(ptr);\n"
                     @"ptr;\n"];
     
@@ -1625,11 +1630,15 @@ int FJSTestCGImageRefExampleCounter;
     FJSRuntime *runtime = [FJSRuntime new];
     
     FJSValue *vu = [runtime evaluateScript:
-                    @"var ptr = FJSPointer.new();\n"
+                    @"var ptr = FJSPointer.objectPointer();\n"
                     @"FJSTestClass.getError(ptr);\n"
                     @"ptr\n"];
     
     NSError *err = [vu toObject];
+    
+    debug(@"err: %p", err);
+    debug(@"err address: %p", &err);
+    
     XCTAssert(err);
     XCTAssert([[err domain] isEqualToString:@"Foo"]);
     XCTAssert([err code] == 78);

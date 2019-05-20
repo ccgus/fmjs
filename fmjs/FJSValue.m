@@ -569,6 +569,13 @@ static NSPointerArray *FJSValueLiveWeakArray;
     return [self objectStorageForSymbol:nil];
 }
 
+// What we return here are pointers.
+// If we've got a jsint, then we've 'pushed' that int to a JSValue in there, which is stored in our cValue. So we'll return the address of that.
+// It's a objc object, cValue is a pointer to where the memory is allocated.
+// if it's a struct, where those are usually allocated on the stack, we still return an address but it's not a pointer to a pointer like an object- rather it's the address where we allocated the memory. We generally handle those like we would an int, but since it's already pointing to an address…
+
+// OK, what about CGRect* variables? Well those are wrapped in FJSPointer objects, which point to the object storage.
+
 - (void*)objectStorageForSymbol:(nullable FJSSymbol *)argSymbol {
     
 #pragma message "FIXME: Big problem- what if we're printing a CGRect? We need to push a native C value to an object."
@@ -577,8 +584,21 @@ static NSPointerArray *FJSValueLiveWeakArray;
         FJSPointer *p = [self instance];
         // We get a compiler warning about stack addresses if we don't jump through these hoops.
         
-        FJSValue *v = [p ptrValue];
+        // If we're a straight up object like NSError, then we're a pointer to the pointer.
         
+        //Should FJSPointer just contain a FJSValue?
+        
+        //jkfdlsjfkl
+        
+        // If we made our own memory, like a struct, then we just return the pointer value, since that's already an address.
+        
+        
+        return &(p->ptr);
+        
+        //return &(p->ptr);
+        
+        /*
+         FJSValue *v = [p ptrValue];
         if ([v cValue].type == _C_STRUCT_B) {
             return &(p->ptr);
         }
@@ -586,7 +606,7 @@ static NSPointerArray *FJSValueLiveWeakArray;
         void *l1 = &(p->ptr);
         void *l2 = &l1;
         
-        return l2;
+        return l2;*/
     }
     
     if (_cValue.type == _C_STRUCT_B) {
@@ -602,10 +622,10 @@ static NSPointerArray *FJSValueLiveWeakArray;
             FMAssert(_madePointerMemorySize);
             
             _cValue.value.pointerValue = calloc(1, _madePointerMemorySize);
-            _madePointerMemory = YES;
-        }
-        else {
             
+            debug(@"made pointer at: %p", _cValue.value.pointerValue);
+            
+            _madePointerMemory = YES;
         }
         
         return _cValue.value.pointerValue;
@@ -921,7 +941,10 @@ static NSPointerArray *FJSValueLiveWeakArray;
         
         if ([[self instance] isKindOfClass:[FJSPointer class]]) {
             FJSPointer *p = [self instance];
-            return (__bridge id)p->ptr;
+            
+            void **f = p->ptr;
+            
+            return (__bridge id)*f;
         }
         
         
@@ -1104,8 +1127,7 @@ static NSPointerArray *FJSValueLiveWeakArray;
     if ([self isInstance] && [[self instance] isKindOfClass:[FJSPointer class]]) {
         FJSPointer *p = [self instance];
         FMAssert(p->ptr);
-        double ptr = *(double*)&p->ptr;
-        return ptr;
+        return p->cValue.value.doubleValue;
     }
     
     FMAssert(_cValue.type == _C_DBL);
@@ -1124,7 +1146,8 @@ static NSPointerArray *FJSValueLiveWeakArray;
     if ([self isInstance] && [[self instance] isKindOfClass:[FJSPointer class]]) {
         FJSPointer *p = [self instance];
         FMAssert(p->ptr);
-        return (long long)(p->ptr);
+        
+        return p->cValue.value.longLongValue;
     }
     
     FMAssert(_cValue.type);

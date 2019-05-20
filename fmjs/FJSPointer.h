@@ -7,10 +7,11 @@
 //
 
 #import <Foundation/Foundation.h>
-@class FJSValue;
+#import "FJSValue.h"
 
 @interface FJSPointer : NSObject {
     @public
+    FJSObjCValue cValue;
     void *ptr;
 }
 

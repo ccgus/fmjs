@@ -32,6 +32,10 @@
         <arg type='B'/>
     </function>
     
+    <function name='FJSXAssert'>
+        <arg type='B'/>
+    </function>
+    
     <function name='FJSAssertObject'>
         <arg type='@'/>
     </function>

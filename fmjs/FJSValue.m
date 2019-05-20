@@ -942,9 +942,13 @@ static NSPointerArray *FJSValueLiveWeakArray;
         if ([[self instance] isKindOfClass:[FJSPointer class]]) {
             FJSPointer *p = [self instance];
             
-            void **f = p->ptr;
+            if (p->cValue.type == _C_ID) {
+                void **f = p->ptr;
             
-            return (__bridge id)*f;
+                return (__bridge id)*f;
+            }
+            
+            return nil;
         }
         
         

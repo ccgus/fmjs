@@ -9,6 +9,7 @@
 #import "FJSPointer.h"
 #import "FJS.h"
 #import "FJSPrivate.h"
+#import <objc/runtime.h>
 
 @implementation FJSPointer
 
@@ -16,6 +17,7 @@
     
     FJSPointer *p = [FJSPointer new];
     
+    p->cValue.type = _C_ID;
     p->ptr = &(p->cValue.value);
     
     return [FJSValue valueWithInstance:(__bridge CFTypeRef _Nonnull)(p) inRuntime:rt];
@@ -42,6 +44,17 @@
     return [FJSValue valueWithInstance:(__bridge CFTypeRef _Nonnull)(p) inRuntime:rt];
 }
 
+- (long long)toInt {
+    return cValue.value.longLongValue;
+}
+
+- (double)toFloat {
+    return [self toDouble];
+}
+
+- (double)toDouble {
+    return cValue.value.doubleValue;
+}
 
 
 @end

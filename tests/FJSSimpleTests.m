@@ -1591,6 +1591,8 @@ int FJSTestCGImageRefExampleCounter;
     
     XCTAssert([vu toInt] == 74, @"Got %d", [vu toInt]);
     
+    [runtime evaluateScript:@"FJSXAssert(ptr.toInt() == 74)"];
+    
     [runtime evaluateScript:@"ptr=null;"];
     
     vu = nil;
@@ -1616,10 +1618,13 @@ int FJSTestCGImageRefExampleCounter;
                     @"ptr;\n"];
     
     XCTAssert([vu toInt] == 123, @"Got %ld", [vu toLong]);
+    [runtime evaluateScript:@"FJSXAssert(ptr.toInt() == 123)"];
     
     vu = [runtime evaluateScript:@"scanner.scanDouble(ptr); ptr;"];
     
     XCTAssert(FJSEqualFloats([vu toFloat], 3.14159), @"Got %f", [vu toFloat]);
+    
+    [runtime evaluateScript:@"FJSXAssert(ptr.toFloat() == 3.14159)"];
     
     [runtime evaluateScript:@"ptr=null; scanner=null;"];
     [runtime shutdown];
@@ -1815,6 +1820,12 @@ void FJSThrowException() {
 
 void FJSReturnVoid() {
     ;
+}
+
+
+void FJSXAssert(BOOL b) {
+    id self = @"LOL";
+    XCTAssert(b);
 }
 
 

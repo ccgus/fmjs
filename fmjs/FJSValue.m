@@ -623,8 +623,6 @@ static NSPointerArray *FJSValueLiveWeakArray;
             
             _cValue.value.pointerValue = calloc(1, _madePointerMemorySize);
             
-            debug(@"made pointer at: %p", _cValue.value.pointerValue);
-            
             _madePointerMemory = YES;
         }
         

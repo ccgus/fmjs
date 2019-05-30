@@ -1,3 +1,5 @@
+var subTest = require("./FJSTestModuleSub.js");
+
 module.exports = {
     hello: function(name) {
         console.log("Hello, " + name);
@@ -14,5 +16,9 @@ module.exports = {
         //print("Calling callInc! Currently at " + this.someVal)
         this.someVal = this.someVal + 1;
         return this.someVal;
-    }
+    },
+    
+    subMod: subTest,
+    
+    
 };

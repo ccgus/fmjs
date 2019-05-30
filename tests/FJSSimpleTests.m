@@ -639,6 +639,12 @@ int FJSTestCGImageRefExampleCounter;
     v = [rModule invokeMethodNamed:@"callInc" withArguments:nil];
     XCTAssert([v toInt] == 4, @"Got %d", [v toInt]);
     
+    
+    FJSValue *subModule = rModule[@"subMod"];
+    XCTAssert(![subModule isUndefined]);
+    v = [subModule invokeMethodNamed:@"returnTwelve" withArguments:nil];
+    XCTAssert([v toInt] == 12, @"Got %d", [v toInt]);
+    
     [runtime shutdown];
     
     XCTAssert(functionCalled);

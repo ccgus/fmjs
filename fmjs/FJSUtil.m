@@ -569,6 +569,38 @@ NSString *FJSUUID(void) {
     return [uuidString lowercaseString];
 }
 
+NSString *FJSNameForJSType(JSType type) {
+    
+    if (type == kJSTypeUndefined) {
+        return @"kJSTypeUndefined";
+    }
+    else if (type == kJSTypeNull) {
+        return @"kJSTypeNull";
+    }
+    else if (type == kJSTypeBoolean) {
+        return @"kJSTypeBoolean";
+    }
+    else if (type == kJSTypeNumber) {
+        return @"kJSTypeNumber";
+    }
+    else if (type == kJSTypeString) {
+        return @"kJSTypeString";
+    }
+    else if (type == kJSTypeObject) {
+        return @"kJSTypeObject";
+    }
+    
+    if (@available(macOS 10.14.4, *)) {
+        if (type == kJSTypeSymbol) {
+            return @"kJSTypeSymbol";
+        }
+    }
+    
+    FMAssert(NO); // What type is this?
+    
+    return nil;
+}
+
 
 // This was taken from jsc-cli
 // FIXME: Add the Apple copyright to FMJS.

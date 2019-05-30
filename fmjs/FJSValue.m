@@ -651,6 +651,10 @@ static NSPointerArray *FJSValueLiveWeakArray;
         }
     }
     
+    if (_isJSNative) {
+        obj = FJSNameForJSType(_jsValueType);
+    }
+    
     return [NSString stringWithFormat:@"%@ - %@ (%@ native)", [super description], obj, _isJSNative ? @"js" : @"c"];
 }
 

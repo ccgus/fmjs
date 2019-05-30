@@ -34,6 +34,7 @@ static const void * const kDispatchQueueRecursiveSpecificKey = &kDispatchQueueRe
 @property (strong) NSMutableSet<NSString*> *runtimeObjectNames;
 @property (strong) NSMutableDictionary *cachedModules;
 @property (strong) NSMutableArray *moduleSearchPaths;
+@property (strong) NSMutableArray<NSURL*> *currentlyLoadingModuleURL;
 @property (strong) FJSRunLoopThread *runloopThread;
 
 @end
@@ -102,6 +103,7 @@ static const void * const kDispatchQueueRecursiveSpecificKey = &kDispatchQueueRe
         
         _runtimeObjectNames = [NSMutableSet set];
         _cachedModules = [NSMutableDictionary dictionary];
+        _currentlyLoadingModuleURL = [NSMutableArray array];
         [self setupJS];
     }
     
@@ -661,7 +663,9 @@ static const void * const kDispatchQueueRecursiveSpecificKey = &kDispatchQueueRe
         NSString *script = [NSString stringWithContentsOfURL:scriptURL encoding:NSUTF8StringEncoding error:&error];
         
         if (script) {
-
+            
+            [_currentlyLoadingModuleURL addObject:scriptURL];
+            
 #define NODE_STYLE_WRAPPER 1
 #ifdef NODE_STYLE_WRAPPER
             
@@ -689,6 +693,9 @@ static const void * const kDispatchQueueRecursiveSpecificKey = &kDispatchQueueRe
             self[@"__filename"] = [fn isUndefined] || [fn isNull] ? nil : fn;
             self[@"__dirname"]  = [dn isUndefined] || [dn isNull] ? nil : dn;
 #endif
+            
+            [_currentlyLoadingModuleURL removeLastObject];
+            
             return moduleValue;
         }
         else if (error) {
@@ -785,7 +792,7 @@ static const void * const kDispatchQueueRecursiveSpecificKey = &kDispatchQueueRe
     
     debug(@"require: '%@'", module);
     
-    NSURL *currentURL = [NSURL fileURLWithPath:[[NSFileManager defaultManager] currentDirectoryPath]];
+    NSURL *currentURL = [[_currentlyLoadingModuleURL lastObject] URLByDeletingLastPathComponent];
     BOOL isRequiringCore;
     NSURL *moduleURL = nil;
     
@@ -811,6 +818,7 @@ static const void * const kDispatchQueueRecursiveSpecificKey = &kDispatchQueueRe
     }
     
     if (!moduleURL) {
+        debug(@"Could not find module '%@'", module);
         return [FJSValue valueWithUndefinedInRuntime:self];
         /*
         @throw [NSException

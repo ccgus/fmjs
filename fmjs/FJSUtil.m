@@ -118,6 +118,11 @@ NSDictionary *FJSNativeDictionaryFromJSObject(JSObjectRef jsObject, JSContextRef
             return nil;
         }
         
+        if (jsValue == jsObject) {
+            NSLog(@"Dictionary can not contain self (%@)", key);
+            continue;
+        }
+        
         obj = FJSNativeObjectFromJSValue(jsValue, @"@", context);
         if (obj == nil) {
             obj = [NSNull null];

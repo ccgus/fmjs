@@ -22,7 +22,10 @@
 @property (weak) FJSRuntime *runtime;
 @property (assign) JSValueRef jsValRef;
 @property (assign) JSGlobalContextRef unprotectContextRef;
+
+#ifndef DEBUG
 @property (assign) NSInteger protectCount; // Why our own protectCount? Because we've also got a unprotectContextRef to manage.
+#endif
 
 @property (weak) id weakInstance;
 @property (assign) BOOL madePointerMemory;
@@ -43,7 +46,7 @@ static NSPointerArray *FJSValueLiveWeakArray;
     if (self) {
         FJSValueLiveInstances++;
         
-#ifdef DEBUG
+#ifdef DEBUGx
         if (!FJSValueLiveWeakArray) {
             FJSValueLiveWeakArray = [NSPointerArray pointerArrayWithOptions:NSPointerFunctionsWeakMemory];
         }

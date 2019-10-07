@@ -165,7 +165,18 @@ static FJSSymbolManager *FJSSymbolManagerSharedInstance = nil;
     
     
     if ([elementName isEqualToString:@"enum"]) {
-        [sym setRuntimeValue:[attributeDict objectForKey:@"value"]];
+        
+        if ([attributeDict objectForKey:@"value64"]) {
+            [sym setRuntimeValue:[attributeDict objectForKey:@"value64"]];
+        }
+        else {
+            
+            if (![[attributeDict objectForKey:@"ignore"] boolValue]) {
+                FMAssert([attributeDict objectForKey:@"value"]);
+                [sym setRuntimeValue:[attributeDict objectForKey:@"value"]];
+            }
+            
+        }
     }
     else if ([elementName isEqualToString:@"function"]) {
         _currentFunction = sym;

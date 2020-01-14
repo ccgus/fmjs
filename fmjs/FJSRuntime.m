@@ -21,7 +21,7 @@
 BOOL FMJSUseSynchronousGarbageCollectForDebugging;
 BOOL FJSTraceFunctionCalls;
 NSString *FMJavaScriptExceptionName = @"FMJavaScriptException";
-const CGRect FJSRuntimeTestCGRect = {74, 78, 11, 16};
+const CGRect FJSRuntimeTestCGRect = {{74, 78}, {11, 16}};
 static const void * const kDispatchQueueSpecificKey = &kDispatchQueueSpecificKey;
 static const void * const kDispatchQueueRecursiveSpecificKey = &kDispatchQueueRecursiveSpecificKey;
 
@@ -98,7 +98,7 @@ static const void * const kDispatchQueueRecursiveSpecificKey = &kDispatchQueueRe
             
         });
         
-        _evaluateQueue = dispatch_queue_create([[NSString stringWithFormat:@"fmjs.evaluateQueue.%p", self] UTF8String], NULL);
+        _evaluateQueue = dispatch_queue_create([[NSString stringWithFormat:@"fmjs.evaluateQueue.%p", (void*)self] UTF8String], NULL);
         dispatch_queue_set_specific(_evaluateQueue, kDispatchQueueSpecificKey, (__bridge void *)self, NULL);
         
         _runtimeObjectNames = [NSMutableSet set];
@@ -866,11 +866,13 @@ static const void * const kDispatchQueueRecursiveSpecificKey = &kDispatchQueueRe
 @end
 
 
+void FJSAssert(BOOL b);
 void FJSAssert(BOOL b) {
     FMAssert(b);
 }
 
+void FJSAssertObject(id o);
 void FJSAssertObject(id o) {
     FMAssert(o);
-};
+}
 

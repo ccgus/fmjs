@@ -461,7 +461,7 @@ int FJSTestCGImageRefExampleCounter;
     
     
     NSString *code = @"\
-    var url = NSURL.fileURLWithPath_('/Library/Desktop Pictures/Zebras.jpg');\n\
+    var url = NSURL.fileURLWithPath_('/System/Library/Desktop Pictures/Yosemite.jpg');\n\
     var img = CIImage.imageWithContentsOfURL_(url)\n\
     var f = CIFilter.filterWithName_('CIColorInvert');\n\
     f.setValue_forKey_(img, kCIInputImageKey);\n\
@@ -502,7 +502,7 @@ int FJSTestCGImageRefExampleCounter;
         \n\
         var center = CIVector.vectorWithX_Y_(100, 100);\n\
         var filterParams = { inputWidth: 5, inputSharpness: .5, inputCenter: center, }\n\
-        var url = NSURL.fileURLWithPath_('/Library/Desktop Pictures/Zebras.jpg');\n\
+        var url = NSURL.fileURLWithPath_('/System/Library/Desktop Pictures/Yosemite.jpg');\n\
         var image = CIImage.imageWithContentsOfURL_(url)\n\
         image = image.imageByApplyingFilter_withInputParameters_('CICircularScreen', filterParams);\n\
         image = image.imageByCroppingToRect_(CGRectMake(0, 0, 200, 200));\n\
@@ -538,7 +538,7 @@ int FJSTestCGImageRefExampleCounter;
     
     
     NSString *code = @"\
-    var url = NSURL.fileURLWithPath_('/Library/Desktop Pictures/Zebras.jpg');\n\
+    var url = NSURL.fileURLWithPath_('/System/Library/Desktop Pictures/Yosemite.jpg');\n\
     var img = CIImage.imageWithContentsOfURL_(url)\n\
     var f = CIFilter.filterWithName('CIComicEffect');\n\
     f['inputImage'] = img; // Test auto kvc lookup. \n\
@@ -660,7 +660,7 @@ int FJSTestCGImageRefExampleCounter;
     NSString *code = @"\
     function doCI(idx) {\n\
         print('…………');\n\
-        var url = NSURL.fileURLWithPath_('/Library/Desktop Pictures/Zebras.jpg');\n\
+        var url = NSURL.fileURLWithPath_('/System/Library/Desktop Pictures/Yosemite.jpg');\n\
         var img = CIImage.imageWithContentsOfURL_(url)\n\
         var f = CIFilter.filterWithName_('CIColorInvert');\n\
         f.setValue_forKey_(img, kCIInputImageKey);\n\

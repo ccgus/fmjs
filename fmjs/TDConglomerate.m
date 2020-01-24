@@ -565,7 +565,7 @@ static NSString * const FJSTDAssemblyDefaultDelimiter = @"/";
         singleLineState.currentStartSymbol = symbol;
         return [singleLineState nextTokenFromReader:r startingWith:cin tokenizer:t];
     } else {
-        NSInteger i = 0;
+        NSUInteger i = 0;
         for ( ; i < symbol.length - 1; i++) {
             [r unread];
         }
@@ -2207,7 +2207,7 @@ static FJSTDTokenEOF *EOFToken = nil;
 
 
 - (NSString *)description {
-    return [NSString stringWithFormat:@"<FJSTDTokenEOF %p>", self];
+    return [NSString stringWithFormat:@"<FJSTDTokenEOF %p>", (void*)self];
 }
 
 
@@ -2298,7 +2298,7 @@ static FJSTDTokenEOF *EOFToken = nil;
     }
     
     if (self.isNumber) {
-        return floatValue == tok.floatValue;
+        return fabs(floatValue - tok.floatValue) <= FLT_EPSILON;
     } else {
         if (ignoringCase) {
             return (NSOrderedSame == [stringValue caseInsensitiveCompare:tok.stringValue]);
@@ -3120,13 +3120,13 @@ NSString * const FJSTDTrackExceptionName = @"Track Exception";
 
 
 - (void)setWhitespaceChars:(BOOL)yn from:(NSInteger)start to:(NSInteger)end {
-    NSUInteger len = whitespaceChars.count;
+    NSInteger len = whitespaceChars.count;
     if (start > len || end > len || start < 0 || end < 0) {
         [NSException raise:@"TDWhitespaceStateNotSupportedException" format:@"TDWhitespaceState only supports setting word chars for chars in the latin1 set (under 256)"];
     }
 
     id obj = yn ? TDTRUE : TDFALSE;
-    NSUInteger i = start;
+    NSInteger i = start;
     for ( ; i <= end; i++) {
         [whitespaceChars replaceObjectAtIndex:i withObject:obj];
     }
@@ -3134,7 +3134,7 @@ NSString * const FJSTDTrackExceptionName = @"Track Exception";
 
 
 - (BOOL)isWhitespaceChar:(NSInteger)cin {
-    if (cin < 0 || cin > whitespaceChars.count - 1) {
+    if (cin < 0 || cin > (NSInteger)whitespaceChars.count - 1) {
         return NO;
     }
     return TDTRUE == [whitespaceChars objectAtIndex:cin];
@@ -3264,7 +3264,7 @@ NSString * const FJSTDTrackExceptionName = @"Track Exception";
 - (id)init {
     self = [super init];
     if (self) {
-        const NSUInteger len = 255;
+        const NSInteger len = 255;
         self.wordChars = [NSMutableArray arrayWithCapacity:len];
         NSInteger i = 0;
         for ( ; i <= len; i++) {
@@ -3304,7 +3304,7 @@ NSString * const FJSTDTrackExceptionName = @"Track Exception";
 
 
 - (BOOL)isWordChar:(NSInteger)c {    
-    if (c > -1 && c < wordChars.count - 1) {
+    if (c > -1 && c < (NSInteger)wordChars.count - 1) {
         return (TDTRUE == [wordChars objectAtIndex:c]);
     }
 

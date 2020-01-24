@@ -223,7 +223,7 @@
 }
 
 - (NSString*)description {
-    return [NSString stringWithFormat:@"<%@: %p %@ %@>", NSStringFromClass([self class]), self, _name, _runtimeType];
+    return [NSString stringWithFormat:@"<%@: %p %@ %@>", NSStringFromClass([self class]), (void*)self, _name, _runtimeType];
 }
 
 #pragma message "FIXME: We can't override init with initInFJSRuntime:, which is a bummer. How about flopping around the order of checks in methodNamed: so that we can?"

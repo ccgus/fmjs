@@ -70,6 +70,7 @@ NSString *FJSStructNameFromRuntimeType(NSString *runtimeType) {
     return l;
 }
 
+NSArray *FJSNativeArrayFromJSObject(JSObjectRef arrayValue, JSContextRef ctx);
 NSArray *FJSNativeArrayFromJSObject(JSObjectRef arrayValue, JSContextRef ctx) {
     
     JSValueRef exception = NULL;
@@ -101,6 +102,7 @@ NSArray *FJSNativeArrayFromJSObject(JSObjectRef arrayValue, JSContextRef ctx) {
     return [array copy];
 }
 
+NSDictionary *FJSNativeDictionaryFromJSObject(JSObjectRef jsObject, JSContextRef context);
 NSDictionary *FJSNativeDictionaryFromJSObject(JSObjectRef jsObject, JSContextRef context) {
     JSPropertyNameArrayRef names = JSObjectCopyPropertyNames(context, jsObject);
     NSUInteger length = JSPropertyNameArrayGetCount(names);
@@ -136,6 +138,7 @@ NSDictionary *FJSNativeDictionaryFromJSObject(JSObjectRef jsObject, JSContextRef
     return [dictionary copy];
 }
 
+BOOL FJSObjectIsArray(JSObjectRef jsObject, JSContextRef context);
 BOOL FJSObjectIsArray(JSObjectRef jsObject, JSContextRef context) {
     
     JSStringRef scriptJS = JSStringCreateWithUTF8CString("return arguments[0].constructor == Array.prototype.constructor");
@@ -382,6 +385,7 @@ typedef struct { char a; double b; } struct_C_DBL;
 typedef struct { char a; BOOL b; } struct_C_BOOL;
 
 #pragma message "FIXME: Can we come up with a test that does alignment checks for us?"
+BOOL FJSGetAlignmentOfTypeEncoding(size_t * alignmentPtr, char encoding);
 BOOL FJSGetAlignmentOfTypeEncoding(size_t * alignmentPtr, char encoding) {
     BOOL success = YES;
     size_t alignment = 0;
@@ -434,7 +438,7 @@ BOOL FJSGetSizeOfTypeEncoding(size_t *sizePtr, char encoding) {
         case _C_FLT:        size = sizeof(float); break;
         case _C_DBL:        size = sizeof(double); break;
         case _C_BOOL:       size = sizeof(bool); break;
-        case _C_VOID:       size = sizeof(void); break;
+        case _C_VOID:       size = sizeof(void*); FMAssert(NO); /*why are we here? What api passes just a void?*/ break;
         default:            success = NO; break;
     }
     if (success && sizePtr != NULL) {
@@ -443,6 +447,7 @@ BOOL FJSGetSizeOfTypeEncoding(size_t *sizePtr, char encoding) {
     return success;
 }
 
+ffi_type * FJSFFITypeForTypeEncoding(char encoding);
 ffi_type * FJSFFITypeForTypeEncoding(char encoding) {
     switch (encoding) {
         case _C_ID:
@@ -468,6 +473,7 @@ ffi_type * FJSFFITypeForTypeEncoding(char encoding) {
     return NULL;
 }
 
+NSString *FJSDescriptionOfTypeEncoding(char encoding);
 NSString *FJSDescriptionOfTypeEncoding(char encoding) {
     switch (encoding) {
         case _C_ID:         return @"id";
@@ -494,6 +500,7 @@ NSString *FJSDescriptionOfTypeEncoding(char encoding) {
     return nil;
 }
 
+NSString *FJSDescriptionOfTypeEncodingWithFullEncoding(char typeEncoding, NSString *fullTypeEncoding);
 NSString *FJSDescriptionOfTypeEncodingWithFullEncoding(char typeEncoding, NSString *fullTypeEncoding) {
     switch (typeEncoding) {
         case _C_VOID:       return @"void";
@@ -595,7 +602,7 @@ NSString *FJSNameForJSType(JSType type) {
         return @"kJSTypeObject";
     }
     
-    if (@available(macOS 10.14.4, *)) {
+    if (@available(macOS 10.15, *)) {
         if (type == kJSTypeSymbol) {
             return @"kJSTypeSymbol";
         }

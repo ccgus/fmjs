@@ -30,16 +30,19 @@
 
 #import <pthread.h>
 
+void scriptInputSourceScheduleRoutine (void *info, CFRunLoopRef runLoop, CFStringRef mode);
 void scriptInputSourceScheduleRoutine (void *info, CFRunLoopRef runLoop, CFStringRef mode)
 {
 }
 
+void scriptInputSourcePerformRoutine (void *info);
 void scriptInputSourcePerformRoutine (void *info)
 {
     FJSScriptInputSource*  source = (__bridge FJSScriptInputSource *)info;
     [source didReceiveSignal];
 }
 
+void scriptInputSourceCancelRoutine (void *info, CFRunLoopRef runLoop, CFStringRef mode);
 void scriptInputSourceCancelRoutine (void *info, CFRunLoopRef runLoop, CFStringRef mode)
 {
 }

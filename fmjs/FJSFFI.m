@@ -335,7 +335,7 @@ static NSMutableDictionary *FJSFFIStructureLookup;
         void *returnStorage = [returnValue objectStorage];
         
         @try {
-            ffi_call(&cif, callAddress, returnStorage, ffiValues);
+            ffi_call(&cif, (void(*)(void))callAddress, returnStorage, ffiValues);
             
             [returnValue retainReturnValue];
         }

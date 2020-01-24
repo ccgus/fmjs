@@ -87,7 +87,7 @@ static NSPointerArray *FJSValueLiveWeakArray;
     
 #ifdef DEBUG
     if (([self isInstance] || [self isBlock]) && !_weakInstance && !_isWeakReference && !_cValue.value.pointerValue && !_isJSNative) {
-        debug(@"Why am I an instance without anything to point to?! %p", self);
+        debug(@"Why am I an instance without anything to point to?! %@", [super description]);
         debug(@"debugStackFromInit: '%@'", _debugStackFromInit);
         FMAssert(NO);
     }
@@ -691,7 +691,7 @@ static NSPointerArray *FJSValueLiveWeakArray;
         offset += [ss size];
     }
     
-    void *loc = _cValue.value.pointerValue + offset;
+    void *loc = (char*)_cValue.value.pointerValue + offset;
     
     switch ([foundType type]) {
         case _C_DBL: {
@@ -798,7 +798,7 @@ static NSPointerArray *FJSValueLiveWeakArray;
         offset += [ss size];
     }
     
-    void *loc = _cValue.value.pointerValue + offset;
+    void *loc = (char*)_cValue.value.pointerValue + offset;
     
     FJSObjCValue cv;
     cv.type = [foundType type];

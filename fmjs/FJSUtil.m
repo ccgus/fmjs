@@ -438,7 +438,7 @@ BOOL FJSGetSizeOfTypeEncoding(size_t *sizePtr, char encoding) {
         case _C_FLT:        size = sizeof(float); break;
         case _C_DBL:        size = sizeof(double); break;
         case _C_BOOL:       size = sizeof(bool); break;
-        case _C_VOID:       size = sizeof(void*); FMAssert(NO); /*why are we here? What api passes just a void?*/ break;
+        case _C_VOID:       size = 0; FMAssert(NO); /*why are we here? What api passes just a void?*/ break;
         default:            success = NO; break;
     }
     if (success && sizePtr != NULL) {

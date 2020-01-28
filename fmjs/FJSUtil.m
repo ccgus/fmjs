@@ -31,7 +31,7 @@ BOOL FJSStringIsNumber(NSString *ns) {
     [ns getCharacters:c range:NSMakeRange(0, len)];
     
     BOOL isNumber = YES;
-    for (size_t i = 0; i < len; i++) {
+    for (NSInteger i = 0; i < len; i++) {
         if(!isdigit(c[i]) ){
             isNumber = NO;
             break;

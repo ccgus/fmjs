@@ -13,8 +13,6 @@
 #import "FJSSymbol.h"
 #import "FJSPrivate.h"
 
-#pragma message "FIXME: Take out the obviously private interfaces from FJSValue's header."
-
 #import <objc/runtime.h>
 
 @interface FJSValue ()
@@ -22,6 +20,12 @@
 @property (weak) FJSRuntime *runtime;
 @property (assign) JSValueRef jsValRef;
 @property (assign) JSGlobalContextRef unprotectContextRef;
+@property (assign) BOOL isJSNative;
+@property (strong) FJSSymbol *symbol;
+@property (assign) FJSObjCValue cValue;
+@property (assign) JSType jsValueType;
+@property (assign) BOOL debugFinalizeCalled;
+
 
 #ifndef DEBUG
 @property (assign) NSInteger protectCount; // Why our own protectCount? Because we've also got a unprotectContextRef to manage.

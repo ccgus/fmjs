@@ -41,12 +41,6 @@ typedef struct {
 
 @interface FJSValue : NSObject
 
-// FIXME: These need to be private
-@property (assign) BOOL isJSNative;
-@property (strong) FJSSymbol *symbol;
-@property (assign) FJSObjCValue cValue;
-@property (assign) JSType jsValueType;
-@property (assign) BOOL debugFinalizeCalled;
 
 #ifdef DEBUG
 @property (strong) NSString *debugStackFromInit;

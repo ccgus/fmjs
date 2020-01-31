@@ -39,6 +39,7 @@ NS_ASSUME_NONNULL_BEGIN
 @property (assign) FJSObjCValue cValue;
 @property (assign) JSType jsValueType;
 @property (weak) FJSRuntime *runtime;
+@property (assign) BOOL debugFinalizeCalled;
 
 
 + (instancetype)valueWithSymbol:(FJSSymbol*)sym inRuntime:(FJSRuntime*)runtime;

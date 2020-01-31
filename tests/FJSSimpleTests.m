@@ -1571,17 +1571,13 @@ int FJSTestCGImageRefExampleCounter;
     
     [FJSRuntime loadFrameworkAtPath:@"/System/Library/Frameworks/CoreServices.framework/Versions/A/Frameworks/LaunchServices.framework"];
     
-    debug(@"'%d'", kLSRolesViewer);
-    
     NSURL *u = CFBridgingRelease(LSCopyDefaultApplicationURLForURL((__bridge CFURLRef)[NSURL URLWithString:@"http://apple.com/"], kLSRolesViewer, nil));
     XCTAssert(u);
     
     // Note: this is currently failing, and I'm not sure it's something I want to support yet.
     FJSRuntime *runtime = [FJSRuntime new];
     
-    #pragma message "FIXME: Replace 2 with kLSRolesViewer"
-    
-    FJSValue *vu = [runtime evaluateScript:@"LSCopyDefaultApplicationURLForURL(NSURL.URLWithString('http://apple.com/'), 2, null)"];
+    FJSValue *vu = [runtime evaluateScript:@"LSCopyDefaultApplicationURLForURL(NSURL.URLWithString('http://apple.com/'), kLSRolesViewer, null)"];
     
     XCTAssert([[vu toObject] isEqualTo:u]);
     

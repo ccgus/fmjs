@@ -1087,6 +1087,14 @@ int FJSTestCGImageRefExampleCounter;
     XCTAssert([jsa toInt32] == 1234, "Got %d", [jsa toInt32]);
     XCTAssert([jsv[@"noProp"] isUndefined]);
     
+    FJSTestClass *c = [FJSTestClass new];
+    ctx[@"d"][@"testClass"] = c;
+    
+    JSValue *jsc = [ctx evaluateScript:@"c = d.testClass; c;"];
+    
+    XCTAssert([jsc toObject] == c);
+    
+    debug(@"%@", [ctx evaluateScript:@"c.foo"]);
 }
 
 

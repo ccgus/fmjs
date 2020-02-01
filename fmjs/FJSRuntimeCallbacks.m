@@ -152,12 +152,7 @@ static JSValueRef FJSPrototypeForOBJCInstance(JSContextRef ctx, id instance, NSS
         if ([[valueFromJSObject instance] respondsToSelector:@selector(FJSValueForKeyedSubscript:inRuntime:)]) {
             FJSValue *v = [[valueFromJSObject instance] FJSValueForKeyedSubscript:propertyName inRuntime:self];
             if (v) {
-                
-                if ([v isJSNative]) {
-                    return [v JSValueRef];
-                }
-#pragma message "FIXME: Why do we not just call JSValue? Why do I keep on using newJSValueForWrapper?"
-                return [self newJSValueForWrapper:v];
+                return [v JSValueRef];
             }
         }
         
@@ -174,8 +169,11 @@ static JSValueRef FJSPrototypeForOBJCInstance(JSContextRef ctx, id instance, NSS
             JSValueRef subscriptedJSValue = nil;
             subscriptedJSValue = FJSNativeObjectToJSValue(objcSubscriptedObject, [self contextRef]); // Check and see if we can convert objc numbers, strings, or NSNulls to native js types.
             if (!subscriptedJSValue) { //
+                FMAssert(NO); // When is this ever called? What happens to the value instance? Does it just dealloc and then what?
                 FJSValue *value = [FJSValue valueWithInstance:(__bridge CFTypeRef)(objcSubscriptedObject) inRuntime:self];
-                subscriptedJSValue = [self newJSValueForWrapper:value];
+                subscriptedJSValue = [value JSValueRef];
+                // We were doing this, which does a +1 on the value. But… that's a leak, right?
+                // subscriptedJSValue = [self newJSValueForWrapper:value];
             }
             return subscriptedJSValue;
         }

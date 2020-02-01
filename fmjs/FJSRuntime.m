@@ -446,7 +446,9 @@ static const void * const kDispatchQueueRecursiveSpecificKey = &kDispatchQueueRe
         }
     }];
     
-    #pragma message "FIXME: Should we call protectNative for these objects? Or mabye even if it isn't native?"
+    // Should we call protectNative for these objects? Or mabye even if it isn't native?
+    // What if we do, and then objectForKeyedSubscript is called multiple times? Maybe it should just be done once when
+    // A new FJSValue is created, and then once on dealloc?
     
     return obj;
 }

@@ -578,6 +578,44 @@ APPKIT_EXTERN const CGRect FJSRuntimeTestCGRect;
     [rt shutdown];
 }
 
++ (NSSize)returnSize {
+    return NSMakeSize(16, 12);
+}
+
++ (NSRect)returnRect {
+    return NSMakeRect(45, 67, 143, -14);
+}
+
++ (void)printString:(NSString*)s {
+    
+    NSLog(@"%@", s);
+}
+
+- (void)testPrintCGStructUnknownSelector {
+    
+    
+    FJSRuntime *rt = [FJSRuntime new];
+    
+    __block NSString *foundString = nil;
+    [rt setPrintHandler:^(FJSRuntime * _Nonnull runtime, NSString * _Nonnull stringToPrint) {
+        foundString = stringToPrint;
+    }];
+    
+    [rt setExceptionHandler:^(FJSRuntime * _Nonnull runtime, NSException * _Nonnull exception) {
+        
+    }];
+    
+    [rt evaluateScript:@"print(FJSStructTests.returnSize());"];
+    
+    XCTAssert(![foundString isEqualToString:NSStringFromSize(CGSizeMake(16, 12))]);
+    
+    
+    // Just try and cause a crash here.
+    [rt evaluateScript:@"FJSStructTests.printString(FJSStructTests.returnRect());"];
+    
+    [rt shutdown];
+}
+
 @end
 
 BOOL FJSTestCGRect(CGRect r) {

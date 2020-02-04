@@ -49,33 +49,29 @@ static NSMutableDictionary *FJSFFIStructureLookup;
     FJSSymbol *functionSymbol = [_f symbol];
     assert(functionSymbol);
     
-    #pragma message "FIXME: Uh, we need to figure out how to match types to args for objcInvoke"
-//    NSError *argsErr = nil;
-//    if (![self checkArgumentsWithSymbol:functionSymbol error:&argsErr]) {
-//        FMAssert(argsErr);
-//        NSString *reason = [argsErr localizedDescription];
-//        [_runtime reportNSException:[NSException exceptionWithName:FMJavaScriptExceptionName reason:reason userInfo:nil]];
-//        return [FJSValue valueWithUndefinedInRuntime:_runtime];
-//    }
-    
-    
-    
-    
-    
     NSString *methodName = [functionSymbol name];
+    BOOL isInFJSRuntimeCall = NO;
+    NSArray *arguments = _args;
+    
+    if ([methodName hasSuffix:@"nFJSRuntime:"]) {
+        isInFJSRuntimeCall = YES;
+        arguments = [_args arrayByAddingObject:_runtime];
+    }
+    
+    NSError *argsErr = nil;
+    if (![self checkArgumentsWithSymbol:functionSymbol usingArguments:arguments isFJSRuntimeCall:isInFJSRuntimeCall error:&argsErr]) {
+        FMAssert(argsErr);
+        NSString *reason = [argsErr localizedDescription];
+        [_runtime reportNSException:[NSException exceptionWithName:FMJavaScriptExceptionName reason:reason userInfo:nil]];
+        return [FJSValue valueWithUndefinedInRuntime:_runtime];
+    }
+    
     FJSValue *returnFValue = nil;
     
     @try {
         
         SEL selector = NSSelectorFromString(methodName);
         id object    = [_caller instance];
-        BOOL isInFJSRuntimeCall = NO;
-        NSArray *arguments = _args;
-        
-        if ([methodName hasSuffix:@"nFJSRuntime:"]) {
-            isInFJSRuntimeCall = YES;
-            arguments = [_args arrayByAddingObject:_runtime];
-        }
         
         FJSValue *doFJSFunctionReturnValue;
         if (!isInFJSRuntimeCall && [object respondsToSelector:@selector(doFJSFunction:inRuntime:withValues:returning:)] && [object doFJSFunction:_f inRuntime:_runtime withValues:_args returning:&doFJSFunctionReturnValue]) {
@@ -172,20 +168,32 @@ static NSMutableDictionary *FJSFFIStructureLookup;
     return returnFValue ? returnFValue : [FJSValue valueWithNullInRuntime:_runtime];
 }
 
-- (BOOL)checkArgumentsWithSymbol:(FJSSymbol*)functionSymbol error:(NSError **)outError {
+- (BOOL)checkArgumentsWithSymbol:(FJSSymbol*)functionSymbol usingArguments:(NSArray*)args isFJSRuntimeCall:(BOOL)isFJSRuntimeCall error:(NSError **)outError {
     
     size_t functionArgumentCount = [[functionSymbol arguments] count];
-    if ([_args count] != functionArgumentCount) {
-        NSString *reason = [NSString stringWithFormat:@"Method %@ requires %lu %@, but JavaScript passed %zd %@", [functionSymbol name], functionArgumentCount, (functionArgumentCount == 1 ? @"argument" : @"arguments"), [_args count], ([_args count] == 1 ? @"argument" : @"arguments")];
+    if ([args count] != functionArgumentCount) {
+        NSString *reason = [NSString stringWithFormat:@"Method %@ requires %lu %@, but JavaScript passed %zd %@", [functionSymbol name], functionArgumentCount, (functionArgumentCount == 1 ? @"argument" : @"arguments"), [args count], ([args count] == 1 ? @"argument" : @"arguments")];
         
         *outError = [NSError errorWithDomain:FMJavaScriptExceptionName code:1 userInfo:@{NSLocalizedDescriptionKey : reason}];
         
         return NO;
     }
     
+    if ([[functionSymbol name] isEqualToString:@"pointerWithValue:inFJSRuntime:"] && [_caller isClass] && [_caller rtClass] == [FJSPointer class]) {
+        // Short circut.
+        return YES;
+    }
     
     NSUInteger idx = 0;
-    for (FJSValue *v in _args) {
+    for (FJSValue *v in args) {
+        
+        if (isFJSRuntimeCall && idx == ([args count] - 1)) {
+            FMAssert([v isKindOfClass:[FJSRuntime class]]);
+            break;
+        }
+        
+        
+        
         FJSSymbol *argSym = [[functionSymbol arguments] objectAtIndex:idx];
         FJSSymbol *jsSymbol = [v symbol];
         
@@ -253,7 +261,7 @@ static NSMutableDictionary *FJSFFIStructureLookup;
     
     
     NSError *argsErr = nil;
-    if (![self checkArgumentsWithSymbol:functionSymbol error:&argsErr]) {
+    if (![self checkArgumentsWithSymbol:functionSymbol usingArguments:_args isFJSRuntimeCall:NO error:&argsErr]) {
         
         FMAssert(argsErr);
         

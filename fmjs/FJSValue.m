@@ -21,7 +21,6 @@
 @property (assign) JSValueRef jsValRef;
 @property (assign) JSGlobalContextRef unprotectContextRef;
 @property (assign) BOOL isJSNative;
-@property (strong) FJSSymbol *symbol;
 @property (assign) FJSObjCValue cValue;
 @property (assign) JSType jsValueType;
 @property (assign) BOOL debugFinalizeCalled;

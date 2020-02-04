@@ -41,6 +41,7 @@ typedef struct {
 
 @interface FJSValue : NSObject
 
+@property (strong) FJSSymbol *symbol;
 
 #ifdef DEBUG
 @property (strong) NSString *debugStackFromInit;

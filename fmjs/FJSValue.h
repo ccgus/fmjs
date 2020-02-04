@@ -42,6 +42,7 @@ typedef struct {
 @interface FJSValue : NSObject
 
 @property (strong) FJSSymbol *symbol;
+@property (assign) BOOL isJSNative;
 
 #ifdef DEBUG
 @property (strong) NSString *debugStackFromInit;

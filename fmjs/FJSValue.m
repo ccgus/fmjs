@@ -20,7 +20,6 @@
 @property (weak) FJSRuntime *runtime;
 @property (assign) JSValueRef jsValRef;
 @property (assign) JSGlobalContextRef unprotectContextRef;
-@property (assign) BOOL isJSNative;
 @property (assign) FJSObjCValue cValue;
 @property (assign) JSType jsValueType;
 @property (assign) BOOL debugFinalizeCalled;

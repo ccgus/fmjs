@@ -384,7 +384,7 @@ typedef struct { char a; float b; } struct_C_FLT;
 typedef struct { char a; double b; } struct_C_DBL;
 typedef struct { char a; BOOL b; } struct_C_BOOL;
 
-#pragma message "FIXME: Can we come up with a test that does alignment checks for us?"
+// FIXME: Can we come up with a test that does alignment checks for us?"
 BOOL FJSGetAlignmentOfTypeEncoding(size_t * alignmentPtr, char encoding);
 BOOL FJSGetAlignmentOfTypeEncoding(size_t * alignmentPtr, char encoding) {
     BOOL success = YES;

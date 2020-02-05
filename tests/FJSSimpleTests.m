@@ -1687,6 +1687,60 @@ int FJSTestCGImageRefExampleCounter;
     [runtime shutdown];
     
 }
+
+
+- (void)testObjectForKeyedSubscriptStuff {
+    
+    
+    FJSRuntime *runtime = [FJSRuntime new];
+    
+    [runtime setExceptionHandler:^(FJSRuntime * _Nonnull rt, NSException * _Nonnull exception) {
+        XCTAssert(NO);
+    }];
+    
+    FJSValue *vu = [runtime evaluateScript:
+                    @"var r = FJSTestClass.new();"
+                    @"r.randomString = 'hi!';\n"
+                    @"r;"];
+    
+    debug(@"vu[@randomString]: '%@'", vu[@"randomString"]);
+    
+    XCTAssert([[vu[@"randomString"] toObject] isEqualToString:@"hi!"]);
+    
+    [runtime evaluateScript:@"r = null;"];
+    
+    [runtime shutdown];
+}
+
+- (void)testJSObjectForKeyedSubscriptStuff {
+    
+    
+    FJSRuntime *runtime = [FJSRuntime new];
+    
+    [runtime setExceptionHandler:^(FJSRuntime * _Nonnull rt, NSException * _Nonnull exception) {
+        debug(@"exception: '%@'", exception);
+        XCTAssert(NO);
+    }];
+    
+    __block BOOL passedAssertion = NO;
+    runtime[@"XCTAssert"] = ^(BOOL condition) {
+        XCTAssert(condition);
+        passedAssertion = condition;
+    };
+    
+    FJSValue *f = [FJSValue valueWithNewObjectInRuntime:runtime];
+    runtime[@"f"] = f;
+    
+    f[@"foo"] = @(123);
+    
+    [runtime evaluateScript:@"XCTAssert(f.foo == 123);"];
+    
+    XCTAssert(passedAssertion);
+    
+    [runtime shutdown];
+}
+
+
 - (void)xtestClassExtension {
     
     // Note: this is currently failing, and I'm not sure it's something I want to support yet.

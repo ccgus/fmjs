@@ -92,6 +92,8 @@ static const void * const kDispatchQueueRecursiveSpecificKey = &kDispatchQueueRe
                 @"<signatures version='1.0'>"
                     @"<function name='FJSAssertObject'><arg type='@'/></function>"
                     @"<function name='FJSAssert'><arg type='B'/></function>"
+             //       @"<class name='NSNumber'><method selector='Symbol.toPrimitive'><retval type64='@'/></method></class>"
+             //       @"<class name='NSString'><method selector='Symbol.toPrimitive'><retval type64='@'/></method></class>"
                 "</signatures>";
             
             [[FJSSymbolManager sharedManager] parseBridgeString:xml];
@@ -164,6 +166,15 @@ static const void * const kDispatchQueueRecursiveSpecificKey = &kDispatchQueueRe
     self[@"require"] = ^(NSString *modulePath) {
         return [weakSelf require:modulePath];
     };
+
+    /*
+    // Symbol.toPrimitive support
+    self[@"FMJSSymbolToPrimativeFront"] = ^(id o) {
+        return o;
+    };
+    
+    self[@"FMJSSymbolToPrimative"] = [FJSValue valueWithSerializedJSFunction:@"FMJSSymbolToPrimativeFront(f)" inRuntime:self];
+    */
     
     [self evaluateScript:@"var console={}; console.log=print;"];
     
@@ -486,7 +497,9 @@ static const void * const kDispatchQueueRecursiveSpecificKey = &kDispatchQueueRe
         JSStringRelease(jsName);
         
         #pragma message "FIXME: [[self runtimeObjectNames] addObject:name]; is completely worthless now with the inJSObject:(JSObjectRef)jsObject param. We need to keep a map of things to kill based on the FJSValue we're setting these things on."
-        [[self runtimeObjectNames] addObject:name];
+        if (!exception) {
+            [[self runtimeObjectNames] addObject:name];
+        }
         
         [self reportPossibleJSException:exception];
     }];

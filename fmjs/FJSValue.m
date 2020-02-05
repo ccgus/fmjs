@@ -1256,10 +1256,24 @@ static NSPointerArray *FJSValueLiveWeakArray;
 
 - (FJSValue *)objectForKeyedSubscript:(NSString*)key {
     
-    FMAssert(_isJSNative);
-    
     if (!_isJSNative) {
+        
+        if ([self isInstance]) {
+            
+            id o = [self toObject];
+            
+            id r = [o valueForKey:key];
+            
+            if (r) {
+                return [FJSValue valueWithInstance:(__bridge CFTypeRef _Nonnull)(r) inRuntime:_runtime];
+            }
+            else {
+                return [FJSValue valueWithNullInRuntime:_runtime];
+            }
+        }
+        
         FMAssert(NO);
+        
         return nil;
     }
     

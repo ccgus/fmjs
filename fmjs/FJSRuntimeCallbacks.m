@@ -56,25 +56,31 @@ static JSValueRef FJSPrototypeForOBJCInstance(JSContextRef ctx, id instance, NSS
     
     if ([objectValue isInstance]) {
         
-        if ([[objectValue instance] respondsToSelector:@selector(hasFJSValueForKeyedSubscript:inRuntime:)]) {
-            if ([[objectValue instance] hasFJSValueForKeyedSubscript:propertyName inRuntime:self]) {
+        id objectValueInstance = [objectValue instance];
+        
+        if ([objectValueInstance respondsToSelector:@selector(hasFJSValueForKeyedSubscript:inRuntime:)]) {
+            if ([objectValueInstance hasFJSValueForKeyedSubscript:propertyName inRuntime:self]) {
                 return YES;
             }
         }
         
         // Only return true on finds, because otherwise we'll miss things like objectForKey: and objectAtIndex:
-        if ([[objectValue instance] respondsToSelector:@selector(objectForKeyedSubscript:)]) {
-            if ([[objectValue instance] objectForKeyedSubscript:propertyName]) {
+        if ([objectValueInstance respondsToSelector:@selector(objectForKeyedSubscript:)]) {
+            if ([objectValueInstance objectForKeyedSubscript:propertyName]) {
                 return YES;
             }
         }
         
-        if (FJSStringIsNumber(propertyName) && [[objectValue instance] respondsToSelector:@selector(objectAtIndexedSubscript:)]) {
-            if ([[objectValue instance] objectAtIndexedSubscript:[propertyName integerValue]]) {
+        if (FJSStringIsNumber(propertyName) && [objectValueInstance respondsToSelector:@selector(objectAtIndexedSubscript:)]) {
+            if ([objectValueInstance objectAtIndexedSubscript:[propertyName integerValue]]) {
                 return YES;
             }
         }
         
+        
+//        if ([propertyName isEqualToString:@"Symbol.toPrimitive"]) {
+//            return ([objectValueInstance isKindOfClass:[NSNumber class]] || [objectValueInstance isKindOfClass:[NSString class]]);
+//        }
     }
     
     if ([objectValue isInstance] || [objectValue isClass]) {
@@ -163,6 +169,22 @@ static JSValueRef FJSPrototypeForOBJCInstance(JSContextRef ctx, id instance, NSS
         if (!objcSubscriptedObject && FJSStringIsNumber(propertyName) && [[valueFromJSObject instance] respondsToSelector:@selector(objectAtIndexedSubscript:)]) {
             objcSubscriptedObject = [[valueFromJSObject instance] objectAtIndexedSubscript:[propertyName integerValue]];
         }
+        
+         // Symbol.toPrimitive needs to be a function, undefined, or null
+        /*
+        if ([propertyName isEqualToString:@"Symbol.toPrimitive"]) {
+            if ([[valueFromJSObject instance] isKindOfClass:[NSNumber class]] || [[valueFromJSObject instance] isKindOfClass:[NSString class]]) {
+                
+                FJSValue *v = self[@"FMJSSymbolToPrimative"];
+                FMAssert(v);
+                return [v JSValueRef];
+                
+                //objcSubscriptedObject = [valueFromJSObject instance];
+            }
+            else {
+                FMAssert(NO); // What else are we tryign to conver to a primative?
+            }
+        }*/
         
         if (objcSubscriptedObject) {
             
@@ -339,7 +361,16 @@ static JSValueRef FJSPrototypeForOBJCInstance(JSContextRef ctx, id instance, NSS
         NSError *outErr;
         id obj = [arg toObject];
         if ([[valueFromJSObject instance] validateValue:&obj forKey:propertyName error:&outErr]) {
-            [[valueFromJSObject instance] setValue:obj forKey:propertyName];
+            @try {
+                [[valueFromJSObject instance] setValue:obj forKey:propertyName];
+            }
+            @catch (NSException *e) {
+                
+                *exception = FJSNativeObjectToJSValue(e, [self contextRef]);
+                
+                //[self reportNSException:e];
+                return NO;
+            }
             return YES;
         }
         

@@ -359,6 +359,15 @@ JSValueRef FJSNativeObjectToJSValue(id o, JSContextRef context) {
             return JSValueMakeNumber(context, [o doubleValue]);
         }
     }
+    else if ([o isKindOfClass:[NSException class]]) {
+        
+        NSException *e = (id)o;
+        JSStringRef string = JSStringCreateWithCFString((__bridge CFStringRef)[NSString stringWithFormat:@"%@ %@", [e name], [e reason]]);
+        JSValueRef value = JSValueMakeString(context, string);
+        JSStringRelease(string);
+        return value;
+    }
+    
 //    else if ([o isKindOfClass:[NSNull class]]) {
 //        return JSValueMakeNull(context);
 //    }

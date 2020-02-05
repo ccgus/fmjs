@@ -192,8 +192,6 @@ static NSMutableDictionary *FJSFFIStructureLookup;
             break;
         }
         
-        
-        
         FJSSymbol *argSym = [[functionSymbol arguments] objectAtIndex:idx];
         FJSSymbol *jsSymbol = [v symbol];
         

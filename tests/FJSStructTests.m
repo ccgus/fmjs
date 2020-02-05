@@ -597,21 +597,32 @@ APPKIT_EXTERN const CGRect FJSRuntimeTestCGRect;
     FJSRuntime *rt = [FJSRuntime new];
     
     __block NSString *foundString = nil;
+    __block BOOL hadException = NO;
     [rt setPrintHandler:^(FJSRuntime * _Nonnull runtime, NSString * _Nonnull stringToPrint) {
         foundString = stringToPrint;
     }];
     
     [rt setExceptionHandler:^(FJSRuntime * _Nonnull runtime, NSException * _Nonnull exception) {
-        
+        debug(@"exception: '%@'", exception);
+        hadException = YES;
     }];
     
-    [rt evaluateScript:@"print(FJSStructTests.returnSize());"];
+    [rt evaluateScript:@"print(FJSStructTests.returnSize() + '');"];
     
-    XCTAssert(![foundString isEqualToString:NSStringFromSize(CGSizeMake(16, 12))]);
+    XCTAssert([foundString isEqualToString:NSStringFromSize(CGSizeMake(16, 12))]);
     
     
     // Just try and cause a crash here.
     [rt evaluateScript:@"FJSStructTests.printString(FJSStructTests.returnRect());"];
+    XCTAssert(hadException);
+    
+    
+    // Let's print it this time.
+    [rt evaluateScript:@"FJSStructTests.printString(FJSStructTests.returnRect() + '');"];
+    
+    // Let's print it this time.
+    [rt evaluateScript:@"FJSStructTests.printString(NSMakePoint(4,3) + '');"];
+    
     
     [rt shutdown];
 }

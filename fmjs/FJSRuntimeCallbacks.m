@@ -410,6 +410,20 @@ static JSValueRef FJSPrototypeForOBJCInstance(JSContextRef ctx, id instance, NSS
         return value;
     }
     
+    if ([valueObject isStruct]) {
+        
+        NSString *s = [valueObject structToString];
+        
+        if (s) {
+            JSStringRef string = JSStringCreateWithCFString((__bridge CFStringRef)s);
+            JSValueRef value = JSValueMakeString([self contextRef], string);
+            JSStringRelease(string);
+            return value;
+        }
+        
+        return JSValueMakeNull([self contextRef]);
+    }
+    
     return JSValueMakeNumber([self contextRef], [valueObject toDouble]);
 }
 

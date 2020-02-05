@@ -897,6 +897,24 @@ static NSPointerArray *FJSValueLiveWeakArray;
     return &ffi_type_void;
 }
 
+- (NSString*)structToString {
+    FMAssert([self isStruct]);
+    
+    if ([[[self symbol] runtimeType] hasPrefix:@"{CGSize="]) {
+        return NSStringFromSize([self toCGSize]);
+    }
+    else if ([[[self symbol] runtimeType] hasPrefix:@"{CGRect="]) {
+        return NSStringFromRect([self toCGRect]);
+    }
+    else if ([[[self symbol] runtimeType] hasPrefix:@"{CGPoint="]) {
+        return NSStringFromPoint([self toCGPoint]);
+    }
+    
+    debug(@"[[self symbol] runtimeType]: '%@'", [[self symbol] runtimeType]);
+    
+    return [NSString stringWithFormat:@"<unable to parse %@>", [[self symbol] runtimeType]];
+}
+
 - (nullable JSValueRef)toJSString {
     // TODO: check for numbers, etc, and convert them to the right JS type
     debug(@"_instance: %@", [self instance]);

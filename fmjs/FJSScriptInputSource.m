@@ -109,12 +109,6 @@ void scriptInputSourceCancelRoutine (void *info, CFRunLoopRef runLoop, CFStringR
 {
     FJSValue *result = [m_runtime evaluateScript:script];
     
-    #pragma message "FIXME: Do something with the exception"
-//    if (m_runtime.exception) {
-//        result = m_runtime.exception;
-//        m_runtime.exception = nil;
-//    }
-    
     pthread_mutex_lock(&m_outputLock);
     [m_outputQueue addObject:result];
     pthread_cond_signal(&m_outputCondition);

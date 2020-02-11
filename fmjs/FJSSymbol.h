@@ -50,7 +50,7 @@ NS_ASSUME_NONNULL_BEGIN
 - (size_t)structSize;
 - (FJSStructSymbol*)structFieldNamed:(NSString*)name;
 
-- (void)unmangleCFArgs;
+- (void)unmangleArgs;
 
 @end
 

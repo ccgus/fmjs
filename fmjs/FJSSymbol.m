@@ -317,6 +317,7 @@
             [[methodSymbol arguments] addObject:argument];
         }
         
+        [methodSymbol unmangleArgs];
         
         [(isClassMethod ? [self classMethods] : [self instanceMethods]) addObject:methodSymbol];
         
@@ -402,6 +403,8 @@
     FMAssert(name);
     FMAssert(class);
     
+    #pragma message "FIXME: Can we sanitize or change names here? __NSCFString to NSString?"
+    
     // Let's find our class symbol first.
     FJSSymbol *classSymbol = [self symbolForName:NSStringFromClass(class) inObject:nil];
     
@@ -445,9 +448,17 @@
 }
 
 
-- (void)unmangleCFArgs {
+- (void)unmangleArgs {
     
     // ^{__CFAllocator=}'/>
+    
+    _runtimeType = [_runtimeType stringByReplacingOccurrencesOfString:@"{_" withString:@"{"];
+    _runtimeType = [_runtimeType stringByReplacingOccurrencesOfString:@"{__" withString:@"{"];
+    
+    [_returnValue     unmangleArgs];
+    [_arguments       makeObjectsPerformSelector:@selector(unmangleArgs)];
+    [_classMethods    makeObjectsPerformSelector:@selector(unmangleArgs)];
+    [_instanceMethods makeObjectsPerformSelector:@selector(unmangleArgs)];
     
     /*
     Gus, this is where you are promiting ^{CGImage=} to CGImageRef

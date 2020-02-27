@@ -253,7 +253,13 @@ static NSMutableDictionary *FJSFFIStructureLookup;
         
         functionSymbol = [_f symbol];
         FMAssert(functionSymbol);
-        callAddress = dlsym(RTLD_DEFAULT, [[functionSymbol name] UTF8String]);
+        if ([[functionSymbol name] UTF8String]) {
+            callAddress = dlsym(RTLD_DEFAULT, [[functionSymbol name] UTF8String]);
+        }
+        else {
+            NSLog(@"Could not find function symbol name for %@", _f);
+            return nil;
+        }
     }
     
     

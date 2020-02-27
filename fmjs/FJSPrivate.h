@@ -71,6 +71,7 @@ NS_ASSUME_NONNULL_BEGIN
 - (nullable JSValueRef)JSValueRef;
 - (nullable JSValueRef)toJSString;
 
+- (void)setInstance:(nullable CFTypeRef)o;
 - (nullable id)instance;
 - (Class)rtClass;
 - (void)setClass:(Class)c;

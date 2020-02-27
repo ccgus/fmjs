@@ -1741,6 +1741,124 @@ int FJSTestCGImageRefExampleCounter;
 }
 
 
+- (void)testJSFunctionOnMainThreadSync {
+    
+    FJSRuntime *runtime = [FJSRuntime new];
+    
+    [runtime setExceptionHandler:^(FJSRuntime * _Nonnull rt, NSException * _Nonnull exception) {
+        debug(@"exception: '%@'", exception);
+        XCTAssert(NO);
+    }];
+    
+    __block BOOL waiting = YES;
+    __block BOOL passedAssertion = NO;
+    runtime[@"XCTAssert"] = ^(BOOL condition) {
+        passedAssertion = condition;
+        waiting = NO;
+    };
+    
+    dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^{
+        [runtime evaluateScript:@"DispatchQueue.syncOnMain(function () { XCTAssert(NSThread.isMainThread()); });"];
+    });
+    
+    while (waiting) {
+        [[NSRunLoop mainRunLoop] runUntilDate:[NSDate dateWithTimeIntervalSinceNow:.01]];
+        [NSThread sleepForTimeInterval:.01];
+    }
+    
+    XCTAssert(passedAssertion);
+    
+    [runtime shutdown];
+}
+
+- (void)testJSFunctionOnMainThreadAsync {
+    
+    FJSRuntime *runtime = [FJSRuntime new];
+    
+    [runtime setExceptionHandler:^(FJSRuntime * _Nonnull rt, NSException * _Nonnull exception) {
+        debug(@"exception: '%@'", exception);
+        XCTAssert(NO);
+    }];
+    
+    __block BOOL waiting = YES;
+    __block BOOL passedAssertion = NO;
+    runtime[@"XCTAssert"] = ^(BOOL condition) {
+        passedAssertion = condition;
+        waiting = NO;
+    };
+    
+    dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^{
+        [runtime evaluateScript:@"DispatchQueue.asyncOnMain(function () { XCTAssert(NSThread.isMainThread()); });"];
+    });
+    
+    while (waiting) {
+        [[NSRunLoop mainRunLoop] runUntilDate:[NSDate dateWithTimeIntervalSinceNow:.01]];
+        [NSThread sleepForTimeInterval:.01];
+    }
+    
+    XCTAssert(passedAssertion);
+    
+    [runtime shutdown];
+}
+
+- (void)testJSFunctionOnBackgroundThreadAsync {
+    
+    FJSRuntime *runtime = [FJSRuntime new];
+    
+    [runtime setExceptionHandler:^(FJSRuntime * _Nonnull rt, NSException * _Nonnull exception) {
+        debug(@"exception: '%@'", exception);
+        XCTAssert(NO);
+    }];
+    
+    __block BOOL waiting = YES;
+    __block BOOL passedAssertion = NO;
+    runtime[@"XCTAssert"] = ^(BOOL condition) {
+        passedAssertion = condition;
+        waiting = NO;
+    };
+    
+    [runtime evaluateScript:@"DispatchQueue.asyncOnBackground(function () { XCTAssert(!NSThread.isMainThread()); });"];
+    
+    
+    while (waiting) {
+        [NSThread sleepForTimeInterval:.01];
+    }
+    
+    XCTAssert(passedAssertion);
+    
+    [runtime shutdown];
+}
+
+- (void)testJSFunctionOnBackgroundThreadSync {
+    
+    FJSRuntime *runtime = [FJSRuntime new];
+    
+    [runtime setExceptionHandler:^(FJSRuntime * _Nonnull rt, NSException * _Nonnull exception) {
+        debug(@"exception: '%@'", exception);
+        XCTAssert(NO);
+    }];
+    
+    __block BOOL waiting = YES;
+    __block BOOL passedAssertion = NO;
+    runtime[@"XCTAssert"] = ^(BOOL condition) {
+        passedAssertion = condition;
+        waiting = NO;
+    };
+    
+    [runtime evaluateScript:@"DispatchQueue.syncOnBackground(function () { XCTAssert(!NSThread.isMainThread()); });"];
+    
+    while (waiting) {
+        [NSThread sleepForTimeInterval:.01];
+    }
+    
+    XCTAssert(passedAssertion);
+    
+    [runtime shutdown];
+}
+
+
+
+
 - (void)xtestClassExtension {
     
     // Note: this is currently failing, and I'm not sure it's something I want to support yet.

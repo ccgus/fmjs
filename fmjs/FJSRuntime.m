@@ -14,6 +14,7 @@
 #import "FJSRuntimeCallbacks.h"
 #import "FJSPrivate.h"
 #import "FJSRunLoopThread.h"
+#import "FJSDispatch.h"
 
 #import <objc/runtime.h>
 #import <dlfcn.h>
@@ -167,6 +168,9 @@ static const void * const kDispatchQueueRecursiveSpecificKey = &kDispatchQueueRe
         return [weakSelf require:modulePath];
     };
 
+    
+    self[@"DispatchQueue"] = [FJSDispatch class];
+    
     /*
     // Symbol.toPrimitive support
     self[@"FMJSSymbolToPrimativeFront"] = ^(id o) {

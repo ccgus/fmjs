@@ -50,8 +50,6 @@ NS_ASSUME_NONNULL_BEGIN
 + (instancetype)valueWithClass:(Class)c inRuntime:(FJSRuntime*)runtime;
 + (instancetype)valueWithCValue:(FJSObjCValue)cvalue inRuntime:(FJSRuntime*)runtime;
 + (instancetype)valueWithNewObjectInRuntime:(FJSRuntime*)runtime;
-+ (instancetype)valueWithNullInRuntime:(FJSRuntime*)runtime;
-+ (instancetype)valueWithUndefinedInRuntime:(FJSRuntime*)runtime;
 + (instancetype)valueWithSerializedJSFunction:(NSString*)function inRuntime:(FJSRuntime*)runtime;
 + (instancetype)valueWithPointer:(void*)p ofType:(char)type inRuntime:(FJSRuntime*)runtime;
 

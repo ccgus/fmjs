@@ -55,6 +55,9 @@ typedef struct {
 + (instancetype)valueWithString:(NSString*)stringToConvertToJSString inRuntime:(FJSRuntime*)runtime;
 + (instancetype)valueWithBlock:(CFTypeRef)block inRuntime:(FJSRuntime*)runtime;
 
++ (instancetype)valueWithNullInRuntime:(FJSRuntime*)runtime;
++ (instancetype)valueWithUndefinedInRuntime:(FJSRuntime*)runtime;
+
 - (id)toObject;
 - (BOOL)toBOOL;
 - (float)toFloat;

@@ -151,6 +151,31 @@ int FJSTestCGImageRefExampleCounter;
     
 }
 
+
+- (BOOL)hasFJSValueForKeyedSubscript:(NSString *)key inRuntime:(FJSRuntime*)runtime {
+    
+    return [key isEqualToString:@"testKeyedSubscript"];
+}
+
+- (FJSValue*)FJSValueForKeyedSubscript:(NSString *)key inRuntime:(FJSRuntime*)runtime {
+    
+    if ([key isEqualToString:@"testKeyedSubscript"]) {
+        FJSValue *v = [FJSValue valueWithInstance:(__bridge CFTypeRef _Nonnull)(@(642)) inRuntime:runtime];
+        return v;
+    }
+    
+    return nil;
+}
+
+- (BOOL)setFJSValue:(FJSValue*)value forKeyedSubscript:(NSString*)key inRuntime:(FJSRuntime*)runtime {
+    
+    if ([key isEqualToString:@"testKeyedSubscript"]) {
+        return YES;
+    }
+    
+    return NO;
+}
+
 + (void)checkImageIsGood:(CGImageRef)r {
     if (r) {
         FJSTestCGImageRefExampleCounter++;

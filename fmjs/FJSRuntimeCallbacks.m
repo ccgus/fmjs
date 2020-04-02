@@ -325,8 +325,9 @@ static JSValueRef FJSPrototypeForOBJCInstance(JSContextRef ctx, id instance, NSS
         @try {
             
             if ([[valueFromJSObject instance] respondsToSelector:@selector(setFJSValue:forKeyedSubscript:inRuntime:)]) {
-                [[valueFromJSObject instance] setFJSValue:arg forKeyedSubscript:propertyName inRuntime:self];
-                return YES;
+                if ([[valueFromJSObject instance] setFJSValue:arg forKeyedSubscript:propertyName inRuntime:self]) {
+                    return YES;
+                }
             }
             
             if ([[valueFromJSObject instance] respondsToSelector:@selector(setObject:forKeyedSubscript:)]) {

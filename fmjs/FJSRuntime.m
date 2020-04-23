@@ -685,6 +685,14 @@ static const void * const kDispatchQueueRecursiveSpecificKey = &kDispatchQueueRe
             
             [_currentlyLoadingModuleURL addObject:scriptURL];
             
+            id fn = self[@"__filename"];
+            id dn = self[@"__dirname"];
+            
+            // __filename and __dirname are node things. I wish we could pass them in as arguments, but I can't seem to massage the js so that'll happen.
+            self[@"__filename"] = [scriptURL path];
+            self[@"__dirname"]  = [[scriptURL URLByDeletingLastPathComponent] path];
+            
+            
 #define NODE_STYLE_WRAPPER 1
 #ifdef NODE_STYLE_WRAPPER
             
@@ -698,20 +706,14 @@ static const void * const kDispatchQueueRecursiveSpecificKey = &kDispatchQueueRe
             
 #else
             
-            id fn = self[@"__filename"];
-            id dn = self[@"__dirname"];
-            
-            // __filename and __dirname are node things. I wish we could pass them in as arguments, but I can't seem to massage the js so that'll happen.
-            self[@"__filename"] = [scriptURL path];
-            self[@"__dirname"]  = [[scriptURL URLByDeletingLastPathComponent] path];
-            
             NSString *module = [NSString stringWithFormat:@"(function() { var module = { exports : {} }; var exports = module.exports; %@;\nreturn module.exports; })()", script];
             
             FJSValue *moduleValue = [self evaluateNoQueue:module withSourceURL:scriptURL];
+#endif
+            
             
             self[@"__filename"] = [fn isUndefined] || [fn isNull] ? nil : fn;
             self[@"__dirname"]  = [dn isUndefined] || [dn isNull] ? nil : dn;
-#endif
             
             [_currentlyLoadingModuleURL removeLastObject];
             
@@ -808,8 +810,6 @@ static const void * const kDispatchQueueRecursiveSpecificKey = &kDispatchQueueRe
 
 // FIXME: Should we put this in a queue if we're not in one already?
 - (FJSValue*)require:(NSString*)module {
-    
-    debug(@"require: '%@'", module);
     
     NSURL *currentURL = [[_currentlyLoadingModuleURL lastObject] URLByDeletingLastPathComponent];
     BOOL isRequiringCore;

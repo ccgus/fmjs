@@ -58,6 +58,9 @@
 		CC7379E0245A4D6F00FE64C8 /* FJSCocoaScriptPreprocessor.h in Headers */ = {isa = PBXBuildFile; fileRef = CC7379DE245A4D6F00FE64C8 /* FJSCocoaScriptPreprocessor.h */; };
 		CC7379E1245A4D6F00FE64C8 /* FJSCocoaScriptPreprocessor.m in Sources */ = {isa = PBXBuildFile; fileRef = CC7379DF245A4D6F00FE64C8 /* FJSCocoaScriptPreprocessor.m */; };
 		CC7379E3245A4D8C00FE64C8 /* FJSCOSTests.m in Sources */ = {isa = PBXBuildFile; fileRef = CC7379E2245A4D8C00FE64C8 /* FJSCOSTests.m */; };
+		CC7379E7245A859C00FE64C8 /* FJSDispatch.m in Sources */ = {isa = PBXBuildFile; fileRef = CC3E11972408463900EA3E9C /* FJSDispatch.m */; };
+		CC7379E8245A85A100FE64C8 /* FJSPointer.m in Sources */ = {isa = PBXBuildFile; fileRef = CC06F9AB228E0A2800CB7DBE /* FJSPointer.m */; };
+		CC7379E9245A86D700FE64C8 /* FJSCocoaScriptPreprocessor.m in Sources */ = {isa = PBXBuildFile; fileRef = CC7379DF245A4D6F00FE64C8 /* FJSCocoaScriptPreprocessor.m */; };
 		CC887A0D2180E6E400FC9BFB /* FJSTestModule.js in Resources */ = {isa = PBXBuildFile; fileRef = CC887A0C2180E6E400FC9BFB /* FJSTestModule.js */; };
 		CC91A8C02279052900AC1A22 /* FJSNSDataAdditions.h in Headers */ = {isa = PBXBuildFile; fileRef = CC91A8BE2279052900AC1A22 /* FJSNSDataAdditions.h */; };
 		CC91A8C12279052900AC1A22 /* FJSNSDataAdditions.m in Sources */ = {isa = PBXBuildFile; fileRef = CC91A8BF2279052900AC1A22 /* FJSNSDataAdditions.m */; };
@@ -590,6 +593,9 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				CC7379E9245A86D700FE64C8 /* FJSCocoaScriptPreprocessor.m in Sources */,
+				CC7379E8245A85A100FE64C8 /* FJSPointer.m in Sources */,
+				CC7379E7245A859C00FE64C8 /* FJSDispatch.m in Sources */,
 				CC92AE2B21618506001F0CA4 /* FJSSymbolManager.m in Sources */,
 				CC92AE2C21618506001F0CA4 /* FJSFFI.m in Sources */,
 				CC2F673C217E8D750095FCEB /* FJSSuite.m in Sources */,

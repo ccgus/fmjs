@@ -6,10 +6,10 @@
 //  Copyright © 2020 Flying Meat Inc. All rights reserved.
 //
 
-#import "FJSCocoaScriptPreProcessor.h"
+#import "FJSCocoaScriptPreprocessor.h"
 #import "TDConglomerate.h"
 
-@implementation FJSCocoaScriptPreProcessor
+@implementation FJSCocoaScriptPreprocessor
 
 + (NSString*)processMultilineStrings:(NSString*)sourceString {
     

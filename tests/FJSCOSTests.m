@@ -7,7 +7,7 @@
 //
 
 #import <XCTest/XCTest.h>
-#import "FJSCocoaScriptPreProcessor.h"
+#import "FJSCocoaScriptPreprocessor.h"
 
 @interface FJSCOSTests : XCTestCase
 
@@ -25,7 +25,7 @@
 
 - (void)testProc1 {
     
-    NSString *r = [FJSCocoaScriptPreProcessor preprocessCode:@"[jstalk include:'acornsetup.jstalk'];"];
+    NSString *r = [FJSCocoaScriptPreprocessor preprocessCode:@"[jstalk include:'acornsetup.jstalk'];"];
     
     XCTAssert([r isEqualToString:@"jstalk.include_( 'acornsetup.jstalk');"]);
 }

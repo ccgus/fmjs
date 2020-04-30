@@ -91,11 +91,13 @@ static JSValueRef FJSPrototypeForOBJCInstance(JSContextRef ctx, id instance, NSS
             return YES;
         }
         
-        @try {
-            [[objectValue instance] valueForKey:propertyName];
-            return YES;
-        } @catch (NSException *exception) {
-            ;// pass
+        if (![propertyName isEqualToString:@"Symbol.toPrimitive"]) {
+            @try {
+                [[objectValue instance] valueForKey:propertyName];
+                return YES;
+            } @catch (NSException *exception) {
+                ;// pass
+            }
         }
     }
     
@@ -153,7 +155,7 @@ static JSValueRef FJSPrototypeForOBJCInstance(JSContextRef ctx, id instance, NSS
     // Hey, let's look for keyed subscripts!
     if ([valueFromJSObject isInstance]) {
         
-        id objcSubscriptedObject = nil;
+        id objcSubscriptedObjectToReturn = nil;
         
         if ([[valueFromJSObject instance] respondsToSelector:@selector(FJSValueForKeyedSubscript:inRuntime:)]) {
             FJSValue *v = [[valueFromJSObject instance] FJSValueForKeyedSubscript:propertyName inRuntime:self];
@@ -162,12 +164,12 @@ static JSValueRef FJSPrototypeForOBJCInstance(JSContextRef ctx, id instance, NSS
             }
         }
         
-        if (!objcSubscriptedObject && [[valueFromJSObject instance] respondsToSelector:@selector(objectForKeyedSubscript:)]) {
-            objcSubscriptedObject = [[valueFromJSObject instance] objectForKeyedSubscript:propertyName];
+        if (!objcSubscriptedObjectToReturn && [[valueFromJSObject instance] respondsToSelector:@selector(objectForKeyedSubscript:)]) {
+            objcSubscriptedObjectToReturn = [[valueFromJSObject instance] objectForKeyedSubscript:propertyName];
         }
         
-        if (!objcSubscriptedObject && FJSStringIsNumber(propertyName) && [[valueFromJSObject instance] respondsToSelector:@selector(objectAtIndexedSubscript:)]) {
-            objcSubscriptedObject = [[valueFromJSObject instance] objectAtIndexedSubscript:[propertyName integerValue]];
+        if (!objcSubscriptedObjectToReturn && FJSStringIsNumber(propertyName) && [[valueFromJSObject instance] respondsToSelector:@selector(objectAtIndexedSubscript:)]) {
+            objcSubscriptedObjectToReturn = [[valueFromJSObject instance] objectAtIndexedSubscript:[propertyName integerValue]];
         }
         
         #pragma message "FIXME: How are we going to add Symbol.toPrimitive to classes? maybe add a FMJSSymbolToPrimitive:(NSString*)hint to classes that want it?"
@@ -188,13 +190,12 @@ static JSValueRef FJSPrototypeForOBJCInstance(JSContextRef ctx, id instance, NSS
             }
         }*/
         
-        if (objcSubscriptedObject) {
+        if (objcSubscriptedObjectToReturn) {
             
             JSValueRef subscriptedJSValue = nil;
-            subscriptedJSValue = FJSNativeObjectToJSValue(objcSubscriptedObject, [self contextRef]); // Check and see if we can convert objc numbers, strings, or NSNulls to native js types.
-            if (!subscriptedJSValue) { //
-                FMAssert(NO); // When is this ever called? What happens to the value instance? Does it just dealloc and then what?
-                FJSValue *value = [FJSValue valueWithInstance:(__bridge CFTypeRef)(objcSubscriptedObject) inRuntime:self];
+            subscriptedJSValue = FJSNativeObjectToJSValue(objcSubscriptedObjectToReturn, [self contextRef]); // Check and see if we can convert objc numbers, strings, or NSNulls to native js types.
+            if (!subscriptedJSValue) { // OK, we don't have a JS native type, so we'll wrap it up as it is.
+                FJSValue *value = [FJSValue valueWithInstance:(__bridge CFTypeRef)(objcSubscriptedObjectToReturn) inRuntime:self];
                 subscriptedJSValue = [value JSValueRef];
                 // We were doing this, which does a +1 on the value. But… that's a leak, right?
                 // subscriptedJSValue = [self newJSValueForWrapper:value];

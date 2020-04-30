@@ -22,6 +22,10 @@
 - (FJSValue*)evaluateAsModule:(NSString*)script;
 @end
 
+@interface FJSNonNativeType : NSObject @end
+
+@implementation FJSNonNativeType /* Doesn't actually have to do anything. */ @end
+
 const NSString *FJSTestConstString = @"HELLO I'M FJSTestConstString";
 const int FJSTestConstInt = 74;
 
@@ -35,6 +39,7 @@ int FJSTestCGImageRefExampleCounter;
 @interface FJSTestClass : NSObject
 @property (assign) int passedInt;
 @property (strong) NSString *randomString;
+@property (retain) NSMutableArray *testArray;
 @end
 
 @implementation FJSTestClass
@@ -46,6 +51,27 @@ int FJSTestCGImageRefExampleCounter;
     }
     
     return self;
+}
+
+- (void)loadArray {
+    
+    _testArray = [NSMutableArray array];
+    
+    [_testArray addObject:@"Item One"];
+    [_testArray addObject:@"Item Two"];
+    [_testArray addObject:@"Item Three"];
+}
+
+- (void)loadArrayWithNonNativeTypes {
+    
+    _testArray = [NSMutableArray array];
+    [_testArray addObject:[FJSNonNativeType new]];
+    [_testArray addObject:[FJSNonNativeType new]];
+    [_testArray addObject:[FJSNonNativeType new]];
+}
+
+- (NSArray*)testArrayPass {
+    return _testArray;
 }
 
 - (void)testMethod {
@@ -1205,6 +1231,19 @@ int FJSTestCGImageRefExampleCounter;
     
     XCTAssert([runtime evaluateScript:@"ar[0] = 'Hello?';"]);
     XCTAssert([[ar objectAtIndex:0] isEqualToString:@"Hello?"]);
+    
+    FJSTestClass *c = [FJSTestClass new];
+    [c loadArray];
+    
+    
+    runtime[@"testClass"] = c;
+    FJSValue *first = [runtime evaluateScript:@"testClass.testArray()[0];"];
+    XCTAssert([[first toObject] isEqualToString:@"Item One"], @"Expected 'Item One' got %@ instead", [first toObject]);
+    
+    [c loadArrayWithNonNativeTypes];
+    first = [runtime evaluateScript:@"testClass.testArray()[0];"];
+    XCTAssert([[first toObject] isKindOfClass:[FJSNonNativeType class]]);
+    
     
     [runtime shutdown];
     

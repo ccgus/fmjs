@@ -53,6 +53,8 @@ NS_ASSUME_NONNULL_BEGIN
 + (instancetype)valueWithSerializedJSFunction:(NSString*)function inRuntime:(FJSRuntime*)runtime;
 + (instancetype)valueWithPointer:(void*)p ofType:(char)type inRuntime:(FJSRuntime*)runtime;
 
++ (void)setCaptureJSValueInstancesForDebugging:(BOOL)b;
+
 - (BOOL)isClass;
 - (BOOL)isInstance;
 - (BOOL)isCFType;

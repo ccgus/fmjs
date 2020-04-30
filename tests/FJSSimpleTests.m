@@ -53,6 +53,15 @@ int FJSTestCGImageRefExampleCounter;
     return self;
 }
 
++ (instancetype)sharedInstance {
+    static FJSTestClass *tc;
+    static dispatch_once_t onceToken;
+    dispatch_once(&onceToken, ^{
+        tc = [FJSTestClass new];
+    });
+    return tc;
+}
+
 - (void)loadArray {
     
     _testArray = [NSMutableArray array];
@@ -1921,6 +1930,53 @@ int FJSTestCGImageRefExampleCounter;
 }
 
 
+// I can get a similar test to fail in Acorn, but I can't here. It's a little nutty whyyy.
+- (void)testSharedInstanceEquality {
+    
+    //[FJSValue setCaptureJSValueInstancesForDebugging:YES];
+    
+    FJSRuntime *runtime = [FJSRuntime new];
+    [FJSRuntime setUseSynchronousGarbageCollectForDebugging:YES];
+    
+    [runtime setExceptionHandler:^(FJSRuntime * _Nonnull rt, NSException * _Nonnull exception) {
+        debug(@"exception: '%@'", exception);
+        XCTAssert(NO);
+    }];
+    
+    __block BOOL passedAssertion = NO;
+    runtime[@"XCTAssert"] = ^(BOOL condition) {
+        passedAssertion = condition;
+    };
+    
+    [runtime evaluateScript:@"var a = FJSTestClass.sharedInstance(); var b = FJSTestClass.sharedInstance(); XCTAssert(a == b);"];
+    
+    XCTAssert(passedAssertion);
+    
+    [runtime garbageCollect];
+    
+    // Do it again because singletons are a bit odd.
+    
+    [runtime evaluateScript:@"var a = FJSTestClass.sharedInstance(); var b = FJSTestClass.sharedInstance(); XCTAssert(a == b);"];
+    
+    XCTAssert(passedAssertion);
+    
+    [runtime evaluateScript:@"a = null;"];
+    
+    [runtime garbageCollect];
+    
+    [runtime evaluateScript:@"XCTAssert(b != null);"];
+    
+    
+    [runtime evaluateScript:@"b = null;"];
+    
+    [runtime shutdown];
+    
+    
+    
+    
+    
+    
+}
 
 
 - (void)xtestClassExtension {

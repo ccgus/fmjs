@@ -40,6 +40,7 @@
 // This is used for the unit tests.
 static size_t FJSValueLiveInstances = 0;
 static NSPointerArray *FJSValueLiveWeakArray;
+static BOOL FJSCaptureJSValueInstancesForDebugging;
 
 @implementation FJSValue
 
@@ -48,15 +49,14 @@ static NSPointerArray *FJSValueLiveWeakArray;
     if (self) {
         FJSValueLiveInstances++;
         
-#ifdef DEBUGx
-        if (!FJSValueLiveWeakArray) {
-            FJSValueLiveWeakArray = [NSPointerArray pointerArrayWithOptions:NSPointerFunctionsWeakMemory];
+        if (FJSCaptureJSValueInstancesForDebugging) {
+            if (!FJSValueLiveWeakArray) {
+                FJSValueLiveWeakArray = [NSPointerArray pointerArrayWithOptions:NSPointerFunctionsWeakMemory];
+            }
+            [FJSValueLiveWeakArray addPointer:(__bridge void * _Nullable)(self)];
+            
+            _debugStackFromInit = [[NSThread callStackSymbols] description];
         }
-        [FJSValueLiveWeakArray addPointer:(__bridge void * _Nullable)(self)];
-        
-        _debugStackFromInit = [[NSThread callStackSymbols] description];
-#endif
-        
     }
     return self;
 }
@@ -66,12 +66,7 @@ static NSPointerArray *FJSValueLiveWeakArray;
     FJSValueLiveInstances--;
     
     if (([self isInstance] || [self isBlock]) && _cValue.value.pointerValue && ![[[self symbol] symbolType] isEqualToString:@"constant"]) {
-        
-        id obj = (__bridge id)(_cValue.value.pointerValue);
-        if ([obj isKindOfClass:[NSData class]]) {
-            obj = [NSString stringWithFormat:@"%@ of %ld bytes", NSStringFromClass([obj class]), [(NSData*)obj length]];
-        }
-        
+        objc_setAssociatedObject((__bridge id _Nonnull)(_cValue.value.pointerValue), (__bridge const void * _Nonnull)[self runtime], nil, OBJC_ASSOCIATION_ASSIGN);
         CFRelease(_cValue.value.pointerValue);
     }
     
@@ -96,6 +91,16 @@ static NSPointerArray *FJSValueLiveWeakArray;
 #endif
     
 }
+
++ (void)setCaptureJSValueInstancesForDebugging:(BOOL)b {
+    FJSCaptureJSValueInstancesForDebugging = b;
+}
+
++ (BOOL)captureJSValueInstancesForDebugging {
+    return FJSCaptureJSValueInstancesForDebugging;
+}
+
+
 
 + (size_t)countOfLiveInstances { // This is used in unit testing.
     return FJSValueLiveInstances;
@@ -231,11 +236,29 @@ static NSPointerArray *FJSValueLiveWeakArray;
     return value;
 }
 
+
+// see testSharedInstanceEquality for why we are doign this.
++ (instancetype)associatedValueInInstance:(CFTypeRef)instance inRuntime:(FJSRuntime*)runtime {
+     
+    id v = objc_getAssociatedObject((__bridge id)instance, (__bridge const void * _Nonnull)runtime);
+    if (v) {
+        return v;
+    }
+    
+    return nil;
+}
+
+
+
 + (instancetype)valueWithInstance:(CFTypeRef)instance inRuntime:(FJSRuntime*)runtime {
     
     if (!instance) {
-        debug(@"Null instance, returning valueWithNullInRuntime:");
         return [self valueWithNullInRuntime:runtime];
+    }
+    
+    FJSValue *associated = [self associatedValueInInstance:instance inRuntime:runtime];
+    if (associated) {
+        return associated;
     }
     
     if (FJSInstanceIsBlock((__bridge id)instance)) {
@@ -246,6 +269,8 @@ static NSPointerArray *FJSValueLiveWeakArray;
     FJSValue *value = [[self alloc] init];
     [value setInstance:instance];
     [value setRuntime:runtime];
+    
+    objc_setAssociatedObject((__bridge id _Nonnull)(instance), (__bridge const void * _Nonnull)runtime, (value), OBJC_ASSOCIATION_ASSIGN);
     
     return value;
 }

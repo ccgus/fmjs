@@ -370,6 +370,14 @@ static const void * const kDispatchQueueRecursiveSpecificKey = &kDispatchQueueRe
             [self pushAsCurrentFJS];
             
             
+            JSObjectRef jsFunction = [self functionWithName:name];
+            if (!jsFunction) {
+                NSString *reason = [NSString stringWithFormat:@"Can't find function: '%@'", name];
+                [self reportNSException:[NSException exceptionWithName:FMJavaScriptExceptionName reason:reason userInfo:nil]];
+                returnValue = [FJSValue valueWithUndefinedInRuntime:self];
+                [self popAsCurrentFJS];
+                return;
+            }
             #pragma message "FIXME: Replace this with the on on FJSValue?"
             
             JSValueRef *jsArgumentsArray = nil;
@@ -385,7 +393,6 @@ static const void * const kDispatchQueueRecursiveSpecificKey = &kDispatchQueueRe
                 }
             }
             
-            JSObjectRef jsFunction = [self functionWithName:name];
             assert((JSValueGetType(self->_jsContext, jsFunction) == kJSTypeObject));
             JSValueRef exception = NULL;
             //debug(@"calling function");

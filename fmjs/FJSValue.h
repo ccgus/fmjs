@@ -44,8 +44,8 @@ typedef struct {
 @property (strong) FJSSymbol *symbol;
 @property (assign) BOOL isJSNative;
 
-#ifdef DEBUG
 @property (strong) NSString *debugStackFromInit;
+#ifdef DEBUG
 @property (assign) NSInteger protectCount;
 #endif
 

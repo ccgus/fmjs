@@ -200,9 +200,24 @@ static NSMutableDictionary *FJSFFIStructureLookup;
         }
         else if (jsSymbol) {
             
-            if (![[argSym runtimeType] isEqualToString:[jsSymbol runtimeType]]) {
+            NSString *symbolRTType = [jsSymbol runtimeType];
+            
+            if (![[argSym runtimeType] isEqualToString:symbolRTType]) {
                 
-                BOOL looksReasonable = ([[argSym runtimeType] isEqualToString:@"@"] && [[jsSymbol runtimeType] hasPrefix:@"^{C"]);
+                BOOL looksReasonable = ([[argSym runtimeType] isEqualToString:@"@"] && [symbolRTType hasPrefix:@"^{C"]);
+                if (!looksReasonable && [symbolRTType hasPrefix:@"{C"]) {
+                    // This is a horrible hack. How can we fix the general case for this?
+                    // got {CGSize=dd} when {CGSize="width"d"height"d} was needed.
+                    NSString *cleanedSymbolRTType = symbolRTType;
+                    cleanedSymbolRTType = [cleanedSymbolRTType stringByReplacingOccurrencesOfString:@"\"width\"" withString:@""];
+                    cleanedSymbolRTType = [cleanedSymbolRTType stringByReplacingOccurrencesOfString:@"\"height\"" withString:@""];
+                    cleanedSymbolRTType = [cleanedSymbolRTType stringByReplacingOccurrencesOfString:@"\"x\"" withString:@""];
+                    cleanedSymbolRTType = [cleanedSymbolRTType stringByReplacingOccurrencesOfString:@"\"y\"" withString:@""];
+                    if ([[argSym runtimeType] isEqualToString:cleanedSymbolRTType]) {
+                        looksReasonable = YES;
+                    }
+                }
+                
                 
                 if (!looksReasonable) {
                     

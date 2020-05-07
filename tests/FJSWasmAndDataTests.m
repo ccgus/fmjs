@@ -283,4 +283,72 @@
 }
 
 
+- (void)testCGContextDataAccess {
+    
+    FJSRuntime *runtime = [[FJSRuntime alloc] init];
+    
+    size_t width  = 100;
+    size_t height = 100;
+    CGColorSpaceRef cs = CGColorSpaceCreateWithName(kCGColorSpaceGenericGray);
+    
+    CGContextRef bgraContext = CGBitmapContextCreate(nil, width, height, 8, 100, cs, (CGBitmapInfo)kCGImageAlphaNone);
+    
+    CGFloat locations[] = {0.0, 1.0};
+    CGFloat colors[] = {0.0, 1.0,
+                        1.0, 1.0};
+    CGGradientRef gradient = CGGradientCreateWithColorComponents(cs, colors, locations, 2);
+    CGContextDrawLinearGradient(bgraContext, gradient, CGPointMake(0, 0), CGPointMake(width, 0), 0);
+    
+    CGColorSpaceRelease(cs);
+    
+    size_t bytesPerRow = CGBitmapContextGetBytesPerRow(bgraContext);
+    
+    NSData *dataWrapper = [NSData dataWithBytesNoCopy:CGBitmapContextGetData(bgraContext) length:bytesPerRow * height freeWhenDone:NO];
+    
+    FJSValue *typedArray = [dataWrapper toTypedArrayNoCopy:kJSTypedArrayTypeUint8Array inFJSRuntime:runtime];
+    
+    runtime[@"ta"] = typedArray;
+    
+    NSString *ditherFunction =
+@"function floydSteinberg(sb, w, h)   // source buffer, width, height\n\
+{\n\
+   for(var i=0; i<h; i++)\n\
+      for(var j=0; j<w; j++)\n\
+      {\n\
+         var ci = i*w+j;               // current buffer index\n\
+         var cc = sb[ci];              // current color\n\
+         var rc = (cc<128?0:255);      // real (rounded) color\n\
+         var err = cc-rc;              // error amount\n\
+         sb[ci] = rc;                  // saving real color\n\
+         if(j+1<w) sb[ci  +1] += (err*7)>>4;  // if right neighbour exists\n\
+         if(i+1==h) continue;   // if we are in the last line\n\
+         if(j  >0) sb[ci+w-1] += (err*3)>>4;  // bottom left neighbour\n\
+                   sb[ci+w  ] += (err*5)>>4;  // bottom neighbour\n\
+         if(j+1<w) sb[ci+w+1] += (err*1)>>4;  // bottom right neighbour\n\
+      }\n\
+}\n\
+floydSteinberg(ta, 100, 100);";
+    
+    [runtime evaluateScript:ditherFunction];
+    
+    [runtime shutdown];
+    
+    CGImageRef img = CGBitmapContextCreateImage(bgraContext);
+    CGImageDestinationRef imageDestination = CGImageDestinationCreateWithURL((__bridge CFURLRef)[NSURL fileURLWithPath:@"/tmp/foo.tiff"], kUTTypeTIFF, 1, NULL);
+    CGImageDestinationAddImage(imageDestination, img, (__bridge CFDictionaryRef)[NSDictionary dictionary]);
+    BOOL worked = CGImageDestinationFinalize(imageDestination);
+    
+    if (!worked) {
+        NSLog(@"%s:%d", __FUNCTION__, __LINE__);
+        debug(@"CGImageDestinationFinalize failed");
+    }
+    
+    CFRelease(imageDestination);
+    CGImageRelease(img);
+    
+    system("open /tmp/foo.tiff");
+    
+}
+
+
 @end

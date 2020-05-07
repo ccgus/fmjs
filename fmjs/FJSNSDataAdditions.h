@@ -7,7 +7,10 @@
 //
 
 #import <Foundation/Foundation.h>
+#import "FJSRuntime.h"
 
 @interface NSData (FJSNSDataAdditions)
 
+- (FJSValue*)toTypedArray:(JSTypedArrayType)type inFJSRuntime:(FJSRuntime*)runtime;
+- (FJSValue*)toTypedArrayNoCopy:(JSTypedArrayType)type inFJSRuntime:(FJSRuntime*)runtime;
 @end

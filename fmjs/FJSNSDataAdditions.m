@@ -13,6 +13,10 @@
 @implementation NSData (FJSNSDataAdditions)
 
 
+static void FJSTypedArrayNSDataDeallocator(void* bytes, void* deallocatorContext) {
+    CFRelease(deallocatorContext);
+}
+
 static void FJSTypedArrayBytesDeallocator(void* bytes, void* deallocatorContext) {
     free(bytes);
 }
@@ -21,6 +25,14 @@ static void FJSTypedArrayBytesDeallocator(void* bytes, void* deallocatorContext)
     
     JSObjectRef ar = JSObjectMakeTypedArray([runtime contextRef], type, [self length], NULL);
     memcpy(JSObjectGetTypedArrayBytesPtr([runtime contextRef], ar, nil), [self bytes], [self length]);
+    return [FJSValue valueWithJSValueRef:ar inRuntime:runtime];
+}
+
+- (FJSValue*)toTypedArrayNoCopy:(JSTypedArrayType)type inFJSRuntime:(FJSRuntime*)runtime {
+    
+    CFRetain((__bridge CFTypeRef)(self));
+    
+    JSObjectRef ar = JSObjectMakeTypedArrayWithBytesNoCopy([runtime contextRef], type, (void*)[self bytes], [self length], FJSTypedArrayNSDataDeallocator, (__bridge void *)(self), NULL);
     return [FJSValue valueWithJSValueRef:ar inRuntime:runtime];
 }
 

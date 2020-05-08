@@ -13,4 +13,8 @@
 
 - (FJSValue*)toTypedArray:(JSTypedArrayType)type inFJSRuntime:(FJSRuntime*)runtime;
 - (FJSValue*)toTypedArrayNoCopy:(JSTypedArrayType)type inFJSRuntime:(FJSRuntime*)runtime;
+
++ (FJSValue*)dataFromTypedArray:(FJSValue*)array inFJSRuntime:(FJSRuntime*)runtime;
++ (JSTypedArrayType)JSTypedArrayTypeFromTypedArrayName:(NSString*)name;
+
 @end

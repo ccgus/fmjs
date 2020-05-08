@@ -68,7 +68,7 @@ static void FJSTypedArrayBytesDeallocator(void* bytes, void* deallocatorContext)
     return [self toTypedArray:kJSTypedArrayTypeFloat64Array inFJSRuntime:runtime];
 }
 
-+ (FJSValue*)dataFromTypedArrayArray:(FJSValue*)array inFJSRuntime:(FJSRuntime*)runtime {
++ (FJSValue*)dataFromTypedArray:(FJSValue*)array inFJSRuntime:(FJSRuntime*)runtime {
     
     // FIXME: Can we check the types here? var a = new Int8Array([-122, 343, -567]); NSData.dataFromInt16Array(a); will segfault when you grab the values because the types aren't matching.
     
@@ -90,35 +90,35 @@ static void FJSTypedArrayBytesDeallocator(void* bytes, void* deallocatorContext)
 }
 
 + (FJSValue*)dataFromInt8Array:(FJSValue*)array inFJSRuntime:(FJSRuntime*)runtime {
-    return [self dataFromTypedArrayArray:array inFJSRuntime:runtime];
+    return [self dataFromTypedArray:array inFJSRuntime:runtime];
 }
 
 + (FJSValue*)dataFromUint8Array:(FJSValue*)array inFJSRuntime:(FJSRuntime*)runtime {
-    return [self dataFromTypedArrayArray:array inFJSRuntime:runtime];
+    return [self dataFromTypedArray:array inFJSRuntime:runtime];
 }
 
 + (FJSValue*)dataFromInt16Array:(FJSValue*)array inFJSRuntime:(FJSRuntime*)runtime {
-    return [self dataFromTypedArrayArray:array inFJSRuntime:runtime];
+    return [self dataFromTypedArray:array inFJSRuntime:runtime];
 }
 
 + (FJSValue*)dataFromUint16Array:(FJSValue*)array inFJSRuntime:(FJSRuntime*)runtime {
-    return [self dataFromTypedArrayArray:array inFJSRuntime:runtime];
+    return [self dataFromTypedArray:array inFJSRuntime:runtime];
 }
 
 + (FJSValue*)dataFromInt32Array:(FJSValue*)array inFJSRuntime:(FJSRuntime*)runtime {
-    return [self dataFromTypedArrayArray:array inFJSRuntime:runtime];
+    return [self dataFromTypedArray:array inFJSRuntime:runtime];
 }
 
 + (FJSValue*)dataFromUint32Array:(FJSValue*)array inFJSRuntime:(FJSRuntime*)runtime {
-    return [self dataFromTypedArrayArray:array inFJSRuntime:runtime];
+    return [self dataFromTypedArray:array inFJSRuntime:runtime];
 }
 
 + (FJSValue*)dataFromFloat32Array:(FJSValue*)array inFJSRuntime:(FJSRuntime*)runtime {
-    return [self dataFromTypedArrayArray:array inFJSRuntime:runtime];
+    return [self dataFromTypedArray:array inFJSRuntime:runtime];
 }
 
 + (FJSValue*)dataFromFloat64Array:(FJSValue*)array inFJSRuntime:(FJSRuntime*)runtime {
-    return [self dataFromTypedArrayArray:array inFJSRuntime:runtime];
+    return [self dataFromTypedArray:array inFJSRuntime:runtime];
 }
 
 
@@ -132,6 +132,37 @@ static void FJSTypedArrayBytesDeallocator(void* bytes, void* deallocatorContext)
     JSObjectRef jsobj = JSObjectMakeArrayBufferWithBytesNoCopy([runtime contextRef], b, [self length], FJSTypedArrayBytesDeallocator, nil, &e);
     
     return [FJSValue valueWithJSValueRef:jsobj inRuntime:runtime];
+}
+
++ (NSDictionary*)JSTypedArrayLUT {
+    static NSDictionary *lut;
+    static dispatch_once_t onceToken;
+    dispatch_once(&onceToken, ^{
+        lut = @{
+            @"Int8Array": @(kJSTypedArrayTypeInt8Array),
+            @"Int16Array": @(kJSTypedArrayTypeInt16Array),
+            @"Int32Array": @(kJSTypedArrayTypeInt32Array),
+            @"Uint8Array": @(kJSTypedArrayTypeUint8Array),
+            @"Uint8ClampedArray": @(kJSTypedArrayTypeUint8ClampedArray),
+            @"Uint16Array": @(kJSTypedArrayTypeUint16Array),
+            @"Uint32Array": @(kJSTypedArrayTypeUint32Array),
+            @"Float32Array": @(kJSTypedArrayTypeFloat32Array),
+            @"kJSTypedArrayTypeFloat64Array": @(kJSTypedArrayTypeFloat64Array),
+            @"ArrayBuffer": @(kJSTypedArrayTypeArrayBuffer),
+            [NSNull null]: @(kJSTypedArrayTypeNone),
+        };
+    });
+    
+    return lut;
+}
+
++ (JSTypedArrayType)JSTypedArrayTypeFromTypedArrayName:(NSString*)name {
+    
+    if (name && [[self JSTypedArrayLUT] objectForKey:name]) {
+        return [[[self JSTypedArrayLUT] objectForKey:name] intValue];
+    }
+    
+    return kJSTypedArrayTypeNone;
 }
 
 @end

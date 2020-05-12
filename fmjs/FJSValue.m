@@ -25,6 +25,8 @@
 @property (assign) BOOL debugFinalizeCalled;
 
 
+// #define FJSAssociateValuesForEquality 1
+
 #ifndef DEBUG
 @property (assign) NSInteger protectCount; // Why our own protectCount? Because we've also got a unprotectContextRef to manage.
 #endif
@@ -66,7 +68,9 @@ static BOOL FJSCaptureJSValueInstancesForDebugging;
     FJSValueLiveInstances--;
     
     if (([self isInstance] || [self isBlock]) && _cValue.value.pointerValue && ![[[self symbol] symbolType] isEqualToString:@"constant"]) {
+#ifdef FJSAssociateValuesForEquality
         objc_setAssociatedObject((__bridge id _Nonnull)(_cValue.value.pointerValue), (__bridge const void * _Nonnull)[self runtime], nil, OBJC_ASSOCIATION_ASSIGN);
+#endif
         CFRelease(_cValue.value.pointerValue);
     }
     
@@ -237,17 +241,18 @@ static BOOL FJSCaptureJSValueInstancesForDebugging;
 }
 
 
+#ifdef FJSAssociateValuesForEquality
 // see testSharedInstanceEquality for why we are doign this.
 + (instancetype)associatedValueInInstance:(CFTypeRef)instance inRuntime:(FJSRuntime*)runtime {
-     
+
     id v = objc_getAssociatedObject((__bridge id)instance, (__bridge const void * _Nonnull)runtime);
     if (v) {
         return v;
     }
-    
+
     return nil;
 }
-
+#endif
 
 
 + (instancetype)valueWithInstance:(CFTypeRef)instance inRuntime:(FJSRuntime*)runtime {
@@ -255,11 +260,13 @@ static BOOL FJSCaptureJSValueInstancesForDebugging;
     if (!instance) {
         return [self valueWithNullInRuntime:runtime];
     }
-    
+
+#ifdef FJSAssociateValuesForEquality
     FJSValue *associated = [self associatedValueInInstance:instance inRuntime:runtime];
     if (associated) {
         return associated;
     }
+#endif
     
     if (FJSInstanceIsBlock((__bridge id)instance)) {
         return [self valueWithBlock:instance inRuntime:runtime];
@@ -269,8 +276,10 @@ static BOOL FJSCaptureJSValueInstancesForDebugging;
     FJSValue *value = [[self alloc] init];
     [value setInstance:instance];
     [value setRuntime:runtime];
-    
+
+#ifdef FJSAssociateValuesForEquality
     objc_setAssociatedObject((__bridge id _Nonnull)(instance), (__bridge const void * _Nonnull)runtime, (value), OBJC_ASSOCIATION_ASSIGN);
+#endif
     
     return value;
 }
@@ -1330,6 +1339,8 @@ static BOOL FJSCaptureJSValueInstancesForDebugging;
 
 
 - (FJSValue *)invokeMethodNamed:(NSString *)method withArguments:(NSArray *)arguments {
+    
+    debug(@"method: '%@'", method);
     
     if (!_isJSNative) {
         FMAssert(NO);

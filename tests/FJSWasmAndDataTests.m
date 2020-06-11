@@ -119,6 +119,26 @@
     
     
     {
+        uint8 ui8[] = {255, 4, 48, 128};
+        
+        NSData *ui8dx = [NSData dataWithBytesNoCopy:&ui8 length:sizeof(uint8) * 4 freeWhenDone:NO];
+        runtime[@"ui8dx"] = ui8dx;
+        [runtime evaluateScript:@"var ui8dxa = ui8dx.toTypedArrayNoCopyOfType(Uint8Array);"];
+        XCTAssert([[runtime evaluateScript:@"ui8dxa[0]"] toInt] == 255);
+        XCTAssert([[runtime evaluateScript:@"ui8dxa[1]"] toInt] == 4);
+        XCTAssert([[runtime evaluateScript:@"ui8dxa[2]"] toInt] == 48);
+        XCTAssert([[runtime evaluateScript:@"ui8dxa[3]"] toInt] == 128);
+        
+        [runtime evaluateScript:@"ui8dxa[1] = ui8dxa[1] + 8;"];
+        XCTAssert([[runtime evaluateScript:@"ui8dxa[1]"] toInt] == 12);
+        XCTAssert([[runtime evaluateScript:@"ui8dxa[2]"] toInt] == 48);
+        debug(@"ui8[1]: %hhu", ui8[1]);
+        XCTAssert(ui8[1] == 12);
+        
+    }
+    
+    
+    {
         sint8 si8[] = {15, 16, 17};
         NSData *si8d = [NSData dataWithBytes:&si8 length:sizeof(si8)];
         runtime[@"si8d"] = si8d;
@@ -305,7 +325,7 @@
     
     NSData *dataWrapper = [NSData dataWithBytesNoCopy:CGBitmapContextGetData(bgraContext) length:bytesPerRow * height freeWhenDone:NO];
     
-    FJSValue *typedArray = [dataWrapper toTypedArrayNoCopy:kJSTypedArrayTypeUint8Array inFJSRuntime:runtime];
+    FJSValue *typedArray = [dataWrapper toTypedArrayNoCopy:kJSTypedArrayTypeUint8Array runtime:runtime];
     
     runtime[@"ta"] = typedArray;
     

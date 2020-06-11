@@ -21,14 +21,70 @@ static void FJSTypedArrayBytesDeallocator(void* bytes, void* deallocatorContext)
     free(bytes);
 }
 
-- (FJSValue*)toTypedArray:(JSTypedArrayType)type inFJSRuntime:(FJSRuntime*)runtime {
+- (FJSValue*)toTypedArrayOfType:(FJSValue*)typeValue inFJSRuntime:(FJSRuntime*)runtime {
+    
+    
+    JSType t = JSValueGetType([runtime contextRef], [typeValue JSValueRef]);
+    
+    if (t != kJSTypeObject) {
+        NSLog(@"Invalid type pasted to drawableImageAccumulatorWithTypedArrayType: %d. Returning undefined.", t);
+        return [FJSValue valueWithUndefinedInRuntime:runtime];
+    }
+    
+    NSString *functionName = [[typeValue objectForKeyedSubscript:@"name"] toObject];
+    
+    JSTypedArrayType arrayType = [NSData JSTypedArrayTypeFromTypedArrayName:functionName];
+    
+    if (arrayType == kJSTypedArrayTypeNone) {
+        NSLog(@"Unknown typed array function: %@. Returning undefined.", functionName);
+        return [FJSValue valueWithUndefinedInRuntime:runtime];
+    }
+    
+    
+    JSObjectRef ar = JSObjectMakeTypedArray([runtime contextRef], arrayType, [self length], NULL);
+    memcpy(JSObjectGetTypedArrayBytesPtr([runtime contextRef], ar, nil), [self bytes], [self length]);
+    return [FJSValue valueWithJSValueRef:ar inRuntime:runtime];
+}
+
+- (FJSValue*)toTypedArrayNoCopyOfType:(FJSValue*)typeValue inFJSRuntime:(FJSRuntime*)runtime {
+    
+    
+    JSType t = JSValueGetType([runtime contextRef], [typeValue JSValueRef]);
+    
+    if (t != kJSTypeObject) {
+        NSLog(@"Invalid type pasted to drawableImageAccumulatorWithTypedArrayType: %d. Returning undefined.", t);
+        return [FJSValue valueWithUndefinedInRuntime:runtime];
+    }
+    
+    NSString *functionName = [[typeValue objectForKeyedSubscript:@"name"] toObject];
+    
+    JSTypedArrayType arrayType = [NSData JSTypedArrayTypeFromTypedArrayName:functionName];
+    
+    if (arrayType == kJSTypedArrayTypeNone) {
+        NSLog(@"Unknown typed array function: %@. Returning undefined.", functionName);
+        return [FJSValue valueWithUndefinedInRuntime:runtime];
+    }
+    
+    
+    CFRetain((__bridge CFTypeRef)(self));
+    
+    JSObjectRef ar = JSObjectMakeTypedArrayWithBytesNoCopy([runtime contextRef], arrayType, (void*)[self bytes], [self length], FJSTypedArrayNSDataDeallocator, (__bridge void *)(self), NULL);
+    return [FJSValue valueWithJSValueRef:ar inRuntime:runtime];
+    
+}
+
+
+
+
+
+- (FJSValue*)toTypedArray:(JSTypedArrayType)type runtime:(FJSRuntime*)runtime {
     
     JSObjectRef ar = JSObjectMakeTypedArray([runtime contextRef], type, [self length], NULL);
     memcpy(JSObjectGetTypedArrayBytesPtr([runtime contextRef], ar, nil), [self bytes], [self length]);
     return [FJSValue valueWithJSValueRef:ar inRuntime:runtime];
 }
 
-- (FJSValue*)toTypedArrayNoCopy:(JSTypedArrayType)type inFJSRuntime:(FJSRuntime*)runtime {
+- (FJSValue*)toTypedArrayNoCopy:(JSTypedArrayType)type runtime:(FJSRuntime*)runtime {
     
     CFRetain((__bridge CFTypeRef)(self));
     
@@ -37,35 +93,35 @@ static void FJSTypedArrayBytesDeallocator(void* bytes, void* deallocatorContext)
 }
 
 - (FJSValue*)toInt8ArrayInFJSRuntime:(FJSRuntime*)runtime {
-    return [self toTypedArray:kJSTypedArrayTypeInt8Array inFJSRuntime:runtime];
+    return [self toTypedArray:kJSTypedArrayTypeInt8Array runtime:runtime];
 }
 
 - (FJSValue*)toUint8ArrayInFJSRuntime:(FJSRuntime*)runtime {
-    return [self toTypedArray:kJSTypedArrayTypeUint8Array inFJSRuntime:runtime];
+    return [self toTypedArray:kJSTypedArrayTypeUint8Array runtime:runtime];
 }
 
 - (FJSValue*)toInt16ArrayInFJSRuntime:(FJSRuntime*)runtime {
-    return [self toTypedArray:kJSTypedArrayTypeInt16Array inFJSRuntime:runtime];
+    return [self toTypedArray:kJSTypedArrayTypeInt16Array runtime:runtime];
 }
 
 - (FJSValue*)toUint16ArrayInFJSRuntime:(FJSRuntime*)runtime {
-    return [self toTypedArray:kJSTypedArrayTypeUint16Array inFJSRuntime:runtime];
+    return [self toTypedArray:kJSTypedArrayTypeUint16Array runtime:runtime];
 }
 
 - (FJSValue*)toInt32ArrayInFJSRuntime:(FJSRuntime*)runtime {
-    return [self toTypedArray:kJSTypedArrayTypeInt32Array inFJSRuntime:runtime];
+    return [self toTypedArray:kJSTypedArrayTypeInt32Array runtime:runtime];
 }
 
 - (FJSValue*)toUint32ArrayInFJSRuntime:(FJSRuntime*)runtime {
-    return [self toTypedArray:kJSTypedArrayTypeUint32Array inFJSRuntime:runtime];
+    return [self toTypedArray:kJSTypedArrayTypeUint32Array runtime:runtime];
 }
 
 - (FJSValue*)toFloat32ArrayInFJSRuntime:(FJSRuntime*)runtime {
-    return [self toTypedArray:kJSTypedArrayTypeFloat32Array inFJSRuntime:runtime];
+    return [self toTypedArray:kJSTypedArrayTypeFloat32Array runtime:runtime];
 }
 
 - (FJSValue*)toFloat64ArrayInFJSRuntime:(FJSRuntime*)runtime {
-    return [self toTypedArray:kJSTypedArrayTypeFloat64Array inFJSRuntime:runtime];
+    return [self toTypedArray:kJSTypedArrayTypeFloat64Array runtime:runtime];
 }
 
 + (FJSValue*)dataFromTypedArray:(FJSValue*)array inFJSRuntime:(FJSRuntime*)runtime {
@@ -163,6 +219,11 @@ static void FJSTypedArrayBytesDeallocator(void* bytes, void* deallocatorContext)
     }
     
     return kJSTypedArrayTypeNone;
+}
+
++ (NSString*)FJSTypedArrayNameNameFromJSTypedArray:(JSTypedArrayType)type {
+    
+    return [[[self JSTypedArrayLUT] allKeysForObject:@(type)] firstObject];
 }
 
 @end

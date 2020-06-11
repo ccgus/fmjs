@@ -40,10 +40,7 @@ static void FJSTypedArrayBytesDeallocator(void* bytes, void* deallocatorContext)
         return [FJSValue valueWithUndefinedInRuntime:runtime];
     }
     
-    
-    JSObjectRef ar = JSObjectMakeTypedArray([runtime contextRef], arrayType, [self length], NULL);
-    memcpy(JSObjectGetTypedArrayBytesPtr([runtime contextRef], ar, nil), [self bytes], [self length]);
-    return [FJSValue valueWithJSValueRef:ar inRuntime:runtime];
+    return [self toTypedArray:arrayType runtime:runtime];
 }
 
 - (FJSValue*)toTypedArrayNoCopyOfType:(FJSValue*)typeValue inFJSRuntime:(FJSRuntime*)runtime {
@@ -65,12 +62,7 @@ static void FJSTypedArrayBytesDeallocator(void* bytes, void* deallocatorContext)
         return [FJSValue valueWithUndefinedInRuntime:runtime];
     }
     
-    
-    CFRetain((__bridge CFTypeRef)(self));
-    
-    JSObjectRef ar = JSObjectMakeTypedArrayWithBytesNoCopy([runtime contextRef], arrayType, (void*)[self bytes], [self length], FJSTypedArrayNSDataDeallocator, (__bridge void *)(self), NULL);
-    return [FJSValue valueWithJSValueRef:ar inRuntime:runtime];
-    
+    return [self toTypedArrayNoCopy:arrayType runtime:runtime];
 }
 
 

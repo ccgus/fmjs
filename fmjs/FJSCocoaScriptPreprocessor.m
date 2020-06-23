@@ -43,7 +43,7 @@
                 [ret appendString:@"\""];
                 
                 NSArray *lines = [quot componentsSeparatedByString:@"\n"];
-                int i = 0;
+                NSUInteger i = 0;
                 while (i < [lines count] - 1) {
                     NSString *line = [lines objectAtIndex:i];
                     line = [line stringByReplacingOccurrencesOfString:@"\"" withString:@"\\\""];
@@ -448,7 +448,7 @@
     
     if ([self nonWhitespaceCountInArray:methodArgs]) {
         
-        for (int i = 0; i < [methodArgs count]; i++) {
+        for (NSUInteger i = 0; i < [methodArgs count]; i++) {
             
             NSString *arg = [methodArgs objectAtIndex:i];
             NSString *s = [arg description];

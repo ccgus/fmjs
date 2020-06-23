@@ -617,10 +617,10 @@ static NSMutableDictionary *FJSFFIStructureLookup;
             
         case FFI_TYPE_DOUBLE:
             return @"double";
-            
+#if defined(__i386__) || defined(__x86_64__)
         case FFI_TYPE_LONGDOUBLE:
             return @"long double";
-            
+#endif
         case FFI_TYPE_UINT8:
             return @"uint8";
             

@@ -743,7 +743,21 @@ int FJSTestCGImageRefExampleCounter;
     
 }
 
-
+- (void)testPropertyAccesInBitmapImageRep {
+    
+    NSBitmapImageRep *r = [[NSBitmapImageRep alloc] initWithData:[NSData dataWithContentsOfFile:@"/System/Library/Desktop Pictures/Yosemite.jpg"]];
+    
+    XCTAssert(r, @"Can't find /System/Library/Desktop Pictures/Yosemite.jpg");
+    
+    FJSRuntime *runtime = [FJSRuntime new];
+    
+    runtime[@"br"] = r;
+    
+    size_t w = [[runtime evaluateScript:@"br.pixelsWide()"] toLong];
+    
+    XCTAssert(w == 6016);
+    
+}
 
 - (void)testReentrantCrash {
     

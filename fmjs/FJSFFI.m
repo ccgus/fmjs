@@ -268,8 +268,25 @@ static NSMutableDictionary *FJSFFIStructureLookup;
         
         functionSymbol = [_f symbol];
         FMAssert(functionSymbol);
-        if ([[functionSymbol name] UTF8String]) {
-            callAddress = dlsym(RTLD_DEFAULT, [[functionSymbol name] UTF8String]);
+        NSString *functionSymbolName = [functionSymbol name];
+        
+#if FJS_ARM_InlineSwaps
+        if ([functionSymbolName isEqualToString:@"CGRectMake"] || [functionSymbolName isEqualToString:@"NSMakeRect"]) {
+            functionSymbolName = @"FJSRectMake";
+        }
+        else if ([functionSymbolName isEqualToString:@"CGPointMake"] || [functionSymbolName isEqualToString:@"NSMakePoint"]) {
+            functionSymbolName = @"FJSPointMake";
+        }
+        else if ([functionSymbolName isEqualToString:@"CGSizeMake"] || [functionSymbolName isEqualToString:@"NSMakeSize"]) {
+            functionSymbolName = @"FJSSizeMake";
+        }
+        else if ([functionSymbolName isEqualToString:@"NSMakeRange"]) {
+            functionSymbolName = @"FJSRangeMake";
+        }
+        
+#endif
+        if ([functionSymbolName UTF8String]) {
+            callAddress = dlsym(RTLD_DEFAULT, [functionSymbolName UTF8String]);
         }
         else {
             NSLog(@"Could not find function symbol name for %@", _f);

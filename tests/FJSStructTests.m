@@ -3,6 +3,7 @@
 #import "FJSFFI.h"
 #import "FJSUtil.h"
 #import "FJSSymbol.h"
+#import "FJSPrivate.h"
 #import <fmjs/FJS.h>
 #import <dlfcn.h>
 
@@ -37,8 +38,11 @@ APPKIT_EXTERN const CGRect FJSRuntimeTestCGRect;
 - (void)testCGRectReference {
     
     CGRect originalRect = CGRectMake(74, 78, 11, 16);
-    
+#if FJS_ARM_InlineSwaps
+    FJSSymbol *CGRectMakeSymbol = [FJSSymbol symbolForName:@"FJSRectMake"];
+#else
     FJSSymbol *CGRectMakeSymbol = [FJSSymbol symbolForName:@"CGRectMake"];
+#endif
     XCTAssert(CGRectMakeSymbol);
     FJSSymbol *CGRectMakeRetSymbol = [CGRectMakeSymbol returnValue];
     XCTAssert(CGRectMakeRetSymbol);
@@ -70,8 +74,12 @@ APPKIT_EXTERN const CGRect FJSRuntimeTestCGRect;
     void *structReturnStorage = calloc(1, sizeof(CGRect));
     debug(@"structReturnStorage: %p", structReturnStorage);
     
-    // Let's look up the address of CGPointMake
+    // Let's look up the address of CGRectMake
+#if FJS_ARM_InlineSwaps
+    void *callAddress = dlsym(RTLD_DEFAULT, "FJSRectMake");
+#else
     void *callAddress = dlsym(RTLD_DEFAULT, "CGRectMake");
+#endif
     assert(callAddress);
     
     // And then actually call it.
@@ -324,17 +332,22 @@ APPKIT_EXTERN const CGRect FJSRuntimeTestCGRect;
     // {CGScreenUpdateMoveDelta=ii}
 }
 
+
 - (void)testCGPointStructFFICall {
     // this is around for reference, as a way to showcase to myself how to call CGPointMake with a couple of doubles.
     // http://www.chiark.greenend.org.uk/doc/libffi-dev/html/Type-Example.html
     
+    char *functionName = "CGPointMake";
+#if FJS_ARM_InlineSwaps
+    functionName = "FJSPointMake";
+#endif
     
     
     // This is where ffi will eventually write our struct.
     void *structReturnStorage = calloc(1, sizeof(CGPoint));
     
     // Let's look up the address of CGPointMake
-    void *callAddress = dlsym(RTLD_DEFAULT, "CGPointMake");
+    void *callAddress = dlsym(RTLD_DEFAULT, functionName);
     assert(callAddress);
     
     // There are the values, and then the argument count to CGPointMake.

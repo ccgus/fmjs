@@ -8,7 +8,7 @@
 #define FJSRuntimeLookupKey @"fmjs"
 
 #if TARGET_CPU_ARM64
-fdsafds #define FJS_ARM_InlineSwaps 1
+#define FJS_ARM_InlineSwaps 1
 #endif
 
 NS_ASSUME_NONNULL_BEGIN

@@ -1340,8 +1340,6 @@ static BOOL FJSCaptureJSValueInstancesForDebugging;
 
 - (FJSValue *)invokeMethodNamed:(NSString *)method withArguments:(NSArray *)arguments {
     
-    debug(@"method: '%@'", method);
-    
     if (!_isJSNative) {
         FMAssert(NO);
         return nil;

@@ -13,6 +13,7 @@
 #import <getopt.h>
 #import "FJS.h"
 #import "FJSInterpreter.h"
+#import "FJSPrivate.h"
 
 static const char * program_name = "fmjs";
 static const char * program_version = "0.1a";
@@ -41,70 +42,72 @@ static void printVersion(void) {
 }
 
 
-void FJSToolExecuteScript(NSString *script, NSString *path);
+void FJSToolExecuteScriptWithArguments(NSString *script, NSString *path, NSArray *args);
 
 
 int main(int argc, const char * argv[]) {
     @autoreleasepool {
-        NSMutableArray *filePaths = [NSMutableArray array];
+        NSMutableArray *arguments = [NSMutableArray array];
         
-        int next_option;
-        do {
-            next_option = getopt_long(argc, (char * const *)argv, short_options, long_options, NULL);
-            
-            switch (next_option) {
-                case -1: {
-                    break;
-                }
-                case 'v': {
-                    printVersion();
-                    exit(0);
-                    break;
-                }
-                case 'h': {
-                    printUsage(stdout);
-                    exit(0);
-                    break;
-                }
-                case '?': {
-                    printUsage(stderr);
-                    exit(1);
-                    break;
-                }
-            }
-        }
-        while (next_option != -1);
+        // Check and see if the first argument is a file. If yes, then don't bother with the fmjs commands.
         
-        if (optind < argc) {
-            while (optind < argc) {
-                const char * arg = argv[optind++];
+        int idx = 1;
+        if (idx < argc) {
+            while (idx < argc) {
+                const char * arg = argv[idx++];
                 NSString *string = [NSString stringWithUTF8String:arg];
-                [filePaths addObject:string];
+                [arguments addObject:string];
             }
         }
+        
+        
+        NSString  *firstArgReadAsPath = nil;
+        if ([arguments count]) {
+            NSError *fileReadError;
+            firstArgReadAsPath = [NSString stringWithContentsOfFile:[arguments firstObject] encoding:NSUTF8StringEncoding error:&fileReadError];
+        }
+        
+        if (!firstArgReadAsPath) {
+            int next_option;
+            do {
+                next_option = getopt_long(argc, (char * const *)argv, short_options, long_options, NULL);
+                
+                switch (next_option) {
+                    case -1: {
+                        break;
+                    }
+                    case 'v': {
+                        printVersion();
+                        exit(0);
+                        break;
+                    }
+                    case 'h': {
+                        printUsage(stdout);
+                        exit(0);
+                        break;
+                    }
+                    case '?': {
+                        printUsage(stderr);
+                        exit(1);
+                        break;
+                    }
+                }
+            }
+            while (next_option != -1);
+        }
+        
         
         NSFileHandle *stdinHandle = [NSFileHandle fileHandleWithStandardInput];
         
-        if ([filePaths count] > 0) {
-            // Execute files
-            for (NSString *path in filePaths) {
-                NSError *err;
-                NSString *s = [NSString stringWithContentsOfFile:path encoding:NSUTF8StringEncoding error:&err];
-                
-                if (!s) {
-                    NSLog(@"Could not read the file at %@", path);
-                    NSLog(@"%@", err);
-                    exit(1);
-                }
-                
-                FJSToolExecuteScript(s, path);
-            }
+        
+        if (firstArgReadAsPath) {
+            FJSToolExecuteScriptWithArguments(firstArgReadAsPath, [arguments firstObject], arguments);
         }
         else if ([stdinHandle fjs_isReadable]) {
             // Execute contents of stdin
             NSData *stdinData = [stdinHandle readDataToEndOfFile];
             NSString *string = [[NSString alloc] initWithData:stdinData encoding:NSUTF8StringEncoding];
-            FJSToolExecuteScript(string, nil);
+            FJSToolExecuteScriptWithArguments(string, nil, arguments);
         }
         else {
             // Interactive mode
@@ -116,7 +119,7 @@ int main(int argc, const char * argv[]) {
 }
 
 
-void FJSToolExecuteScript(NSString *script, NSString *path) {
+void FJSToolExecuteScriptWithArguments(NSString *script, NSString *path, NSArray *args) {
     FJSRuntime *rt = [FJSRuntime new];
     
     [rt setExceptionHandler:^(FJSRuntime * _Nonnull runtime, NSException * _Nonnull exception) {
@@ -148,7 +151,12 @@ void FJSToolExecuteScript(NSString *script, NSString *path) {
         script = [script substringFromIndex:NSMaxRange(lineRange)];
     }
     
+    // We're going to fake Node's process package.
+    NSDictionary *process = @{@"argv": (args ? args : @[])};
+    rt[@"process"] = process;
+    
     @try {
+        [FJSValue setCaptureJSValueInstancesForDebugging:YES];
         [rt evaluateScript:script withSourceURL:[NSURL fileURLWithPath:path]];
     }
     @catch (NSException *e) {

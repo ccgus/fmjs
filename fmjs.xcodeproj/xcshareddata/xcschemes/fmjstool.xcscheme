@@ -50,7 +50,6 @@
       useCustomWorkingDirectory = "NO"
       ignoresPersistentStateOnLaunch = "NO"
       debugDocumentVersioning = "YES"
-      stopOnEveryUBSanitizerIssue = "YES"
       migratedStopOnEveryIssue = "YES"
       debugServiceExtension = "internal"
       allowLocationSimulation = "YES">
@@ -91,6 +90,18 @@
          </CommandLineArgument>
          <CommandLineArgument
             argument = "/Users/gus/Desktop/classes.js"
+            isEnabled = "NO">
+         </CommandLineArgument>
+         <CommandLineArgument
+            argument = "/Users/gus/Projects/fmwrite/scripts/okwritenewcommands.js"
+            isEnabled = "YES">
+         </CommandLineArgument>
+         <CommandLineArgument
+            argument = "-v"
+            isEnabled = "YES">
+         </CommandLineArgument>
+         <CommandLineArgument
+            argument = "micro"
             isEnabled = "YES">
          </CommandLineArgument>
       </CommandLineArguments>

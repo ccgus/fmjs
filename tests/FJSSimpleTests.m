@@ -1598,13 +1598,18 @@ int FJSTestCGImageRefExampleCounter;
     
     FJSRuntime *runtime = [FJSRuntime new];
     
-    FJSValue *v = [runtime evaluateScript:@"NSArray.arrayWithObject(1).length"];
+    __block int blockCountCalled = 0;
+    void (^blockA)(void) = ^void() { blockCountCalled += 1; };
+    void (^blockB)(void) = ^void() { blockCountCalled += 2; };
+    void (^blockC)(void) = ^void() { blockCountCalled += 3; };
     
-    XCTAssert(v);
+    NSArray *a = @[blockA, blockB, blockC];
     
-    // FIXME: implement this.
+    runtime[@"testArray"] = a;
     
-    XCTAssert(NO);
+    [runtime evaluateScript:@"testArray.forEach(function(b) { b(); });"];
+    
+    XCTAssert(blockCountCalled == 6, @"blockCountCalled was wrong, got %d", blockCountCalled);
     
     [runtime shutdown];
 }

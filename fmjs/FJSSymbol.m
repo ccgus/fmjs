@@ -226,7 +226,7 @@
     return [NSString stringWithFormat:@"<%@: %p %@ %@>", NSStringFromClass([self class]), (void*)self, _name, _runtimeType];
 }
 
-#pragma message "FIXME: We can't override init with initInFJSRuntime:, which is a bummer. How about flopping around the order of checks in methodNamed: so that we can?"
+// FIXME: We can't override init with initInFJSRuntime:, which is a bummer. How about flopping around the order of checks in methodNamed: so that we can?"
 - (void)methodNamesForInFJSRuntime:(NSString*)methodName getNoArgs:(NSString*__autoreleasing*)noArgs getWithArgs:(NSString*__autoreleasing*)withArgs {
     // timeIntervalSinceNow      -> timeIntervalSinceNowInFJSRuntime:
     // dateByAddingTimeInterval  -> dateByAddingTimeInterval:inFJSRuntime:

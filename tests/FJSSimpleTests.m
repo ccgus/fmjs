@@ -40,6 +40,7 @@ int FJSTestCGImageRefExampleCounter;
 @property (assign) int passedInt;
 @property (strong) NSString *randomString;
 @property (retain) NSMutableArray *testArray;
+@property (strong) id randomId;
 @end
 
 @implementation FJSTestClass
@@ -392,6 +393,47 @@ int FJSTestCGImageRefExampleCounter;
     XCTAssert(FJSSimpleTestsInitHappend == 1);
     
     XCTAssert(FJSSimpleTestsDeallocHappend == 1, @"Got %d deallocs", FJSSimpleTestsDeallocHappend);
+    XCTAssert(![FJSValue countOfLiveInstances], @"Got %ld instances still around", [FJSValue countOfLiveInstances]); // If this fails, make sure you're calling shutdown on all your runtimes.
+    
+    
+    
+    // This is the second part mentioned in another comment.
+    FJSSimpleTestsInitHappend = 0;
+    FJSSimpleTestsDeallocHappend = 0;
+    FJSSimpleTestsMethodCalled = 0;
+    
+    
+    @autoreleasepool {
+        
+        FJSRuntime *runtime = [[FJSRuntime alloc] init];
+        
+        FJSTestClass *testClass = [FJSTestClass new];
+        runtime[@"testClass"] = testClass;
+        
+        FJSValue *tc = runtime[@"testClass"];
+        tc[@"randomId"] = [FJSTestClass new];
+        
+        weakTestClass = [tc[@"randomId"] toObject];
+        XCTAssert([weakTestClass isKindOfClass:[FJSTestClass class]]);
+        
+        
+        FJSTestClass *anotherTestClass = [FJSTestClass new];
+        runtime[@"anotherTestClass"] = anotherTestClass;
+        FJSValue *atc = runtime[@"anotherTestClass"];
+        atc[@"randomId"] = [FJSTestClass new];
+        
+        XCTAssert([[atc[@"randomId"] toObject] isKindOfClass:[FJSTestClass class]]);
+        
+        // FIXME: Why doesn't the runtime do this automatically when we shut down? Do we have to delete our objects?
+        [runtime evaluateScript:@"testClass = null;"];
+        [runtime evaluateScript:@"anotherTestClass = null;"];
+        
+        [runtime shutdown];
+    }
+    
+    XCTAssert(!weakTestClass);
+    XCTAssert(FJSSimpleTestsInitHappend == 4);
+    XCTAssert(FJSSimpleTestsDeallocHappend == 4, @"Got %d deallocs", FJSSimpleTestsDeallocHappend);
     XCTAssert(![FJSValue countOfLiveInstances], @"Got %ld instances still around", [FJSValue countOfLiveInstances]); // If this fails, make sure you're calling shutdown on all your runtimes.
     
 }

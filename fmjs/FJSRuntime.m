@@ -537,7 +537,8 @@ NSRange FJSRangeMake(NSUInteger loc, NSUInteger len) {
         JSObjectSetProperty([self contextRef], jsObject, jsName, jsValue, kJSPropertyAttributeNone, &exception);
         JSStringRelease(jsName);
         
-        #pragma message "FIXME: [[self runtimeObjectNames] addObject:name]; is completely worthless now with the inJSObject:(JSObjectRef)jsObject param. We need to keep a map of things to kill based on the FJSValue we're setting these things on."
+        // FIXME: is [[self runtimeObjectNames] addObject:name]; is completely worthless now with the inJSObject:(JSObjectRef)jsObject param. Do we need to keep a map of things to kill based on the FJSValue we're setting these things on? The second part of the testRuntimeObjectDealoc test implies we don't. Should we store them in the FJSValue?"
+        
         if (!exception) {
             [[self runtimeObjectNames] addObject:name];
         }

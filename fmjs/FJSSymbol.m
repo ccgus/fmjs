@@ -403,7 +403,7 @@
     FMAssert(name);
     FMAssert(class);
     
-    #pragma message "FIXME: Can we sanitize or change names here? __NSCFString to NSString?"
+    // FIXME: Can we sanitize or change names here? __NSCFString to NSString?"
     
     // Let's find our class symbol first.
     FJSSymbol *classSymbol = [self symbolForName:NSStringFromClass(class) inObject:nil];

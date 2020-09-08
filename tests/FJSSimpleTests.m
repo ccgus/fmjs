@@ -1554,6 +1554,8 @@ int FJSTestCGImageRefExampleCounter;
     
     FJSValue *v = [runtime evaluateScript:@"NSArray.arrayWithObject(1).length"];
     
+    XCTAssert(v);
+    
     // FIXME: implement this.
     
     XCTAssert(NO);

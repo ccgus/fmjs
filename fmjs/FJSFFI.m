@@ -75,7 +75,7 @@ static NSMutableDictionary *FJSFFIStructureLookup;
         
         FJSValue *doFJSFunctionReturnValue;
         if (!isInFJSRuntimeCall && [object respondsToSelector:@selector(doFJSFunction:inRuntime:withValues:returning:)] && [object doFJSFunction:_f inRuntime:_runtime withValues:_args returning:&doFJSFunctionReturnValue]) {
-            #pragma message "FIXME: Need to check retain counts here."
+            // FIXME: Need to check retain counts here. Note to Gus: How about explaining this a bit more in the future?
             return doFJSFunctionReturnValue ? doFJSFunctionReturnValue : [FJSValue valueWithUndefinedInRuntime:_runtime];
         }
         

@@ -386,6 +386,12 @@ NSRange FJSRangeMake(NSUInteger loc, NSUInteger len) {
 
 - (FJSValue *)callFunctionNamed:(NSString*)name withArguments:(NSArray*)arguments {
     
+    // FIXME: Replace this with the similar callWithArguments method on FJSValue? Something like the following?"
+    // FJSValue *fmjs = [self objectForKeyedSubscript:FJSRuntimeLookupKey];
+    // FMAssert(fmjs);
+    // FJSValue *function = [fmjs objectForKeyedSubscript:name];
+    // return [function callWithArguments:arguments];
+    
     __block FJSValue *returnValue = nil;
     
     [self dispatchOnQueue:^{
@@ -403,7 +409,6 @@ NSRange FJSRangeMake(NSUInteger loc, NSUInteger len) {
                 [self popAsCurrentFJS];
                 return;
             }
-            #pragma message "FIXME: Replace this with the on on FJSValue?"
             
             JSValueRef *jsArgumentsArray = nil;
             NSUInteger argumentsCount = [arguments count];
@@ -701,13 +706,20 @@ NSRange FJSRangeMake(NSUInteger loc, NSUInteger len) {
         [_moduleSearchPaths addObject:url];
     }
 }
+
 - (FJSValue*)evaluateAsModule:(NSString*)script {
-    #pragma message "FIXME: If evaluateAsModule is called outside of a script, it needs to be on the queue"
-    NSString *module = [NSString stringWithFormat:@"(function() { var module = { exports : {} }; var exports = module.exports; %@ ; return module.exports; })()", script];
     
-    FJSValue *moduleValue = [self evaluateNoQueue:module withSourceURL:nil];
+    __block FJSValue *moduleValue = nil;
     
+    [self dispatchOnQueue:^{
+        NSString *module = [NSString stringWithFormat:@"(function() { var module = { exports : {} }; var exports = module.exports; %@ ; return module.exports; })()", script];
+        
+        moduleValue = [self evaluateNoQueue:module withSourceURL:nil];
+        
+    }];
+
     return moduleValue;
+    
 }
 
 - (FJSValue*)evaluateModuleAtURL:(NSURL*)scriptURL {

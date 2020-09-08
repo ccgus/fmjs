@@ -155,21 +155,22 @@ static JSValueRef FJSPrototypeForOBJCInstance(JSContextRef ctx, id instance, NSS
     // Hey, let's look for keyed subscripts!
     if ([valueFromJSObject isInstance]) {
         
+        id objectUnwrapped = [valueFromJSObject toObject];
         id objcSubscriptedObjectToReturn = nil;
         
-        if ([[valueFromJSObject instance] respondsToSelector:@selector(FJSValueForKeyedSubscript:inRuntime:)]) {
-            FJSValue *v = [[valueFromJSObject instance] FJSValueForKeyedSubscript:propertyName inRuntime:self];
+        if ([objectUnwrapped respondsToSelector:@selector(FJSValueForKeyedSubscript:inRuntime:)]) {
+            FJSValue *v = [objectUnwrapped FJSValueForKeyedSubscript:propertyName inRuntime:self];
             if (v) {
                 return [v JSValueRef];
             }
         }
         
-        if (!objcSubscriptedObjectToReturn && [[valueFromJSObject instance] respondsToSelector:@selector(objectForKeyedSubscript:)]) {
-            objcSubscriptedObjectToReturn = [[valueFromJSObject instance] objectForKeyedSubscript:propertyName];
+        if (!objcSubscriptedObjectToReturn && [objectUnwrapped respondsToSelector:@selector(objectForKeyedSubscript:)]) {
+            objcSubscriptedObjectToReturn = [objectUnwrapped objectForKeyedSubscript:propertyName];
         }
         
-        if (!objcSubscriptedObjectToReturn && FJSStringIsNumber(propertyName) && [[valueFromJSObject instance] respondsToSelector:@selector(objectAtIndexedSubscript:)]) {
-            objcSubscriptedObjectToReturn = [[valueFromJSObject instance] objectAtIndexedSubscript:[propertyName integerValue]];
+        if (!objcSubscriptedObjectToReturn && FJSStringIsNumber(propertyName) && [objectUnwrapped respondsToSelector:@selector(objectAtIndexedSubscript:)]) {
+            objcSubscriptedObjectToReturn = [objectUnwrapped objectAtIndexedSubscript:[propertyName integerValue]];
         }
         
         #pragma message "FIXME: How are we going to add Symbol.toPrimitive to classes? maybe add a FMJSSymbolToPrimitive:(NSString*)hint to classes that want it?"
@@ -177,18 +178,39 @@ static JSValueRef FJSPrototypeForOBJCInstance(JSContextRef ctx, id instance, NSS
         // https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Symbol/toPrimitive
         /*
         if ([propertyName isEqualToString:@"Symbol.toPrimitive"]) {
-            if ([[valueFromJSObject instance] isKindOfClass:[NSNumber class]] || [[valueFromJSObject instance] isKindOfClass:[NSString class]]) {
+            if ([objectUnwrapped isKindOfClass:[NSNumber class]] || [objectUnwrapped isKindOfClass:[NSString class]]) {
                 
                 FJSValue *v = self[@"FMJSSymbolToPrimative"];
                 FMAssert(v);
                 return [v JSValueRef];
                 
-                //objcSubscriptedObject = [valueFromJSObject instance];
+                //objcSubscriptedObject = objectUnwrapped;
             }
             else {
                 FMAssert(NO); // What else are we tryign to conver to a primative?
             }
         }*/
+        
+        if ([objectUnwrapped isKindOfClass:[NSString class]] || [objectUnwrapped isKindOfClass:[NSArray class]]) {
+            // special case bridging of NSString & NSArray w/ JS functions
+            
+            JSValueRef jsPropertyValue = FJSPrototypeForOBJCInstance([self contextRef], objectUnwrapped, propertyName);
+            if (jsPropertyValue) {
+                return jsPropertyValue;
+            }
+            
+            if ([objectUnwrapped isKindOfClass:[NSArray class]]) {
+                // special case this property.
+                if ([propertyName isEqualToString:@"length"]) {
+                    return JSValueMakeNumber([self contextRef], [objectUnwrapped count]);
+                }
+            }
+        }
+        
+        
+        
+        
+        
         
         if (objcSubscriptedObjectToReturn) {
             

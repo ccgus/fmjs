@@ -17,7 +17,10 @@
     }];
 }
 
+// This should never be called, as it's handled in the runtime's - (JSValueRef)getProperty:inObject:exception:
+// But, we still want to define it, so that the runtime lookup will know it's there.
 - (NSUInteger)length {
+    FMAssert(NO);
     return [self count];
 }
 

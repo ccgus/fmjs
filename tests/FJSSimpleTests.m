@@ -1576,8 +1576,12 @@ int FJSTestCGImageRefExampleCounter;
     
     FJSRuntime *runtime = [FJSRuntime new];
     
-    FJSValue *v = [runtime evaluateScript:@"NSArray.arrayWithObject(1).length"];
+    FJSValue *v = [runtime evaluateScript:@"NSArray.arrayWithObject(1)"];
     
+    XCTAssert([[v toObject] isKindOfClass:[NSArray class]]);
+    
+    v = [runtime evaluateScript:@"NSArray.arrayWithObject(1).length"];
+    XCTAssert(v);
     XCTAssert([v toInt] == 1);
     
     runtime[@"someArray"] = @[@(1), @(2)];

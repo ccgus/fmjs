@@ -24,8 +24,8 @@
 @property (assign) JSType jsValueType;
 @property (assign) BOOL debugFinalizeCalled;
 
-
-// #define FJSAssociateValuesForEquality 1
+// Future Gus: next time you turn this off, explain why.
+#define FJSAssociateValuesForEquality 1
 
 #ifndef DEBUG
 @property (assign) NSInteger protectCount; // Why our own protectCount? Because we've also got a unprotectContextRef to manage.
@@ -617,7 +617,7 @@ static BOOL FJSCaptureJSValueInstancesForDebugging;
 
 - (void*)objectStorageForSymbol:(nullable FJSSymbol *)argSymbol {
     
-#pragma message "FIXME: Big problem- what if we're printing a CGRect? We need to push a native C value to an object."
+    // FIXME: Big problem- what if we're printing a CGRect? We need to push a native C value to an object."
     
     if ([argSymbol isPointer] && [self isInstance] && [[self instance] isKindOfClass:[FJSPointer class]]) {
         FJSPointer *p = [self instance];
@@ -651,7 +651,7 @@ static BOOL FJSCaptureJSValueInstancesForDebugging;
     if (_cValue.type == _C_STRUCT_B) {
         
         if (!_cValue.value.pointerValue) {
-            #pragma message "FIXME: refactor out how we get the size of the struct somehow.There's too many lines below to pull it out."
+            // FIXME: refactor out how we get the size of the struct somehow.There's too many lines below to pull it out.
             
             FJSSymbol *structSym = [self symbol];
             NSString *name = [structSym structName];
@@ -699,7 +699,7 @@ static BOOL FJSCaptureJSValueInstancesForDebugging;
 
 - (BOOL)setValue:(FJSValue*)value onStructFieldNamed:(NSString*)structFieldName {
     
-#pragma message "FIXME: Need more tests for the setValue:onStructFieldNamed: types."
+    // FIXME: Need more tests for the setValue:onStructFieldNamed: types."
     FMAssert(_cValue.type == _C_STRUCT_B);
     
     FJSSymbol *structSym = [self symbol];
@@ -1320,7 +1320,6 @@ static BOOL FJSCaptureJSValueInstancesForDebugging;
     return [_runtime objectForKeyedSubscript:key inJSObject:selfObject];
 }
 
-#pragma message "FIXME: Should this be a general method on the runtime class? Set property:forkey:onobject: or something? What about the queue?"
 - (void)setObject:(id)object forKeyedSubscript:(NSString *)name {
     
     if (object == self) { printf("Nice try.\n"); FMAssert(NO); return; }

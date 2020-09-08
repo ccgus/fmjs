@@ -187,7 +187,7 @@
 
 - (size_t)structSize {
     
-    #pragma message "FIXME: Add an assertion that we're a struct, so we're not calling this on an argument symbol. Or maybe look up the original symbol if this is an argument?"
+    // FIXME: Add an assertion that we're a struct, so we're not calling this on an argument symbol. Or maybe look up the original symbol if this is an argument?
     
     [self parseStruct];
     
@@ -331,7 +331,7 @@
 + (FJSSymbol*)symbolForBlockTypeEncoding:(const char*)typeEncoding {
     
     NSMethodSignature *methodSignature = [NSMethodSignature signatureWithObjCTypes:typeEncoding];
-#pragma message "FIXME: Refactor symbolForBlockTypeEncoding with methodNamed:(NSString*)methodName isClass:(BOOL)isClassMethod"
+    // FIXME: Refactor symbolForBlockTypeEncoding with methodNamed:(NSString*)methodName isClass:(BOOL)isClassMethod
     FJSSymbol *methodSymbol = [FJSSymbol new];
     [methodSymbol setName:[NSString stringWithFormat:@"%s", typeEncoding]];
     [methodSymbol setSymbolType:@"block"];

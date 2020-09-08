@@ -152,7 +152,7 @@ BOOL FJSObjectIsArray(JSObjectRef jsObject, JSContextRef context) {
 id FJSNativeObjectFromJSValue(JSValueRef jsValue, NSString *typeEncoding, JSContextRef context) {
     
     
-    #pragma message "FIXME: Hey gus add a  || [FJSSymbol symbolForCFType:typeEncoding] and the rest to make that work for getting CGImageRefs out of things."
+    // FIXME: Hey gus add a  || [FJSSymbol symbolForCFType:typeEncoding] and the rest to make that work for getting CGImageRefs out of things.
     // typeEncoding could be '@"NSString"', thanks to blocks!.
     if ([typeEncoding hasPrefix:@"@"] || [typeEncoding hasPrefix:@"^{CF"]) {
         

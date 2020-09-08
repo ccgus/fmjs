@@ -173,7 +173,7 @@ static JSValueRef FJSPrototypeForOBJCInstance(JSContextRef ctx, id instance, NSS
             objcSubscriptedObjectToReturn = [objectUnwrapped objectAtIndexedSubscript:[propertyName integerValue]];
         }
         
-        #pragma message "FIXME: How are we going to add Symbol.toPrimitive to classes? maybe add a FMJSSymbolToPrimitive:(NSString*)hint to classes that want it?"
+        // FIXME: How are we going to add Symbol.toPrimitive to classes? maybe add a FMJSSymbolToPrimitive:(NSString*)hint to classes that want it?
         // Symbol.toPrimitive needs to be a function, undefined, or null
         // https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Symbol/toPrimitive
         /*

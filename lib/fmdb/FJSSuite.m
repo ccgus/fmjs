@@ -89,7 +89,7 @@ static NSString *COSUTTypeFunction = @"R.function";
     
     FJSSuite *sub = [self subTableWithName:tableName];
     
-    #pragma message "FIXME: make sure to return an existing one if it's already around"
+    // FIXME: make sure to return an existing one if it's already around
     
     [sub setTableID:FJSUUID()];
     
@@ -182,7 +182,7 @@ static NSString *COSUTTypeFunction = @"R.function";
 }
 - (FJSValue*)FJSValueForKeyedSubscript:(NSString *)key inRuntime:(FJSRuntime*)runtime {
    
-    #pragma message "FIXME: This method is hacked together with duct tape and glue. Please clean it up."
+    // FIXME: This method is hacked together with duct tape and glue. Please clean it up.
     
     if ([self respondsToSelector:NSSelectorFromString(key)] || [self respondsToSelector:NSSelectorFromString([key stringByAppendingString:@":"])]) {
         return nil;

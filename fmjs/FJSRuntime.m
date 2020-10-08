@@ -184,30 +184,6 @@ static const void * const kDispatchQueueRecursiveSpecificKey = &kDispatchQueueRe
     
 }
 
-#if FJS_ARM_InlineSwaps
-// Currently, on arm, the bridge support dyld files are missing. (see loadFrameworkAtPath:)
-// This means, there's no CGRectMake, no CGPointMake, NSMakeRect, and friends. This sucks and we need some workaround in place for this.
-
-CGRect FJSRectMake(CGFloat x, CGFloat y, CGFloat width, CGFloat height) {
-    return CGRectMake(x, y, width, height);
-}
-
-CGPoint FJSPointMake(CGFloat x, CGFloat y) {
-  CGPoint p; p.x = x; p.y = y; return p;
-}
-
-CGSize FJSSizeMake(CGFloat width, CGFloat height) {
-  CGSize size; size.width = width; size.height = height; return size;
-}
-
-NSRange FJSRangeMake(NSUInteger loc, NSUInteger len) {
-    NSRange r;
-    r.location = loc;
-    r.length = len;
-    return r;
-}
-
-#endif
 
 - (void)shutdown {
     
@@ -668,13 +644,12 @@ NSRange FJSRangeMake(NSUInteger loc, NSUInteger len) {
     }
     
     NSString *bridgeDylib = [path stringByAppendingPathComponent:[NSString stringWithFormat:@"Resources/BridgeSupport/%@.dylib", frameworkName]];
-    debug(@"bridgeDylib: '%@'", bridgeDylib);
     // Don't check for the full path on this one, it'll fail on macOS 11. Just open and report an error.
     //if ([[NSFileManager defaultManager] fileExistsAtPath:bridgeDylib]) {
         address = dlopen([bridgeDylib UTF8String], RTLD_LAZY);
         if (!address) {
-            NSLog(@"ERROR: Could not load BridgeSupport dylib: %@, %@", frameworkName, bridgeDylib);
-            NSLog(@"dlerror reports: %s", dlerror());
+            //NSLog(@"ERROR: Could not load BridgeSupport dylib: %@, %@", frameworkName, bridgeDylib);
+            //NSLog(@"dlerror reports: %s", dlerror());
         }
     //}
 

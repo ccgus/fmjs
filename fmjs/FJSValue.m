@@ -25,7 +25,9 @@
 @property (assign) BOOL debugFinalizeCalled;
 
 // Future Gus: next time you turn this off, explain why.
-#define FJSAssociateValuesForEquality 1
+// Oh crap, it kills Muklogic in amazing ways (do a Render of ShapeOf). I think things are being dealloc'd when they shouldn't.
+// FIXME: Find out why the heck this breaks Muklogic + OKWrite. I'm thinking it has to do with memory lifetimes.
+//#define FJSAssociateValuesForEquality 1
 
 #ifndef DEBUG
 @property (assign) NSInteger protectCount; // Why our own protectCount? Because we've also got a unprotectContextRef to manage.

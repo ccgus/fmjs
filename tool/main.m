@@ -152,7 +152,7 @@ void FJSToolExecuteScriptWithArguments(NSString *script, NSString *path, NSArray
     }
     
     // We're going to fake Node's process package.
-    NSDictionary *process = @{@"argv": (args ? args : @[])};
+    NSDictionary *process = @{@"argv": (args ? args : @[]), @"exit": ^(int code) { exit(code); }};
     rt[@"process"] = process;
     
     @try {

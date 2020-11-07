@@ -10,7 +10,7 @@ Contact Info
 </th>
 </tr>
 <tr>
-<td><strong>Name</strong><br>Such as first or last name</td>
+<td width="50%"><strong>Name</strong><br>Such as first or last name</td>
 <td><li class="example">Does not collect data</li></td>
 </tr>
 <tr>

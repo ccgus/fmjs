@@ -1,9 +1,4 @@
-<style>
-table tr td:first-of-type {
-	width: 50%;
-	border-right: 1px solid #ccc;
-}
-</style>
+
 # FMJS Privacy Practices
 
 
@@ -275,3 +270,9 @@ Other Data
 </table>
 
 
+<style>
+table tr td:first-of-type {
+	width: 50%;
+	border-right: 1px solid #ccc;
+}
+</style>

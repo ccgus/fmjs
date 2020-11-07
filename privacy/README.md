@@ -5,7 +5,7 @@
 <table id="definitions" class="definitions" border="0">
 <tbody>
 <tr>
-<th colspan="2">
+<th colspan="2" align="left">
 Contact Info
 </th>
 </tr>

@@ -2,22 +2,20 @@
 # FMJS Privacy Practices
 
 
-## Contact Info
-
-<table id="definitions" class="definitions" width="650" border="0">
+<table id="definitions" class="definitions" border="0">
 <tbody>
 <tr>
-<th colspan="2" align="left">
+<th colspan="2">
 Contact Info
 </th>
 </tr>
 <tr>
-<td width="50%"><strong>Name</strong><br>Such as first or last name</td>
-<td width="50%"><li class="example">Does not collect data</li></td>
+<td><strong>Name</strong><br>Such as first or last name</td>
+<td><li class="example">Does not collect data</li></td>
 </tr>
 <tr>
-<td width="50%"><strong>Email Address</strong><br>Including but not limited to a hashed email address</td>
-<td width="50%">
+<td><strong>Email Address</strong><br>Including but not limited to a hashed email address</td>
+<td>
 <li>Does not collect data</li>
 </td>
 </tr>
@@ -270,9 +268,158 @@ Other Data
 </table>
 
 
+
+
+
+
+
+
+
+
+
+
+
 <style>
+html {
+	font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+	font-size: 106.25%;
+}
+
+body {
+	font-size: 14px;
+	line-height: 1.47059;
+	font-weight: 400;
+	letter-spacing: -.022em;
+	font-family: "Helvetica Neue", "Helvetica", "Arial", sans-serif;
+	background-color: #fff;
+	color: #1d1d1f;
+	font-style: normal;
+	text-align: left;
+	-webkit-font-smoothing: antialiased;
+}
+
+
+table {
+	margin: 0;
+	text-align: left;
+	border: 1px solid #ccc;
+	border-collapse: collapse;
+	border-spacing: 0;
+	max-width: 730px;
+}
+
+table tr {
+	border-bottom: 1px solid #ccc;
+}
+
+table tr th {
+	background-color: #eaeaea;
+	padding: 0.5em 10px;
+	font-size: 18px;
+	font-weight: 600;
+}
+
+table tr td {
+	padding: 1em 10px;
+	text-align: left;
+	vertical-align: top;
+}
+
 table tr td:first-of-type {
 	width: 50%;
 	border-right: 1px solid #ccc;
+}
+
+table p {
+	margin-bottom: 0;
+}
+
+table#sdk ul {
+	margin-top: 0;
+	margin-bottom: 0;
+}
+
+table#definitions tr:nth-of-type(even) td {
+	background-color: #f6f6f6;
+}
+
+table#definitions tr td:first-of-type {
+	width: 50%;
+}
+
+.section-content {
+	width: 1120px;
+}
+
+.row {
+	display: flex;
+	flex-wrap: wrap;
+	flex-direction: row;
+}
+
+.row-full {
+	display: flex;
+	flex-wrap: wrap;
+	flex-direction: row;
+	width: 100%;
+}
+
+.column {
+	box-sizing: border-box;
+	margin: 0;
+	padding: 0;
+	min-width: 0px;
+	position: relative;
+	flex-basis: 100%;
+	max-width: 100%;
+	width: 100%;
+}
+
+.column-split:first-of-type {
+	flex-basis: 48%;
+	max-width: 498px;
+	width: 498px;
+}
+
+.column-split:last-of-type {
+	flex-basis: 52%;
+	max-width: 610px;
+	width: 610px;
+}
+
+.sidebar {
+	padding-left: 5em;
+}
+
+.sidebar h3 {
+	margin-top: 0;
+}
+
+.sidebar ol li {
+	padding-bottom: 2em;
+}
+
+.sidebar ol li:last-of-type {
+	padding-bottom: 0;
+}
+
+.sidebar ol ul li {
+	padding-bottom: 0.5em;
+	list-style-type: disc;
+}
+
+.sidebar ol ul li:last-of-type {
+	padding-bottom: 0;
+}
+
+.category-icon {
+	display: inline-block;
+	vertical-align: middle;
+	margin: 0 10px 0 0;
+	width: 24px;
+	height: 24px;
+	background-size: 100% 100%;
+	background-repeat: no-repeat;
+	background-position: center center;
 }
 </style>

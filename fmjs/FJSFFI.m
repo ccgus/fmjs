@@ -38,12 +38,6 @@ static NSMutableDictionary *FJSFFIStructureLookup;
     return ffi;
 }
 
-- (nullable FJSValue*)blockInvoke {
-    
-    return nil;
-}
-
-
 - (nullable FJSValue*)objcInvoke {
     assert([_caller instance]);
     FJSSymbol *functionSymbol = [_f symbol];

@@ -44,7 +44,7 @@ static const void * const kDispatchQueueRecursiveSpecificKey = &kDispatchQueueRe
 @implementation FJSRuntime
 
 
-+ (instancetype)runtimeInContext:(JSContextRef)context {
++ (nullable instancetype)runtimeInContext:(JSContextRef)context {
     
     JSValueRef exception = NULL;
     
@@ -485,7 +485,7 @@ static const void * const kDispatchQueueRecursiveSpecificKey = &kDispatchQueueRe
     return [self objectForKeyedSubscript:name inJSObject:JSContextGetGlobalObject([self contextRef])];
 }
 
-- (void)setObject:(id)object forKeyedSubscript:(NSString *)name inJSObject:(JSObjectRef)jsObject {
+- (void)setObject:(nullable id)object forKeyedSubscript:(NSString *)name inJSObject:(JSObjectRef)jsObject {
     
     if (!object) {
         [self removeRuntimeValueWithName:name inJSObject:jsObject];
@@ -698,7 +698,7 @@ static const void * const kDispatchQueueRecursiveSpecificKey = &kDispatchQueueRe
     
 }
 
-- (FJSValue*)evaluateModuleAtURL:(NSURL*)scriptURL {
+- (nullable FJSValue*)evaluateModuleAtURL:(NSURL*)scriptURL {
     
     if (scriptURL) {
         NSError *error;

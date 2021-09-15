@@ -138,7 +138,7 @@ static BOOL FJSCaptureJSValueInstancesForDebugging;
     return [self valueWithJSValueRef:(JSObjectRef)JSValueMakeUndefined([runtime contextRef]) inRuntime:runtime];
 }
 
-+ (instancetype)valueWithJSValueRef:(nullable JSValueRef)jsValue inRuntime:(FJSRuntime*)runtime {
++ (nullable instancetype)valueWithJSValueRef:(nullable JSValueRef)jsValue inRuntime:(FJSRuntime*)runtime {
     FMAssert(runtime);
     if (!jsValue) {
         return nil;
@@ -310,7 +310,7 @@ static BOOL FJSCaptureJSValueInstancesForDebugging;
     return value;
 }
 
-+ (instancetype)valueWithSerializedJSFunction:(NSString*)function inRuntime:(FJSRuntime*)runtime {
++ (nullable instancetype)valueWithSerializedJSFunction:(NSString*)function inRuntime:(FJSRuntime*)runtime {
     FMAssert(runtime);
     
     function = [NSString stringWithFormat:@"(%@)()", function];
@@ -960,7 +960,7 @@ static BOOL FJSCaptureJSValueInstancesForDebugging;
     return value;
 }
 
-- (id)toObject {
+- (nullable id)toObject {
     
     if (_isJSNative) {
         

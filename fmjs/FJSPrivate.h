@@ -16,12 +16,12 @@ NS_ASSUME_NONNULL_BEGIN
 
 - (void)reportNSException:(NSException*)e;
 - (void)reportPossibleJSException:(nullable JSValueRef)exception;
-+ (instancetype)runtimeInContext:(JSContextRef)context;
++ (nullable instancetype)runtimeInContext:(JSContextRef)context;
 
 - (void)pushAsCurrentFJS;
 - (void)popAsCurrentFJS;
 
-- (void)setObject:(id)object forKeyedSubscript:(NSString *)name inJSObject:(JSObjectRef)jsObject;
+- (void)setObject:(nullable id)object forKeyedSubscript:(NSString *)name inJSObject:(JSObjectRef)jsObject;
 - (FJSValue*)objectForKeyedSubscript:(id)name inJSObject:(JSObjectRef)jsObject;
 
 @end
@@ -42,16 +42,16 @@ NS_ASSUME_NONNULL_BEGIN
 @property (assign) BOOL debugFinalizeCalled;
 
 
-+ (instancetype)valueWithSymbol:(FJSSymbol*)sym inRuntime:(FJSRuntime*)runtime;
-+ (instancetype)valueWithBlock:(CFTypeRef)block inRuntime:(FJSRuntime*)runtime;
-+ (instancetype)valueWithInstance:(CFTypeRef)instance inRuntime:(FJSRuntime*)runtime;
-+ (instancetype)valueWithWeakInstance:(id)instance inRuntime:(FJSRuntime*)runtime;
-+ (instancetype)valueWithConstantPointer:(void*)p withSymbol:(FJSSymbol*)sym inRuntime:(FJSRuntime*)runtime;
-+ (instancetype)valueWithClass:(Class)c inRuntime:(FJSRuntime*)runtime;
-+ (instancetype)valueWithCValue:(FJSObjCValue)cvalue inRuntime:(FJSRuntime*)runtime;
-+ (instancetype)valueWithNewObjectInRuntime:(FJSRuntime*)runtime;
-+ (instancetype)valueWithSerializedJSFunction:(NSString*)function inRuntime:(FJSRuntime*)runtime;
-+ (instancetype)valueWithPointer:(void*)p ofType:(char)type inRuntime:(FJSRuntime*)runtime;
++ (nullable instancetype)valueWithSymbol:(FJSSymbol*)sym inRuntime:(FJSRuntime*)runtime;
++ (nullable instancetype)valueWithBlock:(CFTypeRef)block inRuntime:(FJSRuntime*)runtime;
++ (nullable instancetype)valueWithInstance:(CFTypeRef)instance inRuntime:(FJSRuntime*)runtime;
++ (nullable instancetype)valueWithWeakInstance:(id)instance inRuntime:(FJSRuntime*)runtime;
++ (nullable instancetype)valueWithConstantPointer:(void*)p withSymbol:(FJSSymbol*)sym inRuntime:(FJSRuntime*)runtime;
++ (nullable instancetype)valueWithClass:(Class)c inRuntime:(FJSRuntime*)runtime;
++ (nullable instancetype)valueWithCValue:(FJSObjCValue)cvalue inRuntime:(FJSRuntime*)runtime;
++ (nullable instancetype)valueWithNewObjectInRuntime:(FJSRuntime*)runtime;
++ (nullable instancetype)valueWithSerializedJSFunction:(NSString*)function inRuntime:(FJSRuntime*)runtime;
++ (nullable instancetype)valueWithPointer:(void*)p ofType:(char)type inRuntime:(FJSRuntime*)runtime;
 
 + (void)setCaptureJSValueInstancesForDebugging:(BOOL)b;
 

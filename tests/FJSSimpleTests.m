@@ -563,7 +563,7 @@ int FJSTestCGImageRefExampleCounter;
     
     
     NSString *code = @"\
-    var url = NSURL.fileURLWithPath_('/System/Library/Desktop Pictures/Yosemite.jpg');\n\
+    var url = NSURL.fileURLWithPath_('/Library/Desktop Pictures/Beach.jpg');\n\
     var img = CIImage.imageWithContentsOfURL_(url)\n\
     var f = CIFilter.filterWithName_('CIColorInvert');\n\
     f.setValue_forKey_(img, kCIInputImageKey);\n\
@@ -578,6 +578,11 @@ int FJSTestCGImageRefExampleCounter;
         XCTAssert([img extent].size.width == 250, @"Got %f", [img extent].size.width);
         XCTAssert([img extent].size.height == 250, @"Got %f", [img extent].size.height);
     };
+    
+    
+    [runtime setExceptionHandler:^(FJSRuntime * _Nonnull rt, NSException * _Nonnull exception) {
+        debug(@"exception: '%@'", exception);
+    }];
     
     [runtime evaluateScript:code];
 
@@ -604,7 +609,7 @@ int FJSTestCGImageRefExampleCounter;
         \n\
         var center = CIVector.vectorWithX_Y_(100, 100);\n\
         var filterParams = { inputWidth: 5, inputSharpness: .5, inputCenter: center, }\n\
-        var url = NSURL.fileURLWithPath_('/System/Library/Desktop Pictures/Yosemite.jpg');\n\
+        var url = NSURL.fileURLWithPath_('/Library/Desktop Pictures/Beach.jpg');\n\
         var image = CIImage.imageWithContentsOfURL_(url)\n\
         image = image.imageByApplyingFilter_withInputParameters_('CICircularScreen', filterParams);\n\
         image = image.imageByCroppingToRect_(CGRectMake(0, 0, 200, 200));\n\
@@ -622,6 +627,10 @@ int FJSTestCGImageRefExampleCounter;
             XCTAssert([img extent].size.height == 200, @"Got %f", [img extent].size.height);
         };
         
+        [runtime setExceptionHandler:^(FJSRuntime * _Nonnull rt, NSException * _Nonnull exception) {
+            debug(@"exception: '%@'", exception);
+            XCTAssert(NO);
+        }];
         
         [runtime evaluateScript:code];
         // This is kind of Bs. What if we do a runloop?
@@ -640,7 +649,7 @@ int FJSTestCGImageRefExampleCounter;
     
     
     NSString *code = @"\
-    var url = NSURL.fileURLWithPath_('/System/Library/Desktop Pictures/Yosemite.jpg');\n\
+    var url = NSURL.fileURLWithPath_('/Library/Desktop Pictures/Beach.jpg');\n\
     var img = CIImage.imageWithContentsOfURL_(url)\n\
     var f = CIFilter.filterWithName('CIComicEffect');\n\
     f['inputImage'] = img; // Test auto kvc lookup. \n\
@@ -787,7 +796,7 @@ int FJSTestCGImageRefExampleCounter;
 
 - (void)testPropertyAccesInBitmapImageRep {
     
-    NSBitmapImageRep *r = [[NSBitmapImageRep alloc] initWithData:[NSData dataWithContentsOfFile:@"/System/Library/Desktop Pictures/Yosemite.jpg"]];
+    NSBitmapImageRep *r = [[NSBitmapImageRep alloc] initWithData:[NSData dataWithContentsOfFile:@"/Library/Desktop Pictures/Beach.jpg"]];
     
     XCTAssert(r, @"Can't find /System/Library/Desktop Pictures/Yosemite.jpg");
     
@@ -797,7 +806,7 @@ int FJSTestCGImageRefExampleCounter;
     
     size_t w = [[runtime evaluateScript:@"br.pixelsWide()"] toLong];
     
-    XCTAssert(w == 6016);
+    XCTAssert(w == 5120);
     
 }
 
@@ -2195,7 +2204,7 @@ unsigned char FJSTestAddUnsignedChar(char c) {
     return c + 1;
 }
 
-id FJSTestReturnNil() {
+id FJSTestReturnNil(void) {
     return nil;
 }
 
@@ -2207,18 +2216,18 @@ BOOL FJSTestPassNil(id o) {
     return o == nil;
 }
 
-void FJSThrowException() {
+void FJSThrowException(void) {
     @throw [NSException exceptionWithName:NSGenericException reason:FJSTestExceptionReason userInfo:nil];
 }
 
-void FJSReturnVoid() {
+void FJSReturnVoid(void) {
     ;
 }
-
 
 void FJSXAssert(BOOL b) {
     id self = @"LOL";
     XCTAssert(b);
+    XCTAssert(self); // shhh clang sa.
 }
 
 

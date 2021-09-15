@@ -49,7 +49,7 @@ typedef struct {
 @property (assign) NSInteger protectCount;
 #endif
 
-+ (instancetype)valueWithJSValueRef:(nullable JSValueRef)jso inRuntime:(FJSRuntime*)runtime;
++ (nullable instancetype)valueWithJSValueRef:(nullable JSValueRef)jso inRuntime:(FJSRuntime*)runtime;
 + (instancetype)valueWithInstance:(CFTypeRef)instance inRuntime:(FJSRuntime*)runtime;
 + (instancetype)valueWithNewObjectInRuntime:(FJSRuntime*)runtime;
 + (instancetype)valueWithString:(NSString*)stringToConvertToJSString inRuntime:(FJSRuntime*)runtime;
@@ -58,7 +58,7 @@ typedef struct {
 + (instancetype)valueWithNullInRuntime:(FJSRuntime*)runtime;
 + (instancetype)valueWithUndefinedInRuntime:(FJSRuntime*)runtime;
 
-- (id)toObject;
+- (nullable id)toObject;
 - (BOOL)toBOOL;
 - (float)toFloat;
 - (double)toDouble;

@@ -20,8 +20,8 @@ NS_ASSUME_NONNULL_BEGIN
 
 - (nullable FJSValue*)callFunction;
 
-+ (ffi_type *)ffiTypeAddressForTypeEncoding:(char)encoding;
-+ (ffi_type *)ffiTypeForStructure:(NSString*)structEncoding;
++ (nullable ffi_type *)ffiTypeAddressForTypeEncoding:(char)encoding;
++ (nullable ffi_type *)ffiTypeForStructure:(NSString*)structEncoding;
 + (void)describeFFIType:(ffi_type*)type;
 + (size_t)countOfElementsInType:(ffi_type*)type;
 

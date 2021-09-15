@@ -387,7 +387,7 @@
                 [currentArgs removeAllObjects];
             }
             
-            [selector appendString:lastWord];
+            [selector appendString:lastWord ? lastWord : @""];
             [selector appendString:value];
         }
         else {

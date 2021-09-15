@@ -193,7 +193,7 @@ int FJSTestCGImageRefExampleCounter;
     return [key isEqualToString:@"testKeyedSubscript"];
 }
 
-- (FJSValue*)FJSValueForKeyedSubscript:(NSString *)key inRuntime:(FJSRuntime*)runtime {
+- (nullable FJSValue*)FJSValueForKeyedSubscript:(NSString *)key inRuntime:(FJSRuntime*)runtime {
     
     if ([key isEqualToString:@"testKeyedSubscript"]) {
         FJSValue *v = [FJSValue valueWithInstance:(__bridge CFTypeRef _Nonnull)(@(642)) inRuntime:runtime];

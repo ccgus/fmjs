@@ -77,7 +77,7 @@ NS_ASSUME_NONNULL_BEGIN
 - (void)setClass:(Class)c;
 - (void)retainReturnValue;
 
-- (FJSValue*)unwrapValue;
+- (FJSValue*)unwrapValue __attribute__((cf_returns_retained));
 
 - (nullable void*)pointerPointer;
 

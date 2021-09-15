@@ -35,12 +35,12 @@ NS_ASSUME_NONNULL_BEGIN
 - (void)addClassMethod:(FJSSymbol*)sym;
 - (void)addInstanceMethod:(FJSSymbol*)sym;
 
-- (FJSSymbol*)classMethodNamed:(NSString*)name;
-- (FJSSymbol*)instanceMethodNamed:(NSString*)name;
-+ (FJSSymbol*)symbolForName:(NSString*)name;
-+ (FJSSymbol*)symbolForName:(NSString*)name inObject:(nullable id)object;
-+ (FJSSymbol*)symbolForBlockTypeEncoding:(const char*)typeEncoding;
-+ (FJSSymbol*)symbolForCFType:(NSString*)cftype;
+- (nullable FJSSymbol*)classMethodNamed:(NSString*)name;
+- (nullable FJSSymbol*)instanceMethodNamed:(NSString*)name;
++ (nullable FJSSymbol*)symbolForName:(NSString*)name;
++ (nullable FJSSymbol*)symbolForName:(NSString*)name inObject:(nullable id)object;
++ (nullable FJSSymbol*)symbolForBlockTypeEncoding:(const char*)typeEncoding;
++ (nullable FJSSymbol*)symbolForCFType:(NSString*)cftype;
 
 - (BOOL)returnsRetained;
 - (BOOL)isPointer;
@@ -48,7 +48,7 @@ NS_ASSUME_NONNULL_BEGIN
 - (NSString*)structName;
 - (NSArray*)structFields;
 - (size_t)structSize;
-- (FJSStructSymbol*)structFieldNamed:(NSString*)name;
+- (nullable FJSStructSymbol*)structFieldNamed:(NSString*)name;
 
 - (void)unmangleArgs;
 

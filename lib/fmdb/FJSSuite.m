@@ -180,7 +180,7 @@ static NSString *COSUTTypeFunction = @"R.function";
     
     return found;
 }
-- (FJSValue*)FJSValueForKeyedSubscript:(NSString *)key inRuntime:(FJSRuntime*)runtime {
+- (nullable FJSValue*)FJSValueForKeyedSubscript:(NSString *)key inRuntime:(FJSRuntime*)runtime {
    
     // FIXME: This method is hacked together with duct tape and glue. Please clean it up.
     
@@ -279,7 +279,7 @@ static NSString *COSUTTypeFunction = @"R.function";
         obj = [NSNull null];
     }
     
-    return [self setTableObject:obj withUTI:uti uuid:nil forKey:key];
+    return [self setTableObject:obj withUTI:uti uuid:uuid forKey:key];
 }
 
 - (BOOL)setTableObject:(id)theObj withUTI:(NSString*)uti uuid:(nullable NSString*)uuid forKey:(NSString *)key {

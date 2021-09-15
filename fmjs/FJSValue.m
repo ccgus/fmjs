@@ -1280,7 +1280,7 @@ static BOOL FJSCaptureJSValueInstancesForDebugging;
     return _cValue.value.pointerValue;
 }
 
-- (FJSValue*)unwrapValue {
+- (FJSValue*)unwrapValue __attribute__((cf_returns_retained)) {
     
     if ([self isInstance] && [[self instance] isKindOfClass:[FJSValue class]]) {
         return CFRetain((__bridge CFTypeRef)([self instance]));
@@ -1290,7 +1290,7 @@ static BOOL FJSCaptureJSValueInstancesForDebugging;
     
 }
 
-- (FJSValue *)objectForKeyedSubscript:(NSString*)key {
+- (nullable FJSValue *)objectForKeyedSubscript:(NSString*)key {
     
     if (!_isJSNative) {
         
@@ -1339,7 +1339,7 @@ static BOOL FJSCaptureJSValueInstancesForDebugging;
 }
 
 
-- (FJSValue *)invokeMethodNamed:(NSString *)method withArguments:(NSArray *)arguments {
+- (nullable FJSValue *)invokeMethodNamed:(NSString *)method withArguments:(NSArray *)arguments {
     
     if (!_isJSNative) {
         FMAssert(NO);
@@ -1403,11 +1403,11 @@ static BOOL FJSCaptureJSValueInstancesForDebugging;
 }
 
 
-- (FJSValue *)callWithArguments:(NSArray *)arguments {
+- (nullable FJSValue *)callWithArguments:(NSArray *)arguments {
     return [self invokeMethodNamed:@"" withArguments:arguments];
 }
 
-- (NSArray*)propertyNames {
+- (nullable NSArray*)propertyNames {
     
     if (![self JSObjectRef]) {
         return nil;

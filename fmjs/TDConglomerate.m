@@ -2663,7 +2663,7 @@ static FJSTDTokenEOF *EOFToken = nil;
 
 
 + (id)tokenizerWithString:(NSString *)s {
-    return [[[self alloc] initWithString:s] autorelease];
+    return [[(FJSTDTokenizer*)[self alloc] initWithString:s] autorelease];
 }
 
 
@@ -2672,7 +2672,7 @@ static FJSTDTokenEOF *EOFToken = nil;
 }
 
 
-- (id)initWithString:(NSString *)s {
+- (id)initWithString:(nullable NSString *)s {
     self = [super init];
     if (self) {
         self.string = s;

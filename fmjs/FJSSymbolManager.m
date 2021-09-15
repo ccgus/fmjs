@@ -202,7 +202,11 @@ static FJSSymbolManager *FJSSymbolManagerSharedInstance = nil;
     else if ([elementName isEqualToString:@"cftype"]) {
         _currentCFType = sym;
         [_currentCFType setIsCFType:YES];
-        [_cfTypeToSymbolLUT setObject:_currentCFType forKey:type];
+        FMAssert(_currentCFType);
+        FMAssert(type);
+        if (_currentCFType && type) {
+            [_cfTypeToSymbolLUT setObject:_currentCFType forKey:type];
+        }
         
         
 #ifdef DEBUG
@@ -220,8 +224,10 @@ static FJSSymbolManager *FJSSymbolManagerSharedInstance = nil;
         if (cfSym) {
             sym = cfSym;
         }
-        
-        [_currentFunction addArgument:sym];
+        FMAssert(sym);
+        if (sym) {
+            [_currentFunction addArgument:sym];
+        }
     }
     else if (_currentFunction && [elementName isEqualToString:@"retval"]) {
         
@@ -235,18 +241,26 @@ static FJSSymbolManager *FJSSymbolManagerSharedInstance = nil;
         if ([[attributeDict objectForKey:@"already_retained"] boolValue]) {
             [_currentFunction setCfTypeReturnsRetained:YES];
         }
-        
-        [_currentFunction setReturnValue:sym];
+        FMAssert(sym);
+        if (sym) {
+            [_currentFunction setReturnValue:sym];
+        }
     }
     else if (_currentClass && [elementName isEqualToString:@"method"]) {
         
         assert(_currentMethod);
         
         if ([[attributeDict objectForKey:@"class_method"] boolValue]) {
-            [_currentClass addClassMethod:sym];
+            FMAssert(sym);
+            if (sym) {
+                [_currentClass addClassMethod:sym];
+            }
         }
         else {
-            [_currentClass addInstanceMethod:sym];
+            FMAssert(sym);
+            if (sym) {
+                [_currentClass addInstanceMethod:sym];
+            }
         }
     }
     

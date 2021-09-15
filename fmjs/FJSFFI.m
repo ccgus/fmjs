@@ -168,7 +168,9 @@ static NSMutableDictionary *FJSFFIStructureLookup;
     if ([args count] != functionArgumentCount) {
         NSString *reason = [NSString stringWithFormat:@"Method %@ requires %lu %@, but JavaScript passed %zd %@", [functionSymbol name], functionArgumentCount, (functionArgumentCount == 1 ? @"argument" : @"arguments"), [args count], ([args count] == 1 ? @"argument" : @"arguments")];
         
-        *outError = [NSError errorWithDomain:FMJavaScriptExceptionName code:1 userInfo:@{NSLocalizedDescriptionKey : reason}];
+        if (outError) {
+            *outError = [NSError errorWithDomain:FMJavaScriptExceptionName code:1 userInfo:@{NSLocalizedDescriptionKey : reason}];
+        }
         
         return NO;
     }
@@ -217,7 +219,11 @@ static NSMutableDictionary *FJSFFIStructureLookup;
                     
                     debug(@"Bad argument at index %ld", idx);
                     NSString *reason = [NSString stringWithFormat:@"Argument at index %ld is of the wrong type. Got %@ when %@ was needed.", idx, [argSym runtimeType], [jsSymbol runtimeType]];
-                    *outError = [NSError errorWithDomain:FMJavaScriptExceptionName code:2 userInfo:@{NSLocalizedDescriptionKey : reason}];
+                    
+                    if (outError) {
+                        *outError = [NSError errorWithDomain:FMJavaScriptExceptionName code:2 userInfo:@{NSLocalizedDescriptionKey : reason}];
+                    }
+                    
                     return NO;
                 }
             }
@@ -514,7 +520,7 @@ static NSMutableDictionary *FJSFFIStructureLookup;
     return struct_type;
 }
 
-+ (ffi_type *)ffiTypeForStructure:(NSString*)structEncoding {
++ (nullable ffi_type *)ffiTypeForStructure:(NSString*)structEncoding {
     
     static dispatch_once_t onceToken;
     dispatch_once(&onceToken, ^{
@@ -544,6 +550,7 @@ static NSMutableDictionary *FJSFFIStructureLookup;
         NSArray *elements = [self ffiElementsForTokenizer:tokenizer];
         
         while ((tok = [tokenizer nextToken]) != [FJSTDToken EOFToken]) {
+            (void)tok; // to keep clang-sa quiet.
             // debug(@"remaining in structure, being ignored: '%@'", [tok stringValue]);
         }
         

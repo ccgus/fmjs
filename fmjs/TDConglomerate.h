@@ -1723,7 +1723,7 @@ typedef enum {
     @param      s string to read from.
     @result     An initialized tokenizer.
 */
-- (id)initWithString:(NSString *)s;
+- (id)initWithString:(nullable NSString *)s;
 
 /*!
     @brief      Returns the next token.

@@ -167,7 +167,7 @@
     return FJSStructNameFromRuntimeType(_runtimeType);
 }
 
-- (FJSStructSymbol*)structFieldNamed:(NSString*)name {
+- (nullable FJSStructSymbol*)structFieldNamed:(NSString*)name {
     
     [self parseStruct];
     
@@ -366,11 +366,11 @@
 }
 
 
-+ (FJSSymbol*)symbolForName:(NSString*)name {
++ (nullable FJSSymbol*)symbolForName:(NSString*)name {
     return [self symbolForName:name inObject:nil];
 }
 
-+ (FJSSymbol*)symbolForName:(NSString*)name inObject:(nullable id)object {
++ (nullable FJSSymbol*)symbolForName:(NSString*)name inObject:(nullable id)object {
     
     if (!object) {
         // This is just a simple lookup.

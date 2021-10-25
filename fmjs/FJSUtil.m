@@ -218,10 +218,11 @@ id FJSNativeObjectFromJSValue(JSValueRef jsValue, NSString *typeEncoding, JSCont
             
             return FJSNativeDictionaryFromJSObject(jsObject, context);
         }
-        
+#ifdef DEBUG
         JSType type = JSValueGetType(context, jsValue);
         debug(@"What am I supposed to do with %d?", type);
         FMAssert(NO);
+#endif
         
     }
     

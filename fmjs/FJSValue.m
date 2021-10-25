@@ -712,10 +712,10 @@ static BOOL FJSCaptureJSValueInstancesForDebugging;
     
     FJSSymbol *structInfoSym = [FJSSymbol symbolForName:name];
     FMAssert(structInfoSym);
-    
+#ifdef DEBUG
     FJSStructSymbol *structFieldSym = [structInfoSym structFieldNamed:structFieldName];
     FMAssert(structFieldSym);
-    
+#endif
     
     
     FJSStructSymbol *foundType = nil;
@@ -819,10 +819,10 @@ static BOOL FJSCaptureJSValueInstancesForDebugging;
     
     FJSSymbol *structInfoSym = [FJSSymbol symbolForName:name];
     FMAssert(structInfoSym);
-
+#ifdef DEBUG
     FJSStructSymbol *structFieldSym = [structInfoSym structFieldNamed:structFieldName];
     FMAssert(structFieldSym);
-
+#endif
     
     
     FJSStructSymbol *foundType = nil;

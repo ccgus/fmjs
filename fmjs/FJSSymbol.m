@@ -109,9 +109,10 @@
                     // Well, shit.
                     NSString *structName = [[tokenizer nextToken] stringValue];
                     [sym setStructName:structName];
+#ifdef DEBUG
                     NSString *structEnd = [[tokenizer nextToken] stringValue];
-                    
                     FMAssert([structEnd isEqualToString:@"}"]);
+#endif
                 }
                 
                 if ([sym type] == _C_STRUCT_B) {

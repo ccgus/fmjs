@@ -544,8 +544,10 @@ static NSMutableDictionary *FJSFFIStructureLookup;
         
         FJSTDTokenizer *tokenizer  = [FJSTDTokenizer tokenizerWithString:structEncoding];
         FJSTDToken *tok            = [tokenizer nextToken];
+#ifdef DEBUG
         NSString *sv               = [tok stringValue];
         FMAssert([sv isEqualToString:@"{"]);
+#endif
         
         NSArray *elements = [self ffiElementsForTokenizer:tokenizer];
         

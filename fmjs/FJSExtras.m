@@ -9,7 +9,7 @@
     
     NSError *err = nil;
     
-    NSURL *url = [NSURL fileURLWithPath:pathToFile];
+    NSURL *url = [pathToFile isKindOfClass:[NSURL class]] ? (NSURL*)pathToFile : [NSURL fileURLWithPath:pathToFile];
 
     #pragma clang diagnostic push
     #pragma clang diagnostic ignored "-Wdeprecated-declarations"

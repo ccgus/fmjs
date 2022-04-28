@@ -411,7 +411,6 @@ static const void * const kDispatchQueueRecursiveSpecificKey = &kDispatchQueueRe
             
             if (exception) {
                 [self reportPossibleJSException:exception];
-                [self popAsCurrentFJS];
             }
             else {
                 returnValue = [FJSValue valueWithJSValueRef:(JSObjectRef)jsFunctionReturnValue inRuntime:self];
@@ -556,6 +555,8 @@ static const void * const kDispatchQueueRecursiveSpecificKey = &kDispatchQueueRe
 
 - (FJSValue*)evaluateNoQueue:(NSString *)script withSourceURL:(nullable NSURL *)sourceURL {
     
+    _evaluatingScript = script;
+    
     [self pushAsCurrentFJS];
     
     FJSValue *returnValue = nil;
@@ -601,6 +602,8 @@ static const void * const kDispatchQueueRecursiveSpecificKey = &kDispatchQueueRe
     }
     
     [self popAsCurrentFJS];
+    
+    _evaluatingScript = nil;
     
     return returnValue;
 }

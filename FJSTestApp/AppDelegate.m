@@ -7,11 +7,16 @@
 //
 
 #import "AppDelegate.h"
+#import "FJSConsoleController.h"
 #import <FMJS/FJS.h>
 
 @interface AppDelegate ()
 
 @property (weak) IBOutlet NSWindow *window;
+
+@property (strong) FJSConsoleController *consoleController;
+@property (strong) FJSRuntime *rt;
+
 @end
 
 
@@ -20,7 +25,8 @@
 - (void)applicationDidFinishLaunching:(NSNotification *)aNotification {
     // Insert code here to initialize your application
     
-    
+    _rt = [FJSRuntime new];
+    _consoleController = [FJSConsoleController consoleControllerWithRuntime:_rt];
 }
 
 
@@ -32,12 +38,7 @@
     
     FMAssert(_textView);
     
-    FJSRuntime *rt = [FJSRuntime new];
-
-    [rt evaluateScript:[_textView string]];;
-
-    [rt shutdown];
-    
+    [_rt evaluateScript:[_textView string]];
     
 }
 

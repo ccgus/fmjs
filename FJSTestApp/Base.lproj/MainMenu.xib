@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<document type="com.apple.InterfaceBuilder3.Cocoa.XIB" version="3.0" toolsVersion="14460.23.1" targetRuntime="MacOSX.Cocoa" propertyAccessControl="none" useAutolayout="YES" customObjectInstantitationMethod="direct">
+<document type="com.apple.InterfaceBuilder3.Cocoa.XIB" version="3.0" toolsVersion="21701" targetRuntime="MacOSX.Cocoa" propertyAccessControl="none" useAutolayout="YES" customObjectInstantitationMethod="direct">
     <dependencies>
         <deployment identifier="macosx"/>
-        <plugIn identifier="com.apple.InterfaceBuilder.CocoaPlugin" version="14460.23.1"/>
+        <plugIn identifier="com.apple.InterfaceBuilder.CocoaPlugin" version="21701"/>
         <capability name="documents saved in the Xcode 8 format" minToolsVersion="8.0"/>
     </dependencies>
     <objects>
@@ -630,7 +630,7 @@
                             <menuItem title="Show Sidebar" keyEquivalent="s" id="kIP-vf-haE">
                                 <modifierMask key="keyEquivalentModifierMask" control="YES" command="YES"/>
                                 <connections>
-                                    <action selector="toggleSourceList:" target="-1" id="iwa-gc-5KM"/>
+                                    <action selector="toggleSidebar:" target="-1" id="iwa-gc-5KM"/>
                                 </connections>
                             </menuItem>
                             <menuItem title="Enter Full Screen" keyEquivalent="f" id="4J7-dP-txa">
@@ -680,12 +680,13 @@
                     </menu>
                 </menuItem>
             </items>
+            <point key="canvasLocation" x="139" y="154"/>
         </menu>
         <window title="FJSTestApp" allowsToolTipsWhenApplicationIsInactive="NO" autorecalculatesKeyViewLoop="NO" releasedWhenClosed="NO" animationBehavior="default" id="QvC-M9-y7g">
             <windowStyleMask key="styleMask" titled="YES" closable="YES" miniaturizable="YES" resizable="YES"/>
             <windowPositionMask key="initialPositionMask" leftStrut="YES" rightStrut="YES" topStrut="YES" bottomStrut="YES"/>
             <rect key="contentRect" x="335" y="390" width="646" height="518"/>
-            <rect key="screenRect" x="0.0" y="0.0" width="2560" height="1417"/>
+            <rect key="screenRect" x="0.0" y="0.0" width="2560" height="1415"/>
             <view key="contentView" wantsLayer="YES" id="EiT-Mj-1SZ">
                 <rect key="frame" x="0.0" y="0.0" width="646" height="518"/>
                 <autoresizingMask key="autoresizingMask"/>
@@ -705,11 +706,11 @@ Check out the test target on how to use FMJS's api calls in an app.</string>
                     <scrollView fixedFrame="YES" borderType="none" horizontalLineScroll="10" horizontalPageScroll="10" verticalLineScroll="10" verticalPageScroll="10" hasHorizontalScroller="NO" translatesAutoresizingMaskIntoConstraints="NO" id="V9N-rz-m8S">
                         <rect key="frame" x="20" y="56" width="606" height="347"/>
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
-                        <clipView key="contentView" ambiguous="YES" drawsBackground="NO" copiesOnScroll="NO" id="ag3-yL-hqk">
+                        <clipView key="contentView" drawsBackground="NO" copiesOnScroll="NO" id="ag3-yL-hqk">
                             <rect key="frame" x="0.0" y="0.0" width="606" height="347"/>
                             <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                             <subviews>
-                                <textView ambiguous="YES" importsGraphics="NO" richText="NO" verticallyResizable="YES" allowsUndo="YES" spellingCorrection="YES" smartInsertDelete="YES" id="j8z-mu-cUg">
+                                <textView importsGraphics="NO" richText="NO" verticallyResizable="YES" allowsUndo="YES" id="j8z-mu-cUg">
                                     <rect key="frame" x="0.0" y="0.0" width="606" height="347"/>
                                     <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                                     <color key="backgroundColor" white="1" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
@@ -717,16 +718,25 @@ Check out the test target on how to use FMJS's api calls in an app.</string>
                                     <size key="maxSize" width="861" height="10000000"/>
                                     <attributedString key="textStorage">
                                         <fragment>
-                                            <string key="content">// THIS TEST IS NOT SANDBOXED, VIEWER DISCRETION IS ADVISED.
-var url = NSURL.fileURLWithPath_('/Library/Desktop Pictures/Yosemite.jpg');
+                                            <mutableString key="content">// THIS TEST IS NOT SANDBOXED, VIEWER DISCRETION IS ADVISED.
+var url = NSURL.fileURLWithPath_('/Library/Desktop Pictures/Zebras.jpg');
 var img = CIImage.imageWithContentsOfURL_(url)
 var f = CIFilter.filterWithName_('CIColorInvert');
 f.setValue_forKey_(img, kCIInputImageKey);
-var r = f.outputImage();
-//r = r.imageByCroppingToRect_(CGRectMake(0, 0, 500, 500));
-var tiff = r.TIFFRepresentation();
-tiff.writeToFile_atomically_('/tmp/foo.tiff', true);
-NSWorkspace.sharedWorkspace().openFile_('/tmp/foo.tiff');</string>
+
+var r = f.outputImage().imageByApplyingTransform(CGAffineTransformMakeScale(.2, .2))
+var ctx = CIContext.new();
+var tiff = ctx.TIFFRepresentationOfImage_format_colorSpace_options(r, kCIFormatBGRA8, img.colorSpace(), null);
+
+if (tiff) {
+    tiff.writeToFile_atomically_('/tmp/foo.tiff', true);
+    // Uncomment the following line to have it open up in Preview (or whatever your preferred app for viewing TIFF files is).
+    // NSWorkspace.sharedWorkspace().openFile_('/tmp/foo.tiff');
+    print("Done.")
+}
+else {
+    print("Could not make the TIFF")
+}</mutableString>
                                             <attributes>
                                                 <font key="NSFont" size="12" name="Menlo-Regular"/>
                                                 <paragraphStyle key="NSParagraphStyle" alignment="natural" lineBreakMode="wordWrapping" baseWritingDirection="natural" tighteningFactorForTruncation="0.0"/>
@@ -737,6 +747,10 @@ NSWorkspace.sharedWorkspace().openFile_('/tmp/foo.tiff');</string>
                                 </textView>
                             </subviews>
                         </clipView>
+                        <scroller key="horizontalScroller" hidden="YES" wantsLayer="YES" verticalHuggingPriority="750" horizontal="YES" id="zFt-LX-xt4">
+                            <rect key="frame" x="-100" y="-100" width="606" height="16"/>
+                            <autoresizingMask key="autoresizingMask"/>
+                        </scroller>
                         <scroller key="verticalScroller" wantsLayer="YES" verticalHuggingPriority="750" horizontal="NO" id="ytN-kB-Yiy">
                             <rect key="frame" x="590" y="0.0" width="16" height="347"/>
                             <autoresizingMask key="autoresizingMask"/>

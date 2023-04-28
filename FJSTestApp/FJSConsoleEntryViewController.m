@@ -34,14 +34,16 @@
     
     [_topLine setHidden:_messageType != FJSConsoleEntryTypeInput];
     
-    NSColor *textColor = [NSColor blackColor];
-    NSColor *promptColor = [NSColor blackColor];
+    BOOL isDarkMode = [[[NSApp effectiveAppearance] name] isEqualToString:NSAppearanceNameDarkAqua];
+    
+    NSColor *textColor = [NSColor controlTextColor];
+    NSColor *promptColor = [NSColor controlTextColor];
     NSString *prompt = @"➥";
     if (_messageType == FJSConsoleEntryTypeInput) {
         ;
     }
     else if (_messageType == FJSConsoleEntryTypeOutput) {
-        textColor = [NSColor colorWithRed:0.086 green:0.016 blue:0.769 alpha:1.0];
+        textColor = isDarkMode ? [NSColor colorWithRed:0.584 green:0.506 blue:0.969 alpha:1.0] : [NSColor colorWithRed:0.086 green:0.016 blue:0.769 alpha:1.0];
         promptColor = [NSColor grayColor];
         prompt = @"❤";
     }

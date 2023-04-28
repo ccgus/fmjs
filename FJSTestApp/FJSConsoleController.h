@@ -7,7 +7,7 @@
 //
 
 #import <Cocoa/Cocoa.h>
-#import <FMJS/FJS.h>
+#import "FJS.h"
 
 NS_ASSUME_NONNULL_BEGIN
 
@@ -17,8 +17,13 @@ NS_ASSUME_NONNULL_BEGIN
 @property (weak) IBOutlet NSTextField *consoleInputField;
 
 + (instancetype)consoleControllerWithRuntime:(FJSRuntime*)runtime;
++ (instancetype)sharedConsoleController;
+
+- (void)setupHandlersForRuntime:(FJSRuntime*)rt;
 
 - (void)appendToConsole:(NSString*)string;
+
+- (void)popOutWindow;
 
 @end
 

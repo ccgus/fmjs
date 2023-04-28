@@ -11,7 +11,7 @@
 
 @interface FJSConsoleController ()
 
-@property (weak) FJSRuntime *rt;
+@property (weak) FJSRuntime *lastRuntime;
 @property (strong) NSMutableArray *entryViewControllers;
 @property (weak) IBOutlet FJSColoredView *inputColoredView;
 @end
@@ -22,11 +22,21 @@
     
     FJSConsoleController *cc = [[FJSConsoleController alloc] initWithWindowNibName:@"FJSConsoleController"];
     
-    [cc setRt:runtime];
-    
-    [cc setupHandlers];
+    [cc setupHandlersForRuntime:runtime];
     
     return cc;
+}
+
++ (instancetype)sharedConsoleController {
+    
+    static FJSConsoleController *sharedConsole = nil;
+    
+    static dispatch_once_t onceToken;
+    dispatch_once(&onceToken, ^{
+        sharedConsole = [[FJSConsoleController alloc] initWithWindowNibName:@"FJSConsoleController"];
+    });
+    
+    return sharedConsole;
 }
 
 - (void)awakeFromNib {
@@ -53,10 +63,20 @@
         return;
     }
     
+    if ([[_consoleInputField stringValue] isEqualToString:@"/clear"]) {
+        [self clearConsole:self];
+        [_consoleInputField setStringValue:@""];
+        return;
+    }
+    
+    if (!_lastRuntime) {
+        [self appendToConsole:NSLocalizedString(@"Missing runtime.", @"Missing runtime.") inputType:FJSConsoleEntryTypeError];
+        return;
+    }
     
     [self appendToConsole:[_consoleInputField stringValue] inputType:FJSConsoleEntryTypeInput];
     
-    FJSValue *v = [_rt evaluateScript:[_consoleInputField stringValue]];
+    FJSValue *v = [_lastRuntime evaluateScript:[_consoleInputField stringValue]];
     
     if (v && !([v isNull] || [v isUndefined])) {
         [self appendToConsole:[NSString stringWithFormat:@"%@", [v toObject]]];
@@ -68,20 +88,22 @@
 - (void)popOutWindow {
     
     if (![[self window] isVisible]) {
-        
         [[self window] makeKeyAndOrderFront:self];
+        [[self window] makeFirstResponder:_consoleInputField];
     }
 }
 
-- (void)setupHandlers {
+- (void)setupHandlersForRuntime:(FJSRuntime*)rt {
+    
+    _lastRuntime = rt;
     
     __weak __typeof__(self) weakSelf = self;
     
-    [_rt setExceptionHandler:^(FJSRuntime * _Nonnull runtime, NSException * _Nonnull exception) {
+    [rt setExceptionHandler:^(FJSRuntime * _Nonnull runtime, NSException * _Nonnull exception) {
         [weakSelf appendToConsole:[NSString stringWithFormat:@"%@: %@", [exception description], [exception userInfo]] inputType:FJSConsoleEntryTypeError];
     }];
     
-    [_rt setPrintHandler:^(FJSRuntime * _Nonnull runtime, NSString * _Nonnull stringToPrint) {
+    [rt setPrintHandler:^(FJSRuntime * _Nonnull runtime, NSString * _Nonnull stringToPrint) {
         [weakSelf appendToConsole:stringToPrint];
     }];
 }
@@ -98,17 +120,30 @@
         return;
     }
     
-    [self popOutWindow];
+    void (^block)(void) = ^void() {
+        
+        [self popOutWindow];
+        
+        FJSConsoleEntryViewController *c = [[FJSConsoleEntryViewController alloc] initWithNibName:@"FJSConsoleEntryViewController" bundle:nil];
+        
+        [c setMessageType:inputType];
+        [c setMessageString:string];
+        
+        [_entryViewControllers addObject:c];
+        
+        [_outputTableView reloadData];
+        [_outputTableView scrollToEndOfDocument:nil];
+        
+    };
     
-    FJSConsoleEntryViewController *c = [[FJSConsoleEntryViewController alloc] initWithNibName:@"FJSConsoleEntryViewController" bundle:nil];
+    if ([NSThread isMainThread]) {
+        block();
+    }
+    else {
+        dispatch_sync(dispatch_get_main_queue(), block);
+    }
     
-    [c setMessageType:inputType];
-    [c setMessageString:string];
     
-    [_entryViewControllers addObject:c];
-    
-    [_outputTableView reloadData];
-    [_outputTableView scrollToEndOfDocument:nil];
     
 }
 
@@ -149,6 +184,19 @@
             *stop = YES;
         }
     }];
+}
+
+// These are conveniences so we can set this guy to a global console object if we'd like.
+- (void)print:(NSString*)s {
+    [self appendToConsole:s];
+}
+
+- (void)log:(NSString*)s {
+    [self appendToConsole:s];
+}
+
+- (void)write:(NSString*)s {
+    [self appendToConsole:s];
 }
 
 @end

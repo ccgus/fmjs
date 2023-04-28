@@ -11,17 +11,13 @@
 @interface FJSConsoleEntryViewController ()
 
 @property (assign) CGFloat textHeight;
-
 @end
 
 @implementation FJSConsoleEntryViewController
 
 - (void)viewDidLoad {
-    NSLog(@"%s:%d", __FUNCTION__, __LINE__);
+    
     [super viewDidLoad];
-    // Do view setup here.
-    
-    
     
     if (_messageString) {
         [_messageField setStringValue:_messageString];
@@ -30,6 +26,37 @@
         [_messageField setStringValue:@""];
     }
     
+    [self setMessageType:_messageType];
+}
+
+- (void)setMessageType:(FJSConsoleEntryType)type {
+    _messageType = type;
+    
+    [_topLine setHidden:_messageType != FJSConsoleEntryTypeInput];
+    
+    NSColor *textColor = [NSColor blackColor];
+    NSColor *promptColor = [NSColor blackColor];
+    NSString *prompt = @"➥";
+    if (_messageType == FJSConsoleEntryTypeInput) {
+        ;
+    }
+    else if (_messageType == FJSConsoleEntryTypeOutput) {
+        textColor = [NSColor colorWithRed:0.086 green:0.016 blue:0.769 alpha:1.0];
+        promptColor = [NSColor grayColor];
+        prompt = @"❤";
+    }
+    else if (_messageType == FJSConsoleEntryTypeError) {
+        textColor = [NSColor redColor];
+        promptColor = [NSColor redColor];
+        prompt = @"‽";
+    }
+    else {
+        NSAssert(NO, @"Unknown value in setMessageType: %ld", type);
+    }
+    
+    [_ioIndicator setStringValue:prompt];
+    [_ioIndicator setTextColor:promptColor];
+    [_messageField setTextColor:textColor];
 }
 
 - (CGFloat)calculatedHeight {
@@ -45,11 +72,10 @@
     
     _textHeight = [_messageString sizeWithAttributes:[[_messageField attributedStringValue] attributesAtIndex:0 effectiveRange:nil]].height;
     
-    _textHeight += 22;
+    _textHeight += 6;
     
     return _textHeight;
 }
-
 
 
 @end
@@ -60,5 +86,16 @@
     [[NSColor redColor] set];
     NSRectFill(dirtyRect);
 }
+
+@end
+
+
+@implementation FJSColoredView
+
+- (void)xdrawRect:(NSRect)dirtyRect {
+    [_backgroundColor set];
+    NSRectFill(dirtyRect);
+}
+
 
 @end

@@ -13,6 +13,7 @@
 
 @property (weak) FJSRuntime *rt;
 @property (strong) NSMutableArray *entryViewControllers;
+@property (weak) IBOutlet FJSColoredView *inputColoredView;
 @end
 
 @implementation FJSConsoleController
@@ -34,14 +35,11 @@
     
     _entryViewControllers = [NSMutableArray array];
     
-    [self appendToConsole:@"Hello World.\nThis is a newline, as is this:\n*******(star)*******"];
-    [self appendToConsole:@"B"];
-    [self appendToConsole:@"x\ny\nz\n1\n2\n3B"];
-    
     [_outputTableView setUsesAutomaticRowHeights:YES];
     [_outputTableView setDataSource:self];
     [_outputTableView setDelegate:self];
     [_outputTableView reloadData];
+    
 }
 
 - (IBAction)clearConsole:(id)sender {
@@ -50,9 +48,19 @@
 }
 
 - (IBAction)evaluateTextFieldAction:(id)sender {
+    
+    if (![[_consoleInputField stringValue] length]) {
+        return;
+    }
+    
+    
+    [self appendToConsole:[_consoleInputField stringValue] inputType:FJSConsoleEntryTypeInput];
+    
     FJSValue *v = [_rt evaluateScript:[_consoleInputField stringValue]];
     
-    [self appendToConsole:[NSString stringWithFormat:@"%@", [v toObject]]];
+    if (v && !([v isNull] || [v isUndefined])) {
+        [self appendToConsole:[NSString stringWithFormat:@"%@", [v toObject]]];
+    }
     
     [_consoleInputField setStringValue:@""];
 }
@@ -70,18 +78,19 @@
     __weak __typeof__(self) weakSelf = self;
     
     [_rt setExceptionHandler:^(FJSRuntime * _Nonnull runtime, NSException * _Nonnull exception) {
-        [weakSelf popOutWindow];
-        
-        [weakSelf appendToConsole:[NSString stringWithFormat:@"%@: %@", [exception description], [exception userInfo]]];
+        [weakSelf appendToConsole:[NSString stringWithFormat:@"%@: %@", [exception description], [exception userInfo]] inputType:FJSConsoleEntryTypeError];
     }];
     
     [_rt setPrintHandler:^(FJSRuntime * _Nonnull runtime, NSString * _Nonnull stringToPrint) {
-        [weakSelf popOutWindow];
         [weakSelf appendToConsole:stringToPrint];
     }];
 }
 
 - (void)appendToConsole:(NSString*)string {
+    [self appendToConsole:string inputType:FJSConsoleEntryTypeOutput];
+}
+
+- (void)appendToConsole:(NSString*)string inputType:(FJSConsoleEntryType)inputType  {
     
     if (!string) {
         NSLog(@"%s:%d", __FUNCTION__, __LINE__);
@@ -89,18 +98,17 @@
         return;
     }
     
-    
     [self popOutWindow];
     
     FJSConsoleEntryViewController *c = [[FJSConsoleEntryViewController alloc] initWithNibName:@"FJSConsoleEntryViewController" bundle:nil];
     
+    [c setMessageType:inputType];
     [c setMessageString:string];
     
     [_entryViewControllers addObject:c];
     
     [_outputTableView reloadData];
-    
-    //[[[_outputTextView textStorage] mutableString] appendFormat:@"\n%@", string];
+    [_outputTableView scrollToEndOfDocument:nil];
     
 }
 
@@ -116,25 +124,48 @@
 
 - (nullable NSView *)tableView:(NSTableView *)tableView viewForTableColumn:(nullable NSTableColumn *)tableColumn row:(NSInteger)row {
     
-    debug(@"%s:%d", __FUNCTION__, __LINE__);
-    debug(@"vrow: %ld", row);
-    
     FJSConsoleEntryViewController *controller = [_entryViewControllers objectAtIndex:row];
-    
-    debug(@"[controller view]: '%@'", [controller view]);
-    debug(@"[controller view] bounds: %@", NSStringFromRect([[controller view] bounds]));
     
     return [controller view];
     
 }
 
 - (void)tableView:(NSTableView *)tableView didAddRowView:(NSTableRowView *)rowView forRow:(NSInteger)row {
-    NSLog(@"Height: %g", rowView.fittingSize.height);
+    //NSLog(@"Height: %g", rowView.fittingSize.height);
 }
 
 - (CGFloat)tableView:(NSTableView *)tableView heightOfRow:(NSInteger)row {
-    
     return [[_entryViewControllers objectAtIndex:row] calculatedHeight];
+}
+
+- (void)console:(FJSConsoleInputField*)f didKepressUp:(id)sender {
+    
+    [_entryViewControllers enumerateObjectsWithOptions:NSEnumerationReverse usingBlock:^(FJSConsoleEntryViewController *controller, NSUInteger idx, BOOL * _Nonnull stop) {
+       
+        if ([controller messageType] == FJSConsoleEntryTypeInput) {
+            
+            [_consoleInputField setStringValue:[controller messageString]];
+            
+            *stop = YES;
+        }
+    }];
+}
+
+@end
+
+
+@implementation FJSConsoleInputField
+
+- (BOOL)textView:(NSTextView *)textView doCommandBySelector:(SEL)commandSelector {
+    
+    if (commandSelector == @selector(moveUp:)) {
+        
+        [[self target] console:self didKepressUp:self];
+        
+        return YES;
+    }
+    
+    return NO;
 }
 
 @end

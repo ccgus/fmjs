@@ -11,9 +11,9 @@
 
 NS_ASSUME_NONNULL_BEGIN
 
-@interface FJSConsoleController : NSWindowController
+@interface FJSConsoleController : NSWindowController <NSTableViewDelegate, NSTableViewDataSource>
 
-@property (weak) IBOutlet NSTextView *outputTextView;
+@property (weak) IBOutlet NSTableView *outputTableView;
 @property (weak) IBOutlet NSTextField *consoleInputField;
 
 + (instancetype)consoleControllerWithRuntime:(FJSRuntime*)runtime;

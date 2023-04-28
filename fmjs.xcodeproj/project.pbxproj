@@ -94,6 +94,8 @@
 		CCC0EE2C217A6BDB00527B23 /* FJSSymbol.m in Sources */ = {isa = PBXBuildFile; fileRef = CCC0EE29217A6BDB00527B23 /* FJSSymbol.m */; };
 		CCD5509529F6303000522B1A /* FJSConsoleController.m in Sources */ = {isa = PBXBuildFile; fileRef = CCD5509329F6303000522B1A /* FJSConsoleController.m */; };
 		CCD5509629F6303000522B1A /* FJSConsoleController.xib in Resources */ = {isa = PBXBuildFile; fileRef = CCD5509429F6303000522B1A /* FJSConsoleController.xib */; };
+		CCE943F529FB2BD8002FA387 /* FJSConsoleEntryViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = CCE943F329FB2BD8002FA387 /* FJSConsoleEntryViewController.m */; };
+		CCE943F629FB2BD8002FA387 /* FJSConsoleEntryViewController.xib in Resources */ = {isa = PBXBuildFile; fileRef = CCE943F429FB2BD8002FA387 /* FJSConsoleEntryViewController.xib */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -194,6 +196,9 @@
 		CCD5509229F6303000522B1A /* FJSConsoleController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = FJSConsoleController.h; sourceTree = "<group>"; };
 		CCD5509329F6303000522B1A /* FJSConsoleController.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = FJSConsoleController.m; sourceTree = "<group>"; };
 		CCD5509429F6303000522B1A /* FJSConsoleController.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; path = FJSConsoleController.xib; sourceTree = "<group>"; };
+		CCE943F229FB2BD8002FA387 /* FJSConsoleEntryViewController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = FJSConsoleEntryViewController.h; sourceTree = "<group>"; };
+		CCE943F329FB2BD8002FA387 /* FJSConsoleEntryViewController.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = FJSConsoleEntryViewController.m; sourceTree = "<group>"; };
+		CCE943F429FB2BD8002FA387 /* FJSConsoleEntryViewController.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; path = FJSConsoleEntryViewController.xib; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -348,6 +353,9 @@
 				CCD5509229F6303000522B1A /* FJSConsoleController.h */,
 				CCD5509329F6303000522B1A /* FJSConsoleController.m */,
 				CCD5509429F6303000522B1A /* FJSConsoleController.xib */,
+				CCE943F229FB2BD8002FA387 /* FJSConsoleEntryViewController.h */,
+				CCE943F329FB2BD8002FA387 /* FJSConsoleEntryViewController.m */,
+				CCE943F429FB2BD8002FA387 /* FJSConsoleEntryViewController.xib */,
 			);
 			path = FJSTestApp;
 			sourceTree = "<group>";
@@ -549,6 +557,7 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				CCE943F629FB2BD8002FA387 /* FJSConsoleEntryViewController.xib in Resources */,
 				CC4C3C7C21501940005CA4A6 /* Assets.xcassets in Resources */,
 				CC5153752153004D0076B554 /* FJSTests.bridgesupport in Resources */,
 				CC4C3C7F21501940005CA4A6 /* MainMenu.xib in Resources */,
@@ -604,6 +613,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				CCD5509529F6303000522B1A /* FJSConsoleController.m in Sources */,
+				CCE943F529FB2BD8002FA387 /* FJSConsoleEntryViewController.m in Sources */,
 				CC4C3C8221501940005CA4A6 /* main.m in Sources */,
 				CC4C3C7A2150193F005CA4A6 /* AppDelegate.m in Sources */,
 			);

@@ -27,6 +27,8 @@
     
     _rt = [FJSRuntime new];
     _consoleController = [FJSConsoleController consoleControllerWithRuntime:_rt];
+    
+    [_consoleController appendToConsole:@"Test"];
 }
 
 

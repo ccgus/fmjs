@@ -7,7 +7,6 @@
 //
 
 #import "FJSConsoleController.h"
-#import "FJSConsoleEntryViewController.h"
 
 @interface FJSConsoleController ()
 
@@ -50,6 +49,43 @@
     [_outputTableView setDelegate:self];
     [_outputTableView reloadData];
     
+    FMAssert(_consoleInputImageWidget);
+    
+    NSSize imgSize = [_consoleInputImageWidget bounds].size;
+    NSImage *img = [NSImage imageWithSize:imgSize flipped:NO drawingHandler:^BOOL(NSRect dstRect) {
+        
+        
+        [[NSColor controlBackgroundColor] set];
+        
+        NSRectFill(dstRect);
+        
+        [[[NSColor controlTextColor] colorWithAlphaComponent:.6] set];
+        
+        NSBezierPath *bp = [NSBezierPath bezierPath];
+        
+        [bp moveToPoint:NSMakePoint(10, 5)];
+        [bp lineToPoint:NSMakePoint(imgSize.width / 2.0, imgSize.height / 2.0)];
+        [bp lineToPoint:NSMakePoint(10, imgSize.height - 5)];
+        [bp setLineWidth:2.5];
+        [bp setLineCapStyle:NSLineCapStyleRound];
+        [bp setLineJoinStyle:NSLineJoinStyleRound];
+        [bp stroke];
+        
+        CGFloat diameter = 3;
+        CGFloat radius = diameter / 2.0;
+        NSBezierPath *circle = [NSBezierPath bezierPathWithOvalInRect:NSMakeRect(5, (imgSize.height / 2.0) - radius, diameter, diameter)];
+        [[[NSColor controlAccentColor] colorWithAlphaComponent:.75] set];
+        [circle fill];
+        
+        return YES;
+        
+    }];
+    
+    FMAssert(_consoleInputImageWidget);
+    [_consoleInputImageWidget setImage:img];
+    
+    FMAssert(_consoleBottomHack);
+    [_consoleBottomHack setBackgroundColor:[NSColor controlBackgroundColor]];
 }
 
 - (IBAction)clearConsole:(id)sender {

@@ -1,13 +1,16 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <document type="com.apple.InterfaceBuilder3.Cocoa.XIB" version="3.0" toolsVersion="21701" targetRuntime="MacOSX.Cocoa" propertyAccessControl="none" useAutolayout="YES" customObjectInstantitationMethod="direct">
     <dependencies>
+        <deployment identifier="macosx"/>
         <plugIn identifier="com.apple.InterfaceBuilder.CocoaPlugin" version="21701"/>
         <capability name="documents saved in the Xcode 8 format" minToolsVersion="8.0"/>
     </dependencies>
     <objects>
         <customObject id="-2" userLabel="File's Owner" customClass="FJSConsoleController">
             <connections>
+                <outlet property="consoleBottomHack" destination="j3Q-PJ-pKD" id="WeN-Ex-Utc"/>
                 <outlet property="consoleInputField" destination="EN5-by-va4" id="2y5-zb-BPK"/>
+                <outlet property="consoleInputImageWidget" destination="jF5-CN-gOc" id="fq8-VQ-09Y"/>
                 <outlet property="outputTableView" destination="q9v-nb-3Ks" id="Gaa-mT-tT5"/>
                 <outlet property="window" destination="F0z-JX-Cv5" id="gIp-Ho-8D9"/>
             </connections>
@@ -17,25 +20,26 @@
         <window title="Console" allowsToolTipsWhenApplicationIsInactive="NO" autorecalculatesKeyViewLoop="NO" releasedWhenClosed="NO" visibleAtLaunch="NO" frameAutosaveName="FMJSConsoleWindow" animationBehavior="default" id="F0z-JX-Cv5">
             <windowStyleMask key="styleMask" titled="YES" closable="YES" miniaturizable="YES" resizable="YES"/>
             <windowPositionMask key="initialPositionMask" leftStrut="YES" rightStrut="YES" topStrut="YES" bottomStrut="YES"/>
-            <rect key="contentRect" x="196" y="240" width="733" height="403"/>
+            <rect key="contentRect" x="196" y="240" width="495" height="276"/>
             <rect key="screenRect" x="0.0" y="0.0" width="2560" height="1415"/>
+            <value key="minSize" type="size" width="300" height="74"/>
             <view key="contentView" id="se5-gp-TjO">
-                <rect key="frame" x="0.0" y="0.0" width="733" height="403"/>
+                <rect key="frame" x="0.0" y="0.0" width="495" height="276"/>
                 <autoresizingMask key="autoresizingMask"/>
                 <subviews>
-                    <textField horizontalHuggingPriority="251" verticalHuggingPriority="750" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="bg0-57-h4o">
-                        <rect key="frame" x="0.0" y="0.0" width="31" height="20"/>
-                        <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
-                        <textFieldCell key="cell" lineBreakMode="clipping" title="&gt;" drawsBackground="YES" id="d8m-5C-ddN">
-                            <font key="font" size="13" name="Menlo-Bold"/>
-                            <color key="textColor" name="labelColor" catalog="System" colorSpace="catalog"/>
-                            <color key="backgroundColor" name="textBackgroundColor" catalog="System" colorSpace="catalog"/>
-                        </textFieldCell>
-                    </textField>
-                    <textField focusRingType="none" verticalHuggingPriority="750" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="EN5-by-va4" customClass="FJSConsoleInputField">
-                        <rect key="frame" x="18" y="0.0" width="715" height="20"/>
+                    <customView fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="j3Q-PJ-pKD" customClass="FJSColoredView">
+                        <rect key="frame" x="0.0" y="0.0" width="495" height="20"/>
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" flexibleMaxY="YES"/>
-                        <textFieldCell key="cell" scrollable="YES" lineBreakMode="clipping" selectable="YES" editable="YES" focusRingType="none" drawsBackground="YES" id="EIc-PJ-gVO">
+                    </customView>
+                    <imageView horizontalHuggingPriority="251" verticalHuggingPriority="251" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="jF5-CN-gOc">
+                        <rect key="frame" x="0.0" y="0.0" width="30" height="20"/>
+                        <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
+                        <imageCell key="cell" refusesFirstResponder="YES" alignment="left" id="Vnc-2v-7tF"/>
+                    </imageView>
+                    <textField focusRingType="none" verticalHuggingPriority="750" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="EN5-by-va4" customClass="FJSConsoleInputField">
+                        <rect key="frame" x="18" y="0.0" width="477" height="18"/>
+                        <autoresizingMask key="autoresizingMask" widthSizable="YES" flexibleMaxY="YES"/>
+                        <textFieldCell key="cell" scrollable="YES" lineBreakMode="clipping" selectable="YES" editable="YES" focusRingType="none" alignment="left" drawsBackground="YES" usesSingleLineMode="YES" id="EIc-PJ-gVO">
                             <font key="font" size="13" name="Menlo-Regular"/>
                             <color key="textColor" name="controlTextColor" catalog="System" colorSpace="catalog"/>
                             <color key="backgroundColor" name="textBackgroundColor" catalog="System" colorSpace="catalog"/>
@@ -45,20 +49,20 @@
                         </connections>
                     </textField>
                     <scrollView fixedFrame="YES" borderType="none" autohidesScrollers="YES" horizontalLineScroll="24" horizontalPageScroll="10" verticalLineScroll="24" verticalPageScroll="10" usesPredominantAxisScrolling="NO" translatesAutoresizingMaskIntoConstraints="NO" id="T8c-Se-Y1p">
-                        <rect key="frame" x="0.0" y="23" width="733" height="380"/>
+                        <rect key="frame" x="0.0" y="24" width="495" height="252"/>
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                         <clipView key="contentView" drawsBackground="NO" id="bqf-Ce-dzH">
-                            <rect key="frame" x="0.0" y="0.0" width="733" height="380"/>
+                            <rect key="frame" x="0.0" y="0.0" width="495" height="252"/>
                             <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                             <subviews>
                                 <tableView verticalHuggingPriority="750" allowsExpansionToolTips="YES" columnAutoresizingStyle="lastColumnOnly" selectionHighlightStyle="none" columnReordering="NO" columnResizing="NO" multipleSelection="NO" autosaveColumns="NO" rowHeight="24" rowSizeStyle="automatic" viewBased="YES" id="q9v-nb-3Ks">
-                                    <rect key="frame" x="0.0" y="0.0" width="733" height="380"/>
+                                    <rect key="frame" x="0.0" y="0.0" width="495" height="252"/>
                                     <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                                     <size key="intercellSpacing" width="17" height="0.0"/>
                                     <color key="backgroundColor" name="controlBackgroundColor" catalog="System" colorSpace="catalog"/>
                                     <color key="gridColor" name="gridColor" catalog="System" colorSpace="catalog"/>
                                     <tableColumns>
-                                        <tableColumn identifier="AutomaticTableColumnIdentifier.0" editable="NO" width="701" minWidth="40" maxWidth="1000" id="Oms-el-E5b">
+                                        <tableColumn identifier="AutomaticTableColumnIdentifier.0" editable="NO" width="463" minWidth="40" maxWidth="1000" id="Oms-el-E5b">
                                             <tableHeaderCell key="headerCell" lineBreakMode="truncatingTail" borderStyle="border">
                                                 <color key="textColor" name="headerTextColor" catalog="System" colorSpace="catalog"/>
                                                 <color key="backgroundColor" name="headerColor" catalog="System" colorSpace="catalog"/>
@@ -71,11 +75,11 @@
                                             <tableColumnResizingMask key="resizingMask" resizeWithTable="YES" userResizable="YES"/>
                                             <prototypeCellViews>
                                                 <tableCellView id="LPN-WY-USd">
-                                                    <rect key="frame" x="18" y="0.0" width="696" height="24"/>
+                                                    <rect key="frame" x="18" y="0.0" width="458" height="24"/>
                                                     <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                                                     <subviews>
                                                         <textField horizontalHuggingPriority="251" verticalHuggingPriority="750" horizontalCompressionResistancePriority="250" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="6V6-RL-wpc">
-                                                            <rect key="frame" x="0.0" y="4" width="696" height="16"/>
+                                                            <rect key="frame" x="0.0" y="4" width="458" height="16"/>
                                                             <autoresizingMask key="autoresizingMask" widthSizable="YES" flexibleMinY="YES" flexibleMaxY="YES"/>
                                                             <textFieldCell key="cell" lineBreakMode="truncatingTail" sendsActionOnEndEditing="YES" title="Table View Cell" id="bRg-2k-uQT">
                                                                 <font key="font" usesAppearanceFont="YES"/>
@@ -96,7 +100,7 @@
                             <nil key="backgroundColor"/>
                         </clipView>
                         <scroller key="horizontalScroller" hidden="YES" wantsLayer="YES" verticalHuggingPriority="750" horizontal="YES" id="r7D-uE-KQ6">
-                            <rect key="frame" x="1" y="118" width="238" height="16"/>
+                            <rect key="frame" x="0.0" y="236" width="490" height="16"/>
                             <autoresizingMask key="autoresizingMask"/>
                         </scroller>
                         <scroller key="verticalScroller" hidden="YES" wantsLayer="YES" verticalHuggingPriority="750" horizontal="NO" id="6xz-bA-691">
@@ -108,8 +112,9 @@
             </view>
             <connections>
                 <outlet property="delegate" destination="-2" id="0bl-1N-AYu"/>
+                <outlet property="initialFirstResponder" destination="EN5-by-va4" id="8dF-Fe-fs3"/>
             </connections>
-            <point key="canvasLocation" x="58.5" y="17.5"/>
+            <point key="canvasLocation" x="-60.5" y="-46"/>
         </window>
     </objects>
 </document>

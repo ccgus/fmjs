@@ -8,6 +8,7 @@
 
 #import <Cocoa/Cocoa.h>
 #import "FJS.h"
+#import "FJSConsoleEntryViewController.h"
 
 NS_ASSUME_NONNULL_BEGIN
 
@@ -15,6 +16,8 @@ NS_ASSUME_NONNULL_BEGIN
 
 @property (weak) IBOutlet NSTableView *outputTableView;
 @property (weak) IBOutlet NSTextField *consoleInputField;
+@property (weak) IBOutlet NSImageView *consoleInputImageWidget;
+@property (weak) IBOutlet FJSColoredView *consoleBottomHack;
 
 + (instancetype)consoleControllerWithRuntime:(FJSRuntime*)runtime;
 + (instancetype)sharedConsoleController;

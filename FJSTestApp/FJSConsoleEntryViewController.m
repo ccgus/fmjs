@@ -94,7 +94,7 @@
 
 @implementation FJSColoredView
 
-- (void)xdrawRect:(NSRect)dirtyRect {
+- (void)drawRect:(NSRect)dirtyRect {
     [_backgroundColor set];
     NSRectFill(dirtyRect);
 }

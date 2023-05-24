@@ -15,6 +15,7 @@ typedef NS_ENUM(NSUInteger, FJSConsoleEntryType) {
     FJSConsoleEntryTypeInput = 0,
     FJSConsoleEntryTypeOutput = 1,
     FJSConsoleEntryTypeError = 2,
+    FJSConsoleEntryTypeInformative = 3,
 };
 
 @interface FJSConsoleEntryViewController : NSViewController

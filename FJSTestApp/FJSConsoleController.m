@@ -11,6 +11,7 @@
 @interface FJSConsoleController ()
 
 @property (weak) FJSRuntime *lastRuntime;
+@property (strong) FJSRuntime *internalRuntime;
 @property (strong) NSMutableArray *entryViewControllers;
 @property (weak) IBOutlet FJSColoredView *inputColoredView;
 @end
@@ -133,6 +134,12 @@
     
     _lastRuntime = rt;
     
+    NSString *junk = NSLocalizedString(@"Switching to JavaScript runtime %@.", @"Switching to JavaScript runtime %@.");
+    junk = [NSString stringWithFormat:junk, rt];
+    
+    [self appendToConsole:junk inputType:FJSConsoleEntryTypeInformative];
+    
+    
     __weak __typeof__(self) weakSelf = self;
     
     [rt setExceptionHandler:^(FJSRuntime * _Nonnull runtime, NSException * _Nonnull exception) {
@@ -158,7 +165,7 @@
     
     void (^block)(void) = ^void() {
         
-        [self popOutWindow];
+        [self window]; // Load the nib.
         
         FJSConsoleEntryViewController *c = [[FJSConsoleEntryViewController alloc] initWithNibName:@"FJSConsoleEntryViewController" bundle:nil];
         
@@ -169,6 +176,10 @@
         
         [_outputTableView reloadData];
         [_outputTableView scrollToEndOfDocument:nil];
+        
+        if (inputType == FJSConsoleEntryTypeError) {
+            [[self window] makeKeyAndOrderFront:nil];
+        }
         
     };
     

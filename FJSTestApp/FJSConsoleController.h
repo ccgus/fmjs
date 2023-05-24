@@ -26,6 +26,8 @@ NS_ASSUME_NONNULL_BEGIN
 
 - (void)appendToConsole:(NSString*)string;
 
+- (IBAction)clearConsole:(id)sender;
+
 - (void)popOutWindow;
 
 @end

@@ -52,6 +52,11 @@
         promptColor = [NSColor redColor];
         prompt = @"‽";
     }
+    else if (_messageType == FJSConsoleEntryTypeInformative) {
+        textColor = [NSColor blueColor];
+        promptColor = [NSColor blueColor];
+        prompt = @"ℹ";
+    }
     else {
         NSAssert(NO, @"Unknown value in setMessageType: %ld", type);
     }

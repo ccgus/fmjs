@@ -172,10 +172,10 @@
         [c setMessageType:inputType];
         [c setMessageString:string];
         
-        [_entryViewControllers addObject:c];
+        [self->_entryViewControllers addObject:c];
         
-        [_outputTableView reloadData];
-        [_outputTableView scrollToEndOfDocument:nil];
+        [self->_outputTableView reloadData];
+        [self->_outputTableView scrollToEndOfDocument:nil];
         
         if (inputType == FJSConsoleEntryTypeError) {
             [[self window] makeKeyAndOrderFront:nil];

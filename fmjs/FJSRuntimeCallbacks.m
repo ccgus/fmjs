@@ -561,6 +561,15 @@ static JSValueRef FJS_callAsFunction(JSContextRef context, JSObjectRef functionJ
     
     FJSRuntime *runtime = [FJSRuntime runtimeInContext:context];
     
+    
+    FJSValue *objectToCall   = [FJSValue valueWithJSValueRef:thisObject inRuntime:runtime];
+    FJSValue *functionToCall = [FJSValue valueWithJSValueRef:functionJS inRuntime:runtime];
+    if ([functionToCall isInstance]) {
+        debug(@"Why is an instance being called as a function?");
+        return [functionToCall nativeJSValueRef];
+        
+    }
+    
     // FIXME: Is there anyway to tell the array that the FJSValues are read only?
     NSMutableArray *args = [NSMutableArray arrayWithCapacity:argumentCount];
     for (size_t idx = 0; idx < argumentCount; idx++) {
@@ -570,8 +579,17 @@ static JSValueRef FJS_callAsFunction(JSContextRef context, JSObjectRef functionJ
         [args addObject:arg];
     }
     
-    FJSValue *objectToCall   = [FJSValue valueWithJSValueRef:thisObject inRuntime:runtime];
-    FJSValue *functionToCall = [FJSValue valueWithJSValueRef:functionJS inRuntime:runtime];
+    
+    
+#ifdef DEBUG
+    if (!([functionToCall isCFunction] || [functionToCall isClassMethod] || [functionToCall isInstanceMethod] || [functionToCall isBlock])) {
+        debug(@"Why the heck are we calling on a type that's not a function?! (%u)", JSValueGetType(context, thisObject));
+        debug(@"Is it a JS function? %d", [functionToCall isJSFunction]);
+        
+        FMAssert(!([functionToCall isJSFunction] && [functionToCall isJSNative]));
+        
+    }
+#endif
     
     return [runtime invokeFunction:functionToCall onObject:objectToCall withArguments:args exception:exception];
 }

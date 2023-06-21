@@ -99,6 +99,7 @@ typedef struct {
 - (void)unprotect;
 
 - (nullable JSValueRef)JSValueRef;
+- (nullable JSValueRef)nativeJSValueRef;
 - (nullable JSObjectRef)JSObjectRef; // Only valid if the FJSValue instance is backed by a native JSC JSValueRef
 
 - (nullable FJSValue *)objectForKeyedSubscript:(NSString*)key;

@@ -165,6 +165,8 @@
     
     void (^block)(void) = ^void() {
         
+        printf("%s\n", [string UTF8String]);
+        
         [self window]; // Load the nib.
         
         FJSConsoleEntryViewController *c = [[FJSConsoleEntryViewController alloc] initWithNibName:@"FJSConsoleEntryViewController" bundle:nil];

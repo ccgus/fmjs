@@ -252,7 +252,7 @@ static const void * const kDispatchQueueRecursiveSpecificKey = &kDispatchQueueRe
     else {
         NSLog(@"Unhandled exception in FJSRuntime! Please assign an exception handler");
         NSLog(@"%@", e);
-        FMAssert(NO);
+        //FMAssert(NO);
     }
 }
 
@@ -499,6 +499,11 @@ static const void * const kDispatchQueueRecursiveSpecificKey = &kDispatchQueueRe
     }
     else {
         value = [FJSValue valueWithInstance:(__bridge CFTypeRef _Nonnull)(object) inRuntime:self];
+        
+        // FIXME: should we add a symbol to this?
+//        FJSSymbol *sym = [[FJSSymbol alloc] init];
+//        [sym setName:name];
+//        [value setSymbol:sym];
     }
     
     [self dispatchOnQueue: ^{

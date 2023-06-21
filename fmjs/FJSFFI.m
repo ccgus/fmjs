@@ -165,7 +165,7 @@ static NSMutableDictionary *FJSFFIStructureLookup;
 - (BOOL)checkArgumentsWithSymbol:(FJSSymbol*)functionSymbol usingArguments:(NSArray*)args isFJSRuntimeCall:(BOOL)isFJSRuntimeCall error:(NSError **)outError {
     
     size_t functionArgumentCount = [[functionSymbol arguments] count];
-    if ([args count] != functionArgumentCount) {
+    if ([functionSymbol arguments] && ([args count] != functionArgumentCount)) {
         NSString *reason = [NSString stringWithFormat:@"Method %@ requires %lu %@, but JavaScript passed %zd %@", [functionSymbol name], functionArgumentCount, (functionArgumentCount == 1 ? @"argument" : @"arguments"), [args count], ([args count] == 1 ? @"argument" : @"arguments")];
         
         if (outError) {
@@ -240,7 +240,49 @@ static NSMutableDictionary *FJSFFIStructureLookup;
 - (nullable FJSValue*)callFunction {
     
     FMAssert(_f);
-    FMAssert([_f isCFunction] || [_f isClassMethod] || [_f isInstanceMethod] || [_f isBlock]);
+    FMAssert([_f isCFunction] || [_f isClassMethod] || [_f isInstanceMethod] || [_f isBlock] || [_f isJSFunction]);
+    
+    if ([_f isJSFunction]) {
+        debug(@"Well shit… %p", _f);
+        
+        return nil;
+        
+        FMAssert(NO);
+        
+        JSValueRef *jsArgumentsArray = nil;
+        NSUInteger argumentsCount = [_args count];
+        if (argumentsCount) {
+            jsArgumentsArray = calloc(argumentsCount, sizeof(JSValueRef));
+            
+            for (NSUInteger i = 0; i < argumentsCount; i++) {
+                FJSValue *argument = [_args objectAtIndex:i];
+                FMAssert([argument isKindOfClass:[FJSValue class]]);
+                
+                jsArgumentsArray[i] = [argument nativeJSValueRef];
+            }
+        }
+        
+        JSObjectRef jsFunction = [_f JSObjectRef];
+        JSValueRef exception = NULL;
+        JSValueRef jsFunctionReturnValue = JSObjectCallAsFunction([_runtime contextRef], jsFunction, NULL, argumentsCount, jsArgumentsArray, &exception);
+        
+        if (jsArgumentsArray) {
+            free(jsArgumentsArray);
+        }
+        
+        FJSValue *returnValue = nil;
+        
+        if (exception) {
+            [_runtime reportPossibleJSException:exception];
+        }
+        else {
+            returnValue = [FJSValue valueWithJSValueRef:(JSObjectRef)jsFunctionReturnValue inRuntime:_runtime];
+        }
+        
+        
+        return returnValue;
+    }
+    
     
     if ([_f isClassMethod] || [_f isInstanceMethod]) {
         return [self objcInvoke];
@@ -399,7 +441,6 @@ static NSMutableDictionary *FJSFFIStructureLookup;
     BOOL isNullCFType   = ([returnValue isCFType]   && ![returnValue CFTypeRef]);
     
     if (isNullInstance || isNullCFType) {
-        debug(@"IT'S NULL.");
         return [FJSValue valueWithNullInRuntime:_runtime];
     }
     

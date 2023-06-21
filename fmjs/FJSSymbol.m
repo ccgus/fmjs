@@ -295,6 +295,7 @@
         FJSSymbol *methodSymbol = [FJSSymbol new];
         [methodSymbol setName:methodName];
         [methodSymbol setSymbolType:@"method"];
+        [methodSymbol setIsClassMethod:isClassMethod];
         
         NSMethodSignature *methodSignature = isClassMethod ? [c methodSignatureForSelector:selector] : [c instanceMethodSignatureForSelector:selector];
         assert(methodSignature);

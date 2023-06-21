@@ -27,7 +27,7 @@
 // Future Gus: next time you turn this off, explain why.
 // Oh crap, it kills Muklogic in amazing ways (do a Render of ShapeOf). I think things are being dealloc'd when they shouldn't.
 // FIXME: Find out why the heck this breaks Muklogic + OKWrite. I'm thinking it has to do with memory lifetimes.
-//#define FJSAssociateValuesForEquality 1
+#define FJSAssociateValuesForEquality 1
 
 #ifndef DEBUG
 @property (assign) NSInteger protectCount; // Why our own protectCount? Because we've also got a unprotectContextRef to manage.
@@ -498,6 +498,10 @@ static BOOL FJSCaptureJSValueInstancesForDebugging;
         return NO;
     }
     
+    if ([self isCFunction] || [self isInstanceMethod] || [self isClassMethod] || [self isBlock]) {
+        return NO;
+    }
+    
     return JSObjectIsFunction([_runtime contextRef], obj);
     
 }
@@ -516,7 +520,28 @@ static BOOL FJSCaptureJSValueInstancesForDebugging;
     }
     
     
-    return JSValueToObject([_runtime contextRef], _jsValRef, nil);;
+    return JSValueToObject([_runtime contextRef], _jsValRef, nil);
+}
+
+- (nullable JSValueRef)nativeJSValueRef {
+    
+    if (_isJSNative) {
+        return [self JSValueRef];
+    }
+    
+    
+    JSValueRef ret = [self JSValueRef];
+    
+    if ([self isInstance]) {
+        
+        // This method is still a work in progress.
+        FMAssert([[self toObject] isKindOfClass:[NSString class]]);
+        
+        ret = [self toJSString];
+        
+    }
+    
+    return ret;
 }
 
 
@@ -593,7 +618,7 @@ static BOOL FJSCaptureJSValueInstancesForDebugging;
                 _jsValRef = JSValueMakeUndefined([_runtime contextRef]);
                 break;
             default:
-                debug(@"Unknown type: '%c'", _cValue.type);
+                debug(@"%p Unknown type: '%c'", self, _cValue.type);
                 FMAssert(NO);
         
         }

@@ -405,28 +405,41 @@ int FJSTestCGImageRefExampleCounter;
     
     @autoreleasepool {
         
+        [FJSRuntime setUseSynchronousGarbageCollectForDebugging:YES];
+        
         FJSRuntime *runtime = [[FJSRuntime alloc] init];
         
         FJSTestClass *testClass = [FJSTestClass new];
         runtime[@"testClass"] = testClass;
         
+        XCTAssert(FJSSimpleTestsInitHappend == 1);
+        
         FJSValue *tc = runtime[@"testClass"];
         tc[@"randomId"] = [FJSTestClass new];
+        
+        XCTAssert(FJSSimpleTestsInitHappend == 2);
         
         weakTestClass = [tc[@"randomId"] toObject];
         XCTAssert([weakTestClass isKindOfClass:[FJSTestClass class]]);
         
         
         FJSTestClass *anotherTestClass = [FJSTestClass new];
+        
+        XCTAssert(FJSSimpleTestsInitHappend == 3);
+        
         runtime[@"anotherTestClass"] = anotherTestClass;
         FJSValue *atc = runtime[@"anotherTestClass"];
         atc[@"randomId"] = [FJSTestClass new];
+        
+        XCTAssert(FJSSimpleTestsInitHappend == 4);
         
         XCTAssert([[atc[@"randomId"] toObject] isKindOfClass:[FJSTestClass class]]);
         
         // FIXME: Why doesn't the runtime do this automatically when we shut down? Do we have to delete our objects?
         [runtime evaluateScript:@"testClass = null;"];
         [runtime evaluateScript:@"anotherTestClass = null;"];
+        
+        [runtime garbageCollect];
         
         [runtime shutdown];
     }
@@ -2041,6 +2054,7 @@ int FJSTestCGImageRefExampleCounter;
     
     __block BOOL passedAssertion = NO;
     runtime[@"XCTAssert"] = ^(BOOL condition) {
+        debug(@"passedAssertion: %d", passedAssertion);
         passedAssertion = condition;
     };
     
@@ -2074,6 +2088,35 @@ int FJSTestCGImageRefExampleCounter;
     
 }
 
+
+- (void)testCrasherWithReplace {
+    
+    // This test currently crashes.
+    
+    FJSRuntime *runtime = [FJSRuntime new];
+    [FJSRuntime setUseSynchronousGarbageCollectForDebugging:YES];
+    
+    [runtime setExceptionHandler:^(FJSRuntime * _Nonnull rt, NSException * _Nonnull exception) {
+        debug(@"exception: '%@'", exception);
+        XCTAssert(NO);
+    }];
+    
+    __block BOOL passedAssertion = NO;
+    runtime[@"XCTAssert"] = ^(BOOL condition) {
+        passedAssertion = condition;
+    };
+    
+    
+    [runtime evaluateScript:@"var page = '$title$';\n"
+                             "var filePath = NSString.stringWithString('/foo/bar/blah.png');\n"
+                             "var fileBaseName = filePath.lastPathComponent().stringByDeletingPathExtension();\n"
+                             "page = page.replace('$title$', fileBaseName);\n"
+                             "XCTAssert(page === 'blah'); filePath = null; fileBaseName = null;"];
+    
+    XCTAssert(passedAssertion);
+    
+    [runtime shutdown];
+}
 
 - (void)xtestClassExtension {
     

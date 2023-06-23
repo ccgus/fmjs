@@ -15,6 +15,16 @@ NS_ASSUME_NONNULL_BEGIN
 extern BOOL FJSTraceFunctionCalls;
 extern NSString *FMJavaScriptExceptionName;
 
+//#define FJSTrace(...) NSLog(__VA_ARGS__)
+#define FJSTrace(...)
+
+
+// FJSMapValuesForEquality is used for cases where we have a singleton object (such as NSFileManger.defaultManager()) and we want to return the same FJSValue for that (each runtime will have it's own). We could use associated objects for this, but I'm hitting a bug where something is getting over-released and I'm unable to figure out where (see FJSAssociateValuesForEquality). JavaScriptCore runtime hacks making looking at stack traces impossible.
+#define FJSMapValuesForEquality 1
+
+// This currently kills long-running JS processes. While I would prefer to use associated objects instead of a maptable, using a weak maptable seems to be the safer bet for now.
+// #define FJSAssociateValuesForEquality 1
+
 @class FJSValue;
 
 
@@ -59,6 +69,10 @@ extern NSString *FMJavaScriptExceptionName;
 - (JSValueRef)newJSValueForWrapper:(FJSValue*)w;
 
 - (JSContextRef)contextRef;
+
+#ifdef FJSMapValuesForEquality
+- (NSMapTable*)instanceMapTable;
+#endif
 
 - (FJSValue *)callFunctionNamed:(NSString*)name withArguments:(NSArray*)arguments;
 - (BOOL)hasFunctionNamed:(NSString*)name;

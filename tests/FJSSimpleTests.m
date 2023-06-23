@@ -2060,6 +2060,7 @@ int FJSTestCGImageRefExampleCounter;
     
     [runtime evaluateScript:@"var a = FJSTestClass.sharedInstance(); var b = FJSTestClass.sharedInstance(); XCTAssert(a == b);"];
     
+    // For this to pass, FJSAssociateValuesForEquality needs to be defined in FJSValue
     XCTAssert(passedAssertion);
     
     [runtime garbageCollect];

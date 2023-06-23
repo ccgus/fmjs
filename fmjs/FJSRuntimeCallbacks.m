@@ -52,7 +52,7 @@ static JSValueRef FJSPrototypeForOBJCInstance(JSContextRef ctx, id instance, NSS
 
 
 - (BOOL)object:(FJSValue*)objectValue hasProperty:(NSString *)propertyName {
-    
+    FJSTrace(@"%s:%d", __FUNCTION__, __LINE__);
     
     if ([objectValue isInstance]) {
         
@@ -145,6 +145,7 @@ static JSValueRef FJSPrototypeForOBJCInstance(JSContextRef ctx, id instance, NSS
 }
 
 - (JSValueRef)getProperty:(NSString*)propertyName inObject:(FJSValue*)valueFromJSObject exception:(JSValueRef *)exception {
+    FJSTrace(@"%s:%d", __FUNCTION__, __LINE__);
     
     if ([propertyName isEqualToString:@"toString"] || [propertyName isEqualToString:@"Symbol.toStringTag"]/* || [propertyName isEqualToString:@"Symbol.toPrimitive"]*/) {
         // This can be used in a debugger.
@@ -336,6 +337,7 @@ static JSValueRef FJSPrototypeForOBJCInstance(JSContextRef ctx, id instance, NSS
 
 
 - (BOOL)setValue:(FJSValue*)arg forProperty:(NSString*)propertyName inObject:(FJSValue*)valueFromJSObject exception:(JSValueRef*)exception {
+    FJSTrace(@"%s:%d", __FUNCTION__, __LINE__);
     
     if ([valueFromJSObject isStruct]) {
         BOOL worked = [valueFromJSObject setValue:arg onStructFieldNamed:propertyName];
@@ -444,6 +446,7 @@ static JSValueRef FJSPrototypeForOBJCInstance(JSContextRef ctx, id instance, NSS
 }
 
 - (JSValueRef)convertObject:(FJSValue*)valueObject toType:(JSType)type exception:(JSValueRef*)exception {
+    FJSTrace(@"%s:%d", __FUNCTION__, __LINE__);
     
     if ([valueObject isInstance] || [valueObject isBlock] || [valueObject isClass] || [[[valueObject symbol] runtimeType] hasPrefix:@"^{C"]) {
         
@@ -488,6 +491,7 @@ static JSValueRef FJSPrototypeForOBJCInstance(JSContextRef ctx, id instance, NSS
 @end
 
 static void FJS_initialize(JSContextRef ctx, JSObjectRef object) {
+    FJSTrace(@"%s:%d", __FUNCTION__, __LINE__);
     
     FJSRuntime *runtime = [FJSRuntime runtimeInContext:ctx];
     [runtime initializeJSObjectRef:object];
@@ -495,7 +499,12 @@ static void FJS_initialize(JSContextRef ctx, JSObjectRef object) {
 }
 
 static bool FJS_hasProperty(JSContextRef ctx, JSObjectRef object, JSStringRef propertyNameJS) {
+    FJSTrace(@"%s:%d", __FUNCTION__, __LINE__);
+    
     NSString *propertyName = (NSString *)CFBridgingRelease(JSStringCopyCFString(kCFAllocatorDefault, propertyNameJS));
+    
+    FJSTrace(@"propertyName: %@", propertyName);
+    
     if ([propertyName isEqualToString:FJSRuntimeLookupKey] || [propertyName isEqualToString:@"Object"]) {
         return NO;
     }
@@ -509,6 +518,8 @@ static bool FJS_hasProperty(JSContextRef ctx, JSObjectRef object, JSStringRef pr
 
 
 JSValueRef FJS_getProperty(JSContextRef ctx, JSObjectRef object, JSStringRef propertyNameJS, JSValueRef *exception) {
+    FJSTrace(@"%s:%d", __FUNCTION__, __LINE__);
+    
     NSString *propertyName = (NSString *)CFBridgingRelease(JSStringCopyCFString(kCFAllocatorDefault, propertyNameJS));
     if ([propertyName isEqualToString:FJSRuntimeLookupKey] || [propertyName isEqualToString:@"Object"]) {
         return nil;
@@ -523,15 +534,19 @@ JSValueRef FJS_getProperty(JSContextRef ctx, JSObjectRef object, JSStringRef pro
 }
 
 static bool FJS_deleteProperty(JSContextRef ctx, JSObjectRef object, JSStringRef propertyName, JSValueRef* exception) {
+    FJSTrace(@"%s:%d", __FUNCTION__, __LINE__);
+    
     return NO;
 }
 
 static void FJS_getPropertyNames(JSContextRef ctx, JSObjectRef object, JSPropertyNameAccumulatorRef propertyNames) {
-    
+    FJSTrace(@"%s:%d", __FUNCTION__, __LINE__);
 }
 
 
 static bool FJS_setProperty(JSContextRef ctx, JSObjectRef object, JSStringRef propertyNameJS, JSValueRef value, JSValueRef* exception) {
+    FJSTrace(@"%s:%d", __FUNCTION__, __LINE__);
+    
     NSString *propertyName = (NSString *)CFBridgingRelease(JSStringCopyCFString(kCFAllocatorDefault, propertyNameJS));
     if ([propertyName isEqualToString:FJSRuntimeLookupKey]) {
         return NO;
@@ -549,15 +564,20 @@ static bool FJS_setProperty(JSContextRef ctx, JSObjectRef object, JSStringRef pr
 }
 
 static JSObjectRef FJS_callAsConstructor(JSContextRef ctx, JSObjectRef constructor, size_t argumentCount, const JSValueRef arguments[], JSValueRef* exception) {
+    FJSTrace(@"%s:%d", __FUNCTION__, __LINE__);
+    
     return nil;
 }
 
 static bool FJS_hasInstance(JSContextRef ctx, JSObjectRef constructor, JSValueRef possibleInstance, JSValueRef* exception) {
+    FJSTrace(@"%s:%d", __FUNCTION__, __LINE__);
+    
     return NO;
 }
 
 
 static JSValueRef FJS_callAsFunction(JSContextRef context, JSObjectRef functionJS, JSObjectRef thisObject, size_t argumentCount, const JSValueRef arguments[], JSValueRef *exception) {
+    FJSTrace(@"%s:%d", __FUNCTION__, __LINE__);
     
     FJSRuntime *runtime = [FJSRuntime runtimeInContext:context];
     
@@ -596,6 +616,8 @@ static JSValueRef FJS_callAsFunction(JSContextRef context, JSObjectRef functionJ
 
 // This function is only invoked when converting an object to number or string
 static JSValueRef FJS_convertToType(JSContextRef context, JSObjectRef object, JSType type, JSValueRef* exception) {
+    FJSTrace(@"%s:%d", __FUNCTION__, __LINE__);
+    
     FJSRuntime *runtime       = [FJSRuntime runtimeInContext:context];
     FJSValue *objectToConvert = [FJSValue valueWithJSValueRef:object inRuntime:runtime];
     
@@ -604,6 +626,7 @@ static JSValueRef FJS_convertToType(JSContextRef context, JSObjectRef object, JS
 }
 
 static void FJS_finalize(JSObjectRef object) {
+    FJSTrace(@"%s:%d", __FUNCTION__, __LINE__);
     
     CFTypeRef value = JSObjectGetPrivate(object);
     
@@ -630,6 +653,7 @@ static void FJS_finalize(JSObjectRef object) {
 
 
 static JSValueRef FJSPrototypeForOBJCInstance(JSContextRef ctx, id instance, NSString *name) {
+    FJSTrace(@"%s:%d", __FUNCTION__, __LINE__);
     
     char *propName = nil;
     if ([instance isKindOfClass:[NSString class]]) {

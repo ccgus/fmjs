@@ -37,7 +37,7 @@ static const void * const kDispatchQueueRecursiveSpecificKey = &kDispatchQueueRe
 @property (strong) NSMutableArray *moduleSearchPaths;
 @property (strong) NSMutableArray<NSURL*> *currentlyLoadingModuleURL;
 @property (strong) FJSRunLoopThread *runloopThread;
-
+@property (strong) NSMapTable *instanceLookupTable;
 @end
 
 
@@ -196,6 +196,10 @@ static const void * const kDispatchQueueRecursiveSpecificKey = &kDispatchQueueRe
         }
         
         [_cachedModules removeAllObjects];
+        
+#ifdef FJSMapValuesForEquality
+        [_instanceLookupTable removeAllObjects];
+#endif
         
         JSClassRelease(_globalClass);
         
@@ -912,6 +916,18 @@ static const void * const kDispatchQueueRecursiveSpecificKey = &kDispatchQueueRe
     [_runloopThread start];
     [_runloopThread join];
 }
+
+#ifdef FJSMapValuesForEquality
+- (NSMapTable*)instanceMapTable {
+    
+    if (!_instanceLookupTable) {
+        _instanceLookupTable = [NSMapTable mapTableWithKeyOptions:(NSMapTableObjectPointerPersonality | NSMapTableWeakMemory) valueOptions:NSMapTableWeakMemory];
+    }
+    
+    return _instanceLookupTable;
+}
+#endif
+
 
 @end
 

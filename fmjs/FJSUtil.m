@@ -334,6 +334,10 @@ id FJSNativeObjectFromJSValue(JSValueRef jsValue, NSString *typeEncoding, JSCont
         
     }
     
+    
+    if ([typeEncoding hasPrefix:@"^@"]) { // Pointer to a NSObject*  - probably NSError ** object?
+        
+    }
     debug(@"Not sure what to do with type encoding '%@'", typeEncoding);
     
     //assert(NO);

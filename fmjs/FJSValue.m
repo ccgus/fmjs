@@ -24,11 +24,6 @@
 @property (assign) JSType jsValueType;
 @property (assign) BOOL debugFinalizeCalled;
 
-// Future Gus: next time you turn this off, explain why.
-// Oh crap, it kills Muklogic in amazing ways (do a Render of ShapeOf). I think things are being dealloc'd when they shouldn't.
-// FIXME: Find out why the heck this breaks Muklogic + OKWrite. I'm thinking it has to do with memory lifetimes.
-#define FJSAssociateValuesForEquality 1
-
 #ifndef DEBUG
 @property (assign) NSInteger protectCount; // Why our own protectCount? Because we've also got a unprotectContextRef to manage.
 #endif
@@ -71,8 +66,17 @@ static BOOL FJSCaptureJSValueInstancesForDebugging;
     
     if (([self isInstance] || [self isBlock]) && _cValue.value.pointerValue && ![[[self symbol] symbolType] isEqualToString:@"constant"]) {
 #ifdef FJSAssociateValuesForEquality
+        //FJSTrace(@"Removing associated object (%@) from %@", (_cValue.value.pointerValue), self);
         objc_setAssociatedObject((__bridge id _Nonnull)(_cValue.value.pointerValue), (__bridge const void * _Nonnull)[self runtime], nil, OBJC_ASSOCIATION_ASSIGN);
 #endif
+
+#ifdef FJSMapValuesForEquality
+        
+        // We don't need to do this really, since the pointers are weak… but we'll do it anyway to make it happen faster I guess?
+        [[_runtime instanceMapTable] removeObjectForKey:self];
+#endif
+        
+        //debug(@"FJSValue releasing %@ currently at %ld", (_cValue.value.pointerValue), CFGetRetainCount((_cValue.value.pointerValue)));
         CFRelease(_cValue.value.pointerValue);
     }
     
@@ -264,7 +268,15 @@ static BOOL FJSCaptureJSValueInstancesForDebugging;
     }
 
 #ifdef FJSAssociateValuesForEquality
+    FJSTrace(@"Looking for associated value in %@", instance);
     FJSValue *associated = [self associatedValueInInstance:instance inRuntime:runtime];
+    if (associated) {
+        return associated;
+    }
+#endif
+    
+#ifdef FJSMapValuesForEquality
+    FJSValue *associated = [[runtime instanceMapTable] objectForKey:(__bridge id _Nullable)(instance)];
     if (associated) {
         return associated;
     }
@@ -282,6 +294,11 @@ static BOOL FJSCaptureJSValueInstancesForDebugging;
 #ifdef FJSAssociateValuesForEquality
     objc_setAssociatedObject((__bridge id _Nonnull)(instance), (__bridge const void * _Nonnull)runtime, (value), OBJC_ASSOCIATION_ASSIGN);
 #endif
+    
+#ifdef FJSMapValuesForEquality
+    [[runtime instanceMapTable] setObject:value forKey:(__bridge id _Nonnull)instance];
+#endif
+    
     
     return value;
 }
@@ -1171,6 +1188,11 @@ static BOOL FJSCaptureJSValueInstancesForDebugging;
         FMAssert(NO);
         return NO;
         
+    }
+    
+    if (JSValueIsNull([_runtime contextRef], _jsValRef)) {
+        [self setInstance:nil];
+        return YES;
     }
     
     [self setInstance:(__bridge CFTypeRef)(FJSNativeObjectFromJSValue(_jsValRef, type, [_runtime contextRef]))];

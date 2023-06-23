@@ -139,6 +139,7 @@ static NSMutableDictionary *FJSFFIStructureLookup;
             returnFValue = isInFJSRuntimeCall ? (__bridge id)cfobject : [FJSValue valueWithInstance:cfobject inRuntime:_runtime];
             
             if (cfobject && [functionSymbol returnsRetained]) {
+                // FJSTrace(@"objcInvoke Releasing %@", cfobject);
                 // We're already +2 on the object now. Time to bring it back down with CFRelease
                 CFRelease(cfobject);
             }
@@ -158,6 +159,10 @@ static NSMutableDictionary *FJSFFIStructureLookup;
         assert(NO);
         return NULL;
     }
+    
+    
+    //FJSTrace(@"%s:%d", __FUNCTION__, __LINE__);
+    //FJSTrace(@"returning %@", returnFValue);
     
     return returnFValue ? returnFValue : [FJSValue valueWithNullInRuntime:_runtime];
 }
@@ -238,6 +243,7 @@ static NSMutableDictionary *FJSFFIStructureLookup;
 
 
 - (nullable FJSValue*)callFunction {
+    FJSTrace(@"%s:%d", __FUNCTION__, __LINE__);
     
     FMAssert(_f);
     FMAssert([_f isCFunction] || [_f isClassMethod] || [_f isInstanceMethod] || [_f isBlock] || [_f isJSFunction]);

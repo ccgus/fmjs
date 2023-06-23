@@ -3,7 +3,7 @@
 	archiveVersion = 1;
 	classes = {
 	};
-	objectVersion = 53;
+	objectVersion = 54;
 	objects = {
 
 /* Begin PBXBuildFile section */
@@ -881,7 +881,6 @@
 					"$(inherited)",
 					"$(SYSTEM_LIBRARY_DIR)/Frameworks/CoreGraphics.framework/Versions/A/Resources/BridgeSupport",
 				);
-				MACOSX_DEPLOYMENT_TARGET = "$(RECOMMENDED_MACOSX_DEPLOYMENT_TARGET)";
 				OTHER_LDFLAGS = "-lffi";
 				PRODUCT_BUNDLE_IDENTIFIER = com.flyingmeat.fmjs.tests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
@@ -905,7 +904,6 @@
 					"$(inherited)",
 					"$(SYSTEM_LIBRARY_DIR)/Frameworks/CoreGraphics.framework/Versions/A/Resources/BridgeSupport",
 				);
-				MACOSX_DEPLOYMENT_TARGET = "$(RECOMMENDED_MACOSX_DEPLOYMENT_TARGET)";
 				OTHER_LDFLAGS = "-lffi";
 				PRODUCT_BUNDLE_IDENTIFIER = com.flyingmeat.fmjs.tests;
 				PRODUCT_NAME = "$(TARGET_NAME)";

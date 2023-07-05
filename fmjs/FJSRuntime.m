@@ -501,6 +501,9 @@ static const void * const kDispatchQueueRecursiveSpecificKey = &kDispatchQueueRe
     if ([object isKindOfClass:[FJSValue class]]) {
         value = object;
     }
+    else if (object == [object class]) {
+        value = [FJSValue valueWithClass:(object) inRuntime:self];
+    }
     else {
         value = [FJSValue valueWithInstance:(__bridge CFTypeRef _Nonnull)(object) inRuntime:self];
         

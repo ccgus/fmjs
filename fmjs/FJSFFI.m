@@ -126,15 +126,26 @@ static NSMutableDictionary *FJSFFIStructureLookup;
         if (FJSCharEquals(returnType, @encode(void))) {
             returnFValue = [FJSValue valueWithUndefinedInRuntime:_runtime];
         }
+        else if (FJSCharEquals(returnType, @encode(Class))) {
+            Class c = nil;
+            [invocation getReturnValue:&c];
+            
+            FMAssert(c && c == [c class]);
+            
+            returnFValue = [FJSValue valueWithClass:c inRuntime:_runtime];
+        }
         // id
         else if (FJSCharEquals(returnType, @encode(id)) ||
-                 FJSCharEquals(returnType, @encode(Class)) ||
                  [FJSSymbol symbolForCFType:[NSString stringWithUTF8String:returnType]])
         {
             
             // Using CFTypeRef with libffi is a great way to workaround ARC getting in the way of things.
             CFTypeRef cfobject = nil;
             [invocation getReturnValue:&cfobject];
+            
+            if (cfobject) {
+                FMAssert(cfobject != (__bridge CFTypeRef)[(__bridge id)cfobject class]);
+            }
             
             returnFValue = isInFJSRuntimeCall ? (__bridge id)cfobject : [FJSValue valueWithInstance:cfobject inRuntime:_runtime];
             

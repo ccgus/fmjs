@@ -66,8 +66,9 @@ static BOOL FJSCaptureJSValueInstancesForDebugging;
     
     if (([self isInstance] || [self isBlock]) && _cValue.value.pointerValue && ![[[self symbol] symbolType] isEqualToString:@"constant"]) {
 #ifdef FJSAssociateValuesForEquality
+        FMAssert(_runtime);
         //FJSTrace(@"Removing associated object (%@) from %@", (_cValue.value.pointerValue), self);
-        objc_setAssociatedObject((__bridge id _Nonnull)(_cValue.value.pointerValue), (__bridge const void * _Nonnull)[self runtime], nil, OBJC_ASSOCIATION_ASSIGN);
+        objc_setAssociatedObject((__bridge id _Nonnull)(_cValue.value.pointerValue), (__bridge const void * _Nonnull)_runtime, nil, OBJC_ASSOCIATION_ASSIGN);
 #endif
 
 #ifdef FJSMapValuesForEquality
@@ -77,7 +78,17 @@ static BOOL FJSCaptureJSValueInstancesForDebugging;
 #endif
         
         //debug(@"FJSValue releasing %@ currently at %ld", (_cValue.value.pointerValue), CFGetRetainCount((_cValue.value.pointerValue)));
-        CFRelease(_cValue.value.pointerValue);
+
+        FMAssert(![self isClass]);
+        
+        // FIXME: Gus write a test for this.
+        if ([(__bridge id _Nonnull)(_cValue.value.pointerValue) isKindOfClass:[FJSValue class]]) {
+            debug(@"%p NOPE", self);
+        }
+        else {
+            
+            CFRelease(_cValue.value.pointerValue);
+        }
     }
     
     if (_unprotectContextRef) {
@@ -268,9 +279,10 @@ static BOOL FJSCaptureJSValueInstancesForDebugging;
     }
 
 #ifdef FJSAssociateValuesForEquality
-    FJSTrace(@"Looking for associated value in %@", instance);
+    
     FJSValue *associated = [self associatedValueInInstance:instance inRuntime:runtime];
     if (associated) {
+        FJSTrace(@"Found for associated value in %@", instance);
         return associated;
     }
 #endif
@@ -288,10 +300,21 @@ static BOOL FJSCaptureJSValueInstancesForDebugging;
     
     FMAssert(runtime);
     FJSValue *value = [[self alloc] init];
-    [value setInstance:instance];
+    
+    if ([(__bridge id _Nullable)instance class] == instance) {
+        debug(@"Whooops - using instance instead of a class? (%p)", value);
+        FMAssert(NO);
+        [value setClass:(__bridge Class _Nonnull)(instance)];
+    }
+    else {
+        [value setInstance:instance];
+    }
+    
+    
     [value setRuntime:runtime];
 
 #ifdef FJSAssociateValuesForEquality
+    FJSTrace(@"Setting associated value for %@", instance);
     objc_setAssociatedObject((__bridge id _Nonnull)(instance), (__bridge const void * _Nonnull)runtime, (value), OBJC_ASSOCIATION_ASSIGN);
 #endif
     
@@ -463,6 +486,7 @@ static BOOL FJSCaptureJSValueInstancesForDebugging;
     if (o) { // If a null or underfined jsvalue is pushed to native- well, we get here.
         //debug(@"FJSValue retaining %@ currently at %ld", o, CFGetRetainCount(o));
         FMAssert(![(__bridge id)o isKindOfClass:[self class]]);
+        
         CFRetain(o);
     }
     _cValue.type = _C_ID;
@@ -738,7 +762,14 @@ static BOOL FJSCaptureJSValueInstancesForDebugging;
         obj = FJSNameForJSType(_jsValueType);
     }
     
-    return [NSString stringWithFormat:@"%@ - %@ (%@ native)", [super description], obj, _isJSNative ? @"js" : @"c"];
+    id objd = obj;
+    
+    if (obj == [obj class]) {
+        objd = NSStringFromClass(obj);
+    }
+    
+    
+    return [NSString stringWithFormat:@"%@ - <%p> %@ (%@ native)", [super description], obj, objd, _isJSNative ? @"js" : @"c"];
 }
 
 - (BOOL)setValue:(FJSValue*)value onStructFieldNamed:(NSString*)structFieldName {
@@ -968,7 +999,7 @@ static BOOL FJSCaptureJSValueInstancesForDebugging;
         return &ffi_type_pointer;
     }
     
-    if (_cValue.type == _C_ID || _cValue.type == _FJSC_BLOCK) {
+    if (_cValue.type == _C_ID || _cValue.type == _FJSC_BLOCK || _cValue.type == _C_CLASS) {
         return &ffi_type_pointer;
     }
     
@@ -1328,7 +1359,7 @@ static BOOL FJSCaptureJSValueInstancesForDebugging;
 }
 
 - (FJSValue*)unwrapValue __attribute__((cf_returns_retained)) {
-    
+    FMAssert(NO);
     if ([self isInstance] && [[self instance] isKindOfClass:[FJSValue class]]) {
         return CFRetain((__bridge CFTypeRef)([self instance]));
     }

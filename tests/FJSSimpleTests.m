@@ -232,7 +232,7 @@ int FJSTestCGImageRefExampleCounter;
     return YES;
 }
 
-+ (BOOL)getError:(NSError **)outErr {
++ (BOOL)getError:(NSError *__autoreleasing *)outErr {
     
     FMAssert(!*outErr); // These better be nil coming in.
     
@@ -949,6 +949,8 @@ int FJSTestCGImageRefExampleCounter;
         // pass.
     }];
     
+    XCTAssert([[runtime evaluateScript:@"FJSMethodPleasePassNSStringClass(NSString.class());"] toBOOL]);
+    
     XCTAssert([[runtime evaluateScript:@"FJSMethodPleasePassCCharM(FJSTestAddSignedChar('l'));"] toBOOL]);
     
     XCTAssert([[runtime evaluateScript:@"FJSMethodPleasePassUnsignedCCharM(FJSTestAddUnsignedChar('l'));"] toBOOL]);
@@ -960,8 +962,6 @@ int FJSTestCGImageRefExampleCounter;
     XCTAssert([[runtime evaluateScript:@"FJSMethodPleasePassNegativeBOOL(FJSMethodNegateBOOL(true));"] toBOOL]);
     
     XCTAssert([[runtime evaluateScript:@"FJSMethodPleasePassPositiveBOOL(FJSMethodNegateBOOL(false));"] toBOOL]);
-    
-    XCTAssert([[runtime evaluateScript:@"FJSMethodPleasePassNSStringClass(NSString.class());"] toBOOL]);
     
     XCTAssert([[runtime evaluateScript:@"FJSMethodPleasePassNegativeBOOL(false);"] toBOOL]);
     

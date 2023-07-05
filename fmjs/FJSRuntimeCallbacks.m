@@ -83,7 +83,7 @@ static JSValueRef FJSPrototypeForOBJCInstance(JSContextRef ctx, id instance, NSS
 //        }
     }
     
-    if ([objectValue isInstance] || [objectValue isClass]) {
+    if ([objectValue isInstance]) {
         
         FJSSymbol *symbol = [FJSSymbol symbolForName:propertyName inObject:[objectValue instance]];
         
@@ -99,6 +99,17 @@ static JSValueRef FJSPrototypeForOBJCInstance(JSContextRef ctx, id instance, NSS
                 ;// pass
             }
         }
+    }
+    
+    if ([objectValue isClass]) {
+        
+        FJSSymbol *symbol = [FJSSymbol symbolForName:propertyName inObject:[objectValue rtClass]];
+        
+        if (symbol) {
+            return YES;
+        }
+        
+        FMAssert(NO);
     }
     
     
@@ -234,9 +245,6 @@ static JSValueRef FJSPrototypeForOBJCInstance(JSContextRef ctx, id instance, NSS
         
         return [value JSValueRef];
     }
-    
-    
-    
     
     
     id objectLookup = ([valueFromJSObject isInstance] || [valueFromJSObject isClass]) ? [valueFromJSObject instance] : nil;
@@ -429,13 +437,18 @@ static JSValueRef FJSPrototypeForOBJCInstance(JSContextRef ctx, id instance, NSS
     
     FJSValue *ret = [ffi callFunction];
     
-    // unwrap does a +1 retain on the value returned. Otherwise it'll be quickly removed from the runtime.
-    FMAssert([ret isKindOfClass:[FJSValue class]]);
-    ret = [ret unwrapValue];
-    
     FMAssert(ret);
+    FMAssert([ret isKindOfClass:[FJSValue class]]);
     
-    JSValueRef returnRef = [ret JSValueRef];
+    JSValueRef returnRef;
+    
+    if ([ret isInstance] && [[ret instance] isKindOfClass:[FJSValue class]]) {
+        returnRef = [[ret instance] JSValueRef];
+    }
+    else {
+        returnRef = [ret JSValueRef];
+    }
+    
     FMAssert(returnRef);
     
     if (needsToPushRuntime) {
@@ -481,8 +494,21 @@ static JSValueRef FJSPrototypeForOBJCInstance(JSContextRef ctx, id instance, NSS
             return value;
         }
         
-        return JSValueMakeNull([self contextRef]);
+        return JSValueMakeBoolean([self contextRef], false);
     }
+    
+    if ([valueObject isClassMethod] || [valueObject isInstanceMethod]) {
+        
+        if ([[valueObject symbol] name]) {
+            JSStringRef string = JSStringCreateWithCFString((__bridge CFStringRef)[[valueObject symbol] name]);
+            JSValueRef value = JSValueMakeString([self contextRef], string);
+            JSStringRelease(string);
+            return value;
+        }
+        
+        return JSValueMakeBoolean([self contextRef], false);
+    }
+    
     
     return JSValueMakeNumber([self contextRef], [valueObject toDouble]);
 }

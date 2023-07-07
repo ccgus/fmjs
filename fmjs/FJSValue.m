@@ -764,8 +764,8 @@ static BOOL FJSCaptureJSValueInstancesForDebugging;
     
     id objd = obj;
     
-    if (obj == [obj class]) {
-        objd = NSStringFromClass(obj);
+    if ((Class)obj == [obj class]) {
+        objd = NSStringFromClass([obj class]);
     }
     
     

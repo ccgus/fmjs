@@ -260,7 +260,7 @@ static NSMutableDictionary *FJSFFIStructureLookup;
     FMAssert([_f isCFunction] || [_f isClassMethod] || [_f isInstanceMethod] || [_f isBlock] || [_f isJSFunction]);
     
     if ([_f isJSFunction]) {
-        debug(@"Well shit… %p", _f);
+        debug(@"Well shit… %p", (__bridge void *)_f);
         
         return nil;
         

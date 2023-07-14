@@ -83,7 +83,7 @@ static BOOL FJSCaptureJSValueInstancesForDebugging;
         
         // FIXME: Gus write a test for this.
         if ([(__bridge id _Nonnull)(_cValue.value.pointerValue) isKindOfClass:[FJSValue class]]) {
-            debug(@"%p NOPE", self);
+            debug(@"%p NOPE", (__bridge void *)self);
         }
         else {
             
@@ -302,7 +302,7 @@ static BOOL FJSCaptureJSValueInstancesForDebugging;
     FJSValue *value = [[self alloc] init];
     
     if ([(__bridge id _Nullable)instance class] == instance) {
-        debug(@"Whooops - using instance instead of a class? (%p)", value);
+        debug(@"Whooops - using instance instead of a class? (%p)", (__bridge void *)value);
         FMAssert(NO);
         [value setClass:(__bridge Class _Nonnull)(instance)];
     }
@@ -659,7 +659,7 @@ static BOOL FJSCaptureJSValueInstancesForDebugging;
                 _jsValRef = JSValueMakeUndefined([_runtime contextRef]);
                 break;
             default:
-                debug(@"%p Unknown type: '%c'", self, _cValue.type);
+                debug(@"%p Unknown type: '%c'", (__bridge void *)self, _cValue.type);
                 FMAssert(NO);
         
         }
@@ -769,7 +769,7 @@ static BOOL FJSCaptureJSValueInstancesForDebugging;
     }
     
     
-    return [NSString stringWithFormat:@"%@ - <%p> %@ (%@ native)", [super description], obj, objd, _isJSNative ? @"js" : @"c"];
+    return [NSString stringWithFormat:@"%@ - <%p> %@ (%@ native)", [super description], (__bridge void *)obj, objd, _isJSNative ? @"js" : @"c"];
 }
 
 - (BOOL)setValue:(FJSValue*)value onStructFieldNamed:(NSString*)structFieldName {

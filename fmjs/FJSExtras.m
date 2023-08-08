@@ -108,7 +108,7 @@
 
 + (id)application:(NSString*)appName {
     
-    NSString *appPath = [[NSWorkspace sharedWorkspace] fullPathForApplication:appName];
+    NSString *appPath = [[[NSWorkspace sharedWorkspace] URLForApplicationWithBundleIdentifier:appName] path];
     
     if (!appPath) {
         NSLog(@"Could not find application '%@'", appName);

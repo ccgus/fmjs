@@ -25,8 +25,15 @@
     return doc;
 }
 
+// MacOS 14 introduced this method on NSApplication. I hope it works well.
+// So if you're compiling against 14, then you'll need to rename it to fjsActivate.
+// This isn't a great solution, and I'm open suggestions.
+#ifndef MAC_OS_VERSION_14_0
 - (void)activate {
-
+#else
+- (void)fjsActivate {
+#endif
+    
     #pragma clang diagnostic push
     #pragma clang diagnostic ignored "-Wdeprecated-declarations"
 
@@ -35,6 +42,7 @@
 
     #pragma clang diagnostic pop
 }
+
 
 - (NSInteger)displayDialog:(NSString*)msg withTitle:(NSString*)title {
     

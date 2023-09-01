@@ -50,9 +50,9 @@
     [_outputTableView setDelegate:self];
     [_outputTableView reloadData];
     
-    FMAssert(_consoleInputImageWidget);
+    FMAssert(_consoleInputImageWidgetButton);
     
-    NSSize imgSize = [_consoleInputImageWidget bounds].size;
+    NSSize imgSize = [_consoleInputImageWidgetButton bounds].size;
     NSImage *img = [NSImage imageWithSize:imgSize flipped:NO drawingHandler:^BOOL(NSRect dstRect) {
         
         
@@ -82,8 +82,13 @@
         
     }];
     
-    FMAssert(_consoleInputImageWidget);
-    [_consoleInputImageWidget setImage:img];
+    FMAssert(_consoleInputImageWidgetButton);
+    [_consoleInputImageWidgetButton setImage:img];
+    
+    [_consoleInputImageWidgetButton setTarget:self];
+    [_consoleInputImageWidgetButton setAction:@selector(showConsolePopupAction:)];
+    
+    FMAssert(_consoleInputField);
     
     FMAssert(_consoleBottomHack);
     [_consoleBottomHack setBackgroundColor:[NSColor controlBackgroundColor]];
@@ -94,17 +99,113 @@
     [_outputTableView reloadData];
 }
 
+
+- (IBAction)copyConsole:(id)sender {
+    
+    NSMutableString *c = [NSMutableString string];
+    
+    for (FJSConsoleEntryViewController *controller in _entryViewControllers) {
+        [c appendFormat:@"%@ %@\n", [[controller ioIndicator] stringValue], [controller messageString]];
+    }
+    
+    NSPasteboard *pboard = [NSPasteboard generalPasteboard];
+    
+    
+    [pboard clearContents];
+    
+    [pboard addTypes:@[(id)kUTTypeUTF8PlainText] owner:nil];
+    
+    [pboard setString:c forType:(id)kUTTypeUTF8PlainText];
+    
+    
+    [self appendToConsole:NSLocalizedString(@"Copied to clipboard!.", @"Copied to clipboard!.") inputType:FJSConsoleEntryTypeInformative];
+}
+
+- (void)showConsolePopupAction:(id)sender {
+    
+    [NSMenu popUpContextMenu:[_consoleInputImageWidgetButton menu] withEvent:[NSApp currentEvent] forView:_consoleInputImageWidgetButton];
+}
+
+- (IBAction)showHelpAction:(id)sender {
+    [self appendToConsole:@"Enter '/clear' to clear the console." inputType:FJSConsoleEntryTypeInformative];
+    [self appendToConsole:@"Enter '/copy' to copy the console to the clipboard." inputType:FJSConsoleEntryTypeInformative];
+    [self appendToConsole:@"Enter '/help' to see this message." inputType:FJSConsoleEntryTypeInformative];
+    [self appendToConsole:@"Enter any other JavaScript command if there's a runtime connected." inputType:FJSConsoleEntryTypeInformative];
+}
+
+- (void)parseAndSetDefaultsValue:(NSString*)string {
+    
+    NSArray *ar = [string componentsSeparatedByString:@" "];
+    
+    if ([ar count] < 3) {
+        [self appendToConsole:@"Wrong number of entries for defaults action (I'll need at least 3)." inputType:FJSConsoleEntryTypeError];
+        return;
+    }
+    
+    
+    NSString *command = ar[1];
+    NSString *prefName = ar[2];
+    
+    if ([command isEqualToString:@"write"]) {
+        
+        
+        if ([ar count] < 4) {
+            [self appendToConsole:@"Wrong number of entries for defaults write (I'll need at least 4)." inputType:FJSConsoleEntryTypeError];
+            return;
+        }
+        
+        NSString *value = ar[3];
+        
+        [[NSUserDefaults standardUserDefaults] setObject:value forKey:prefName];
+        
+        [self appendToConsole:[NSString stringWithFormat:@"'%@' is now set to '%@'", prefName, value] inputType:FJSConsoleEntryTypeInformative];
+    }
+    else if ([command isEqualToString:@"read"]) {
+        
+        NSString *msg = [NSString stringWithFormat:@"%@ = '%@'", prefName, [[NSUserDefaults standardUserDefaults] objectForKey:prefName]];
+        
+        [self appendToConsole:msg inputType:FJSConsoleEntryTypeInformative];
+    }
+    else {
+        NSString *msg = [NSString stringWithFormat:@"Unknown defaults command: '%@'. Use only 'write' or 'read'", command];
+        [self appendToConsole:msg inputType:FJSConsoleEntryTypeError];
+    }
+}
+
 - (IBAction)evaluateTextFieldAction:(id)sender {
     
     if (![[_consoleInputField stringValue] length]) {
         return;
     }
     
-    if ([[_consoleInputField stringValue] isEqualToString:@"/clear"]) {
-        [self clearConsole:self];
+    if ([[_consoleInputField stringValue] hasPrefix:@"/"]) {
+        
+        if ([[_consoleInputField stringValue] isEqualToString:@"/clear"]) {
+            [self clearConsole:self];
+        }
+        else if ([[_consoleInputField stringValue] isEqualToString:@"/copy"]) {
+            [self copyConsole:self];
+        }
+        else if ([[_consoleInputField stringValue] isEqualToString:@"/help"]) {
+            [self showHelpAction:self];
+        }
+        else if ([[_consoleInputField stringValue] hasPrefix:@"/defaults "]) {
+            [self parseAndSetDefaultsValue:[_consoleInputField stringValue]];
+        }
+        else {
+            
+            NSString *msg = NSLocalizedString(@"Unknown command: '%@'", @"Unknown command: '%@'");
+            
+            msg = [NSString stringWithFormat:msg, [_consoleInputField stringValue]];
+            
+            [self appendToConsole:msg inputType:FJSConsoleEntryTypeError];
+        }
+        
         [_consoleInputField setStringValue:@""];
+        
         return;
     }
+    
     
     if (!_lastRuntime) {
         [self appendToConsole:NSLocalizedString(@"Missing runtime.", @"Missing runtime.") inputType:FJSConsoleEntryTypeError];
@@ -121,6 +222,19 @@
     
     [_consoleInputField setStringValue:@""];
 }
+
+- (BOOL)control:(NSControl *)control textView:(NSTextView *)textView doCommandBySelector:(SEL)commandSelector {
+    
+    debug(@"commandSelector: '%@'", NSStringFromSelector(commandSelector));
+    
+    if (commandSelector == @selector(moveUp:)) {
+        debug(@"need the last command!");
+        return YES;
+    }
+    
+    return NO;
+}
+
 
 - (void)popOutWindow {
     
@@ -230,6 +344,12 @@
             
             [_consoleInputField setStringValue:[controller messageString]];
             
+            NSText *t = [[f window] fieldEditor:NO forObject:f];
+            
+            if ([[t string] length]) {
+                [t setSelectedRange:NSMakeRange([[t string] length], 0)];
+            }
+            
             *stop = YES;
         }
     }];
@@ -248,6 +368,17 @@
     [self appendToConsole:s];
 }
 
+- (BOOL)validateMenuItem:(NSMenuItem *)menuItem {
+    
+    SEL action = [menuItem action];
+    
+    if (action == @selector(clearConsole:) || action == @selector(copyConsole:)) {
+        [menuItem setState:NSControlStateValueOff];
+    }
+    
+    return YES;
+}
+
 @end
 
 
@@ -257,9 +388,12 @@
     
     if (commandSelector == @selector(moveUp:)) {
         
-        [[self target] console:self didKepressUp:self];
-        
-        return YES;
+        if ([[self stringValue] length] == 0) {
+            
+            [[self target] console:self didKepressUp:self];
+            
+            return YES;
+        }
     }
     
     return NO;

@@ -12,11 +12,11 @@
 
 NS_ASSUME_NONNULL_BEGIN
 
-@interface FJSConsoleController : NSWindowController <NSTableViewDelegate, NSTableViewDataSource>
+@interface FJSConsoleController : NSWindowController <NSTableViewDelegate, NSTableViewDataSource, NSMenuItemValidation>
 
 @property (weak) IBOutlet NSTableView *outputTableView;
 @property (weak) IBOutlet NSTextField *consoleInputField;
-@property (weak) IBOutlet NSImageView *consoleInputImageWidget;
+@property (weak) IBOutlet NSButton    *consoleInputImageWidgetButton;
 @property (weak) IBOutlet FJSColoredView *consoleBottomHack;
 
 + (instancetype)consoleControllerWithRuntime:(FJSRuntime*)runtime;

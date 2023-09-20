@@ -113,9 +113,9 @@
     
     [pboard clearContents];
     
-    [pboard addTypes:@[(id)kUTTypeUTF8PlainText] owner:nil];
+    [pboard addTypes:@[UTTypeUTF8PlainText.identifier] owner:nil];
     
-    [pboard setString:c forType:(id)kUTTypeUTF8PlainText];
+    [pboard setString:c forType:UTTypeUTF8PlainText.identifier];
     
     
     [self appendToConsole:NSLocalizedString(@"Copied to clipboard!.", @"Copied to clipboard!.") inputType:FJSConsoleEntryTypeInformative];

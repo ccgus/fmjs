@@ -113,9 +113,13 @@
     
     [pboard clearContents];
     
+#ifdef __UNIFORMTYPEIDENTIFIERS_UTCORETYPES__
     [pboard addTypes:@[UTTypeUTF8PlainText.identifier] owner:nil];
-    
     [pboard setString:c forType:UTTypeUTF8PlainText.identifier];
+#else
+    [pboard addTypes:@[(id)kUTTypeUTF8PlainText] owner:nil];
+    [pboard setString:c forType:(id)kUTTypeUTF8PlainText];
+#endif
     
     
     [self appendToConsole:NSLocalizedString(@"Copied to clipboard!.", @"Copied to clipboard!.") inputType:FJSConsoleEntryTypeInformative];

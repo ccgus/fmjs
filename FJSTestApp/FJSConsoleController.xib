@@ -71,7 +71,7 @@
                                     <color key="backgroundColor" name="controlBackgroundColor" catalog="System" colorSpace="catalog"/>
                                     <color key="gridColor" name="gridColor" catalog="System" colorSpace="catalog"/>
                                     <tableColumns>
-                                        <tableColumn identifier="AutomaticTableColumnIdentifier.0" editable="NO" width="463" minWidth="40" maxWidth="1000" id="Oms-el-E5b">
+                                        <tableColumn identifier="AutomaticTableColumnIdentifier.0" editable="NO" width="463" minWidth="40" maxWidth="2000000000" id="Oms-el-E5b">
                                             <tableHeaderCell key="headerCell" lineBreakMode="truncatingTail" borderStyle="border">
                                                 <color key="textColor" name="headerTextColor" catalog="System" colorSpace="catalog"/>
                                                 <color key="backgroundColor" name="headerColor" catalog="System" colorSpace="catalog"/>
@@ -131,12 +131,12 @@
         <popUpButton verticalHuggingPriority="750" id="vgM-8p-8Q8">
             <rect key="frame" x="0.0" y="0.0" width="100" height="26"/>
             <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
-            <popUpButtonCell key="cell" type="push" title="Clear Console ( /clear )" bezelStyle="rounded" alignment="left" lineBreakMode="truncatingTail" borderStyle="borderAndBezel" imageScaling="proportionallyDown" inset="2" selectedItem="jPO-Fr-hZu" id="mQs-du-QGW">
+            <popUpButtonCell key="cell" type="push" title="Clear Console ( /clear )" bezelStyle="rounded" alignment="left" lineBreakMode="truncatingTail" state="on" borderStyle="borderAndBezel" imageScaling="proportionallyDown" inset="2" selectedItem="jPO-Fr-hZu" id="mQs-du-QGW">
                 <behavior key="behavior" lightByBackground="YES" lightByGray="YES"/>
                 <font key="font" metaFont="menu"/>
                 <menu key="menu" id="5hm-XY-L6b">
                     <items>
-                        <menuItem title="Clear Console ( /clear )" id="jPO-Fr-hZu">
+                        <menuItem title="Clear Console ( /clear )" state="on" id="jPO-Fr-hZu">
                             <connections>
                                 <action selector="clearConsole:" target="-2" id="eH3-Ta-bfi"/>
                             </connections>

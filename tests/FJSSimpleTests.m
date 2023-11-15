@@ -1923,6 +1923,30 @@ int FJSTestCGImageRefExampleCounter;
 }
 
 
+- (void)testLoadingSystemFramework {
+    
+    
+    FJSRuntime *runtime = [FJSRuntime new];
+    
+    [runtime setExceptionHandler:^(FJSRuntime * _Nonnull rt, NSException * _Nonnull exception) {
+        debug(@"exception: '%@'", exception);
+        XCTAssert(NO);
+    }];
+    
+    __block BOOL passedAssertion = NO;
+    runtime[@"XCTAssert"] = ^(BOOL condition) {
+        XCTAssert(condition);
+        passedAssertion = condition;
+    };
+    
+    [runtime evaluateScript:@"fjsimport('UniformTypeIdentifiers');"];
+    [runtime evaluateScript:@"XCTAssert(UTTypeFolder == 'public.folder');"];
+    
+    XCTAssert(passedAssertion);
+    
+    [runtime shutdown];
+}
+
 - (void)testJSFunctionOnMainThreadSync {
     
     FJSRuntime *runtime = [FJSRuntime new];

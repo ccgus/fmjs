@@ -167,7 +167,10 @@ static const void * const kDispatchQueueRecursiveSpecificKey = &kDispatchQueueRe
     self[@"require"] = ^(NSString *modulePath) {
         return [weakSelf require:modulePath];
     };
-
+    
+    self[@"fjsimport"] = ^(NSString *frameworkName) {
+        [FJSRuntime loadFrameworkAtPath:[[@"/System/Library/Frameworks" stringByAppendingPathComponent:frameworkName] stringByAppendingPathExtension:@"framework"]];
+    };
     
     self[@"DispatchQueue"] = [FJSDispatch class];
     

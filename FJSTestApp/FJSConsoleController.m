@@ -7,7 +7,7 @@
 //
 
 #import "FJSConsoleController.h"
-
+#import "FJSDispatch.h"
 @interface FJSConsoleController ()
 
 @property (weak) FJSRuntime *lastRuntime;
@@ -94,9 +94,17 @@
     [_consoleBottomHack setBackgroundColor:[NSColor controlBackgroundColor]];
 }
 
-- (IBAction)clearConsole:(id)sender {
+- (IBAction)clearConsole:(nullable id)sender {
     [_entryViewControllers removeAllObjects];
     [_outputTableView reloadData];
+}
+
+- (void)clear { // JS compat. https://developer.mozilla.org/en-US/docs/Web/API/console/clear_static
+    
+    FJSDispatchSyncOnMainThread(^{
+        [self clearConsole:nil];
+    });
+    
 }
 
 
@@ -281,7 +289,7 @@
         return;
     }
     
-    void (^block)(void) = ^void() {
+    FJSDispatchSyncOnMainThread(^{
         
         printf("%s\n", [string UTF8String]);
         
@@ -301,16 +309,7 @@
             [[self window] makeKeyAndOrderFront:nil];
         }
         
-    };
-    
-    if ([NSThread isMainThread]) {
-        block();
-    }
-    else {
-        dispatch_sync(dispatch_get_main_queue(), block);
-    }
-    
-    
+    });
     
 }
 

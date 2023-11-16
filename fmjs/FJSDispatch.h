@@ -14,4 +14,7 @@ NS_ASSUME_NONNULL_BEGIN
 
 @end
 
+void FJSDispatchSyncOnMainThread(void (^block)(void));
+void FJSDispatchAsyncOnMainThread(void (^block)(void));
+
 NS_ASSUME_NONNULL_END

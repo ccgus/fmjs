@@ -86,3 +86,25 @@
 
 
 @end
+
+void FJSDispatchSyncOnMainThread(void (^block)(void)) {
+    
+    if ([NSThread isMainThread]) {
+        block();
+    }
+    else {
+        dispatch_sync(dispatch_get_main_queue(), block);
+    }
+}
+
+void FJSDispatchAsyncOnMainThread(void (^block)(void)) {
+    
+    if ([NSThread isMainThread]) {
+        block();
+    }
+    else {
+        dispatch_async(dispatch_get_main_queue(), block);
+    }
+}
+
+

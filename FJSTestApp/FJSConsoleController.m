@@ -289,6 +289,10 @@
         return;
     }
     
+    if (![string respondsToSelector:@selector(UTF8String)]) {
+        string = [NSString stringWithFormat:@"%@", string];
+    }
+    
     FJSDispatchSyncOnMainThread(^{
         
         printf("%s\n", [string UTF8String]);

@@ -258,13 +258,13 @@
 
 - (void)setupHandlersForRuntime:(FJSRuntime*)rt {
     
+    if (_lastRuntime) {
+        NSString *junk = NSLocalizedString(@"Switching to JavaScript runtime %@.", @"Switching to JavaScript runtime %@.");
+        junk = [NSString stringWithFormat:junk, rt];
+        [self appendToConsole:junk inputType:FJSConsoleEntryTypeInformative];
+    }
+    
     _lastRuntime = rt;
-    
-    NSString *junk = NSLocalizedString(@"Switching to JavaScript runtime %@.", @"Switching to JavaScript runtime %@.");
-    junk = [NSString stringWithFormat:junk, rt];
-    
-    [self appendToConsole:junk inputType:FJSConsoleEntryTypeInformative];
-    
     
     __weak __typeof__(self) weakSelf = self;
     

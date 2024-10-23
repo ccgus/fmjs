@@ -8,6 +8,9 @@
 
 #import "FJSConsoleController.h"
 #import "FJSDispatch.h"
+
+NSString *FJSConsoleControllerIsRequestingInterpreterReloadNotification = @"FJSConsoleControllerIsRequestingInterpreterReloadNotification";
+
 @interface FJSConsoleController ()
 
 @property (weak) FJSRuntime *lastRuntime;
@@ -133,14 +136,23 @@
     [self appendToConsole:NSLocalizedString(@"Copied to clipboard!.", @"Copied to clipboard!.") inputType:FJSConsoleEntryTypeInformative];
 }
 
+- (IBAction)reloadInterpreter:(id)sender {
+    [[NSNotificationCenter defaultCenter] postNotificationName:FJSConsoleControllerIsRequestingInterpreterReloadNotification object:nil];
+}
+
 - (void)showConsolePopupAction:(id)sender {
     
     [NSMenu popUpContextMenu:[_consoleInputImageWidgetButton menu] withEvent:[NSApp currentEvent] forView:_consoleInputImageWidgetButton];
 }
 
 - (IBAction)showHelpAction:(id)sender {
+    
+    NSString *appName = [[NSRunningApplication currentApplication] localizedName];
+    NSString *reloadHelp = [NSString stringWithFormat:@"Enter '/reload' ask %@ to restart the JavaScript interpreter.", appName];
+    
     [self appendToConsole:@"Enter '/clear' to clear the console." inputType:FJSConsoleEntryTypeInformative];
     [self appendToConsole:@"Enter '/copy' to copy the console to the clipboard." inputType:FJSConsoleEntryTypeInformative];
+    [self appendToConsole:reloadHelp inputType:FJSConsoleEntryTypeInformative];
     [self appendToConsole:@"Enter '/help' to see this message." inputType:FJSConsoleEntryTypeInformative];
     [self appendToConsole:@"Enter any other JavaScript command if there's a runtime connected." inputType:FJSConsoleEntryTypeInformative];
 }
@@ -203,6 +215,9 @@
         }
         else if ([[_consoleInputField stringValue] hasPrefix:@"/defaults "]) {
             [self parseAndSetDefaultsValue:[_consoleInputField stringValue]];
+        }
+        else if ([[_consoleInputField stringValue] hasPrefix:@"/reload"]) {
+            [self reloadInterpreter:self];
         }
         else {
             

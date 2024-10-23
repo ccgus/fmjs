@@ -12,6 +12,8 @@
 
 NS_ASSUME_NONNULL_BEGIN
 
+extern NSString *FJSConsoleControllerIsRequestingInterpreterReloadNotification;
+
 @interface FJSConsoleController : NSWindowController <NSTableViewDelegate, NSTableViewDataSource, NSMenuItemValidation>
 
 @property (weak) IBOutlet NSTableView *outputTableView;

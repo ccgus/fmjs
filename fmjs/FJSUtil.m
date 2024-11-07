@@ -622,11 +622,13 @@ NSString *FJSNameForJSType(JSType type) {
         }
     }
     
+#ifdef FMJS_Allow_kJSTypeBigInt
     if (@available(macOS 15.0, *)) {
         if (type == kJSTypeBigInt) {
             return @"kJSTypeBigInt";
         }
     }
+#endif
     
     FMAssert(NO); // What type is this?
     

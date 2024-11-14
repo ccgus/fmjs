@@ -75,6 +75,7 @@
         FJSTDToken *tok            = [tokenizer nextToken];
         NSString *sv               = [tok stringValue];
         FMAssert([sv isEqualToString:@"{"]);
+        (void)sv;
         
         tok            = [tokenizer nextToken];
         sv             = [tok stringValue];

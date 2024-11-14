@@ -54,7 +54,7 @@
 //  Copyright 2008 Todd Ditchendorf. All rights reserved.
 //
 
-
+NS_ASSUME_NONNULL_BEGIN
 
 @class FJSTDAssembly;
 
@@ -136,14 +136,14 @@
     @brief      The method of <tt>assembler</tt> this parser will call to work on a matched assembly.
     @details    The method represented by <tt>selector</tt> must accept a single <tt>TDAssembly</tt> argument. The signature of <tt>selector</tt> should be similar to: <tt>- (void)workOnAssembly:(TDAssembly *)a</tt>.
 */
-@property (nonatomic, assign) SEL selector;
+@property (nullable, nonatomic, assign) SEL selector;
 
 /*!
     @property   name
     @brief      The name of this parser.
     @discussion Use this property to help in identifying a parser or for debugging purposes.
 */
-@property (nonatomic, copy) NSString *name;
+@property (nullable, nonatomic, copy) NSString *name;
 @end
 //
 //  TDCollectionParser.h
@@ -204,7 +204,7 @@
     @param      s the string matched by this parser
     @result     an initialized <tt>TDTerminal</tt> subclass object
 */
-- (id)initWithString:(NSString *)s;
+- (id)initWithString:(nullable NSString *)s;
 
 /*!
     @brief      By default, terminals push themselves upon a assembly's stack, after a successful match. This method will turn off that behavior.
@@ -580,7 +580,7 @@ typedef enum {
     @param      s string to be worked on
     @result     an initialized autoreleased assembly
 */
-+ (id)assemblyWithString:(NSString *)s;
++ (id)assemblyWithString:(nullable NSString *)s;
 
 /*!
     @brief      Designated Initializer. Initializes an assembly with a given string.
@@ -588,7 +588,7 @@ typedef enum {
     @param      s string to be worked on
     @result     an initialized assembly
 */
-- (id)initWithString:(NSString *)s;
+- (id)initWithString:(nullable NSString *)s;
 
 /*!
     @brief      Shows the next object in the assembly, without removing it
@@ -1184,7 +1184,7 @@ typedef enum {
     @param      s string from which to read
     @result     an initialized reader
 */
-- (id)initWithString:(NSString *)s;
+- (id)initWithString:(nullable NSString *)s;
 
 /*!
     @brief      Read a single character
@@ -1202,7 +1202,7 @@ typedef enum {
     @property   string
     @brief      This reader's string.
 */
-@property (nonatomic, retain) NSString *string;
+@property (nullable, nonatomic, retain) NSString *string;
 @end
 //
 //  TDRepetition.h
@@ -1238,7 +1238,7 @@ typedef enum {
     @param      p the subparser against wich to repeatedly match
     @result     an initialized <tt>TDRepetition</tt> parser.
 */
-- (id)initWithSubparser:(FJSTDParser *)p;
+- (id)initWithSubparser:(nullable FJSTDParser *)p;
 
 /*!
     @brief      Sets the object that will work on every assembly before matching against it.
@@ -1259,14 +1259,14 @@ typedef enum {
     @brief      The assembler this parser will use to work on an assembly before matching against it.
     @discussion <tt>preassembler</tt> should respond to the selector held by this parser's <tt>preassemblerSelector</tt> property.
 */
-@property (nonatomic, retain) id preassembler;
+@property (nullable, nonatomic, retain) id preassembler;
 
 /*!
     @property   preAssemlerSelector
     @brief      The method of <tt>preassembler</tt> this parser will call to work on an assembly.
     @details    The method represented by <tt>preassemblerSelector</tt> must accept a single <tt>TDAssembly</tt> argument. The signature of <tt>preassemblerSelector</tt> should be similar to: <tt>- (void)workOnAssembly:(TDAssembly *)a</tt>.
 */
-@property (nonatomic, assign) SEL preassemblerSelector;
+@property (nullable, nonatomic, assign) SEL preassemblerSelector;
 @end
 //
 //  TDReservedWord.h
@@ -1444,7 +1444,7 @@ typedef enum {
     @param      c the character for this node
     @result     An initialized <tt>TDSymbolNode</tt>
 */
-- (id)initWithParent:(FJSTDSymbolNode *)p character:(NSInteger)c;
+- (id)initWithParent:(nullable FJSTDSymbolNode *)p character:(NSInteger)c;
 
 /*!
     @property   ancestry
@@ -1577,7 +1577,7 @@ typedef enum {
 
 /*
 */
-- (id)initWithTokenizer:(FJSTDTokenizer *)t delimiter:(NSString *)s;
+- (id)initWithTokenizer:(nullable FJSTDTokenizer *)t delimiter:(nullable NSString *)s;
 
 /*!
     @brief      true if the source has more arrays of tokens.
@@ -1716,7 +1716,7 @@ typedef enum {
     @param      s string to read from.
     @result     An autoreleased initialized tokenizer.
 */
-+ (id)tokenizerWithString:(NSString *)s;
++ (id)tokenizerWithString:(nullable NSString *)s;
 
 /*!
     @brief      Designated Initializer. Constructs a tokenizer to read from the supplied string.
@@ -1743,43 +1743,43 @@ typedef enum {
     @property   string
     @brief      The string to read from.
 */
-@property (nonatomic, retain) NSString *string;
+@property (nullable, nonatomic, retain) NSString *string;
 
 /*!
     @property    numberState
     @brief       The state this tokenizer uses to build numbers.
 */
-@property (nonatomic, retain) FJSTDNumberState *numberState;
+@property (nullable, nonatomic, retain) FJSTDNumberState *numberState;
 
 /*!
     @property   quoteState
     @brief      The state this tokenizer uses to build quoted strings.
 */
-@property (nonatomic, retain) FJSTDQuoteState *quoteState;
+@property (nullable, nonatomic, retain) FJSTDQuoteState *quoteState;
 
 /*!
     @property   commentState
     @brief      The state this tokenizer uses to recognize (and possibly ignore) comments.
 */
-@property (nonatomic, retain) FJSTDCommentState *commentState;
+@property (nullable, nonatomic, retain) FJSTDCommentState *commentState;
 
 /*!
     @property   symbolState
     @brief      The state this tokenizer uses to recognize symbols.
 */
-@property (nonatomic, retain) FJSTDSymbolState *symbolState;
+@property (nullable, nonatomic, retain) FJSTDSymbolState *symbolState;
 
 /*!
     @property   whitespaceState
     @brief      The state this tokenizer uses to recognize (and possibly ignore) whitespace.
 */
-@property (nonatomic, retain) FJSTDWhitespaceState *whitespaceState;
+@property (nullable, nonatomic, retain) FJSTDWhitespaceState *whitespaceState;
 
 /*!
     @property   wordState
     @brief      The state this tokenizer uses to build words.
 */
-@property (nonatomic, retain) FJSTDWordState *wordState;
+@property (nullable, nonatomic, retain) FJSTDWordState *wordState;
 @end
 //
 //  TDTrack.h
@@ -1912,3 +1912,5 @@ extern NSString * const FJSTDTrackExceptionName;
 */
 - (void)addReservedWord:(NSString *)s;
 @end
+
+NS_ASSUME_NONNULL_END

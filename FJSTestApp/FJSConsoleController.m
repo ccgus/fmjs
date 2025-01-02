@@ -16,7 +16,8 @@ NSString *FJSConsoleControllerIsRequestingInterpreterReloadNotification = @"FJSC
 @property (weak) FJSRuntime *lastRuntime;
 @property (strong) FJSRuntime *internalRuntime;
 @property (strong) NSMutableArray *entryViewControllers;
-@property (weak) IBOutlet FJSColoredView *inputColoredView;
+@property (strong) NSPipe *stdEOOutputPipe;
+@property (strong) NSFileHandle *stdEOReadHandle;
 @end
 
 @implementation FJSConsoleController
@@ -299,8 +300,10 @@ NSString *FJSConsoleControllerIsRequestingInterpreterReloadNotification = @"FJSC
 - (void)appendToConsole:(NSString*)string inputType:(FJSConsoleEntryType)inputType  {
     
     if (!string) {
-        NSLog(@"%s:%d", __FUNCTION__, __LINE__);
-        NSLog(@"Missing string for appendToConsole:");
+        if (!_stdEOOutputPipe) {
+            NSLog(@"%s:%d", __FUNCTION__, __LINE__);
+            NSLog(@"Missing string for appendToConsole:");
+        }
         return;
     }
     
@@ -310,7 +313,9 @@ NSString *FJSConsoleControllerIsRequestingInterpreterReloadNotification = @"FJSC
     
     FJSDispatchSyncOnMainThread(^{
         
-        printf("%s\n", [string UTF8String]);
+        if (!self->_stdEOOutputPipe) {
+            printf("%s\n", [string UTF8String]);
+        }
         
         [self window]; // Load the nib.
         
@@ -400,6 +405,29 @@ NSString *FJSConsoleControllerIsRequestingInterpreterReloadNotification = @"FJSC
     
     return YES;
 }
+
+// This is probably a bad idea.
+- (void)redirectSTDERRAndSTDOUTToConsole {
+    
+    _stdEOOutputPipe = [NSPipe pipe];
+    _stdEOReadHandle = [_stdEOOutputPipe fileHandleForReading];
+    
+    dup2([[_stdEOOutputPipe fileHandleForWriting] fileDescriptor], STDOUT_FILENO);
+    dup2([[_stdEOOutputPipe fileHandleForWriting] fileDescriptor], STDERR_FILENO);
+
+    __weak id weakSelf = self;
+    dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_BACKGROUND, 0), ^{
+        NSData *data;
+        while ((data = [self->_stdEOReadHandle availableData]) && [data length] > 0) {
+            NSString *output = [[NSString alloc] initWithData:data encoding:NSUTF8StringEncoding];
+            dispatch_async(dispatch_get_main_queue(), ^{
+                [weakSelf print:[output stringByTrimmingCharactersInSet:[NSCharacterSet newlineCharacterSet]]];
+            });
+        }
+    });
+    
+}
+
 
 @end
 

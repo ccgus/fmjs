@@ -274,7 +274,7 @@ static BOOL FJSCaptureJSValueInstancesForDebugging;
 
 + (instancetype)valueWithInstance:(CFTypeRef)instance inRuntime:(FJSRuntime*)runtime {
     
-    if (!instance) {
+    if (!instance || [(__bridge id)instance isKindOfClass:[NSNull class]]) {
         return [self valueWithNullInRuntime:runtime];
     }
 
@@ -574,6 +574,10 @@ static BOOL FJSCaptureJSValueInstancesForDebugging;
     JSValueRef ret = [self JSValueRef];
     
     if ([self isInstance]) {
+        
+        if ([[self toObject] isKindOfClass:[NSArray class]]) {
+            return [self toJSArray];
+        }
         
         // This method is still a work in progress.
         FMAssert([[self toObject] isKindOfClass:[NSString class]]);
@@ -1031,6 +1035,33 @@ static BOOL FJSCaptureJSValueInstancesForDebugging;
     JSValueRef value = JSValueMakeString([_runtime contextRef], string);
     JSStringRelease(string);
     return value;
+}
+
+- (nullable JSValueRef)toJSArray {
+    
+    // FIXME: this needs some tests.
+    
+    NSArray *ar = [self instance];
+    
+    if (![ar isKindOfClass:[NSArray class]]) {
+        return JSValueMakeUndefined([[self runtime] contextRef]);
+    }
+    
+    JSValueRef *elements = malloc(sizeof(JSValueRef) * [ar count]);
+    
+    for (NSUInteger idx = 0; idx < [ar count]; idx++) {
+        
+        id o = [ar objectAtIndex:idx];
+        
+        FJSValue *v = [FJSValue valueWithInstance:(__bridge CFTypeRef _Nonnull)(o) inRuntime:[self runtime]];
+        elements[idx] = [v nativeJSValueRef];
+    }
+    
+    JSValueRef exception = nil;
+    JSObjectRef arrayRef = JSObjectMakeArray([[self runtime] contextRef], [ar count], elements, &exception);
+    [[self runtime] reportPossibleJSException:exception];
+    
+    return arrayRef;
 }
 
 - (nullable id)toObject {

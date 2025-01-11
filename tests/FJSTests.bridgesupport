@@ -170,6 +170,15 @@
     </function>
     
     
+    <function name='FJSReturnArrayOfDictionaries'>
+        <retval type='@'/>
+    </function>
+    
+    <function name='FJSReturnDictionaryThing'>
+        <retval type='@'/>
+    </function>
+    
+    
     <constant name='FJSTestConstString' type='@'/>
     
     <constant name='FJSTestConstInt' type='i'/>

@@ -2062,6 +2062,35 @@ int FJSTestCGImageRefExampleCounter;
     [runtime shutdown];
 }
 
+- (void)testJSONSerialization {
+    
+    FJSRuntime *runtime = [FJSRuntime new];
+    
+    [runtime setExceptionHandler:^(FJSRuntime * _Nonnull rt, NSException * _Nonnull exception) {
+        debug(@"exception: '%@'", exception);
+        XCTAssert(NO);
+    }];
+    
+    [runtime setPrintHandler:^(FJSRuntime * _Nonnull rt, NSString * _Nonnull stringToPrint) {
+        debug(@"stringToPrint: '%@'", stringToPrint);
+    }];
+    
+    FJSValue *v = [runtime evaluateScript:@"JSON.stringify(FJSReturnArrayOfDictionaries());"];
+    
+    NSString *s = [v toObject];
+    
+    debug(@"v: '%@'", v);
+    
+    debug(@"s: '%@'", s);
+    
+    XCTAssert([s isKindOfClass:[NSString class]]);
+    
+#pragma message "FIXME: turn it back to a dictionary and compare it to FJSReturnArrayOfDictionaries()"
+    
+    [runtime shutdown];
+    
+}
+
 
 // I can get a similar test to fail in Acorn, but I can't here. It's a little nutty whyyy.
 - (void)testSharedInstanceEquality {
@@ -2166,6 +2195,34 @@ int FJSTestCGImageRefExampleCounter;
 
 @end
 
+NSDictionary * FJSReturnDictionaryThing(void) {
+    return @{@"x": @(1), @"y": @(2)};
+}
+
+NSArray * FJSReturnArrayOfDictionaries(void) {
+    
+    NSArray *a = @[ @{@"x": @"eh",
+                      @"n": @[@(1), @(2), @(3)]
+                    },
+                    
+                    @{@"x": @"bee",
+                      @"n": @[@(4), @(5), @(6)]
+                    },
+                    @{@"x": @"sea",
+                      @"n": @[@(-7.1), @(-8.2), @(-9.3)]
+                    },
+                    @{@"x": @"dee",
+                      @"n": @[@(7), @(8), @(9)]
+                    },
+                    @{@"x": @"eey",
+                      @"n": @[@(700), @(800), @(900)]
+                    },
+                    
+    ];
+    
+    return a;
+    
+}
 
 NSString * FJSMethodStringArgStringReturn(NSString *s) {
     return [NSString stringWithFormat:@"!!%@!!", s];

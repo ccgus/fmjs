@@ -91,6 +91,15 @@ static JSValueRef FJSPrototypeForOBJCInstance(JSContextRef ctx, id instance, NSS
             return YES;
         }
         
+        if ([propertyName isEqualToString:@"toJSON"]) {
+            
+            id instance = [objectValue instance];
+            
+            return [instance isKindOfClass:[NSArray class]] || [instance isKindOfClass:[NSDictionary class]];
+            
+        }
+        
+        
         if (![propertyName isEqualToString:@"Symbol.toPrimitive"]) {
             @try {
                 [[objectValue instance] valueForKey:propertyName];
@@ -155,12 +164,78 @@ static JSValueRef FJSPrototypeForOBJCInstance(JSContextRef ctx, id instance, NSS
     return NO;
 }
 
+
+
+static JSValueRef FJSToJSON(JSContextRef ctx, JSObjectRef function, JSObjectRef object, size_t argumentCount, const JSValueRef arguments[], JSValueRef* exception)
+{
+    
+    if (argumentCount < 1) {
+        return JSValueMakeBoolean(ctx, false);
+    }
+    
+    // FIXME: look at the arguments - is it a string prefix or something?
+    
+    FJSRuntime *runtime = [FJSRuntime runtimeInContext:ctx];
+    FJSValue *valueFromJSObject = [FJSValue valueWithJSValueRef:object inRuntime:runtime];
+    
+    id objectUnwrapped = [valueFromJSObject instance];
+    
+    if (![NSJSONSerialization isValidJSONObject:objectUnwrapped]) {
+        
+        NSString *reason = [NSString stringWithFormat:@"Could not convert object to JSON: %@", objectUnwrapped];
+        
+        NSException *e = [NSException exceptionWithName:@"toJSONException" reason:reason userInfo:nil];
+        
+        if (exception) {
+            *exception = FJSNativeObjectToJSValue(e, ctx);
+        }
+        
+        return JSValueMakeUndefined(ctx);
+    }
+    
+    NSError *error;
+    NSData *jsonData = [NSJSONSerialization dataWithJSONObject:objectUnwrapped
+                                                      options:NSJSONWritingPrettyPrinted
+                                                        error:&error];
+    
+    if (!jsonData) {
+        
+        NSString *reason = [NSString stringWithFormat:@"%@", [error localizedDescription]];
+        
+        NSException *e = [NSException exceptionWithName:@"toJSONException" reason:reason userInfo:nil];
+        
+        if (exception) {
+            *exception = FJSNativeObjectToJSValue(e, ctx);
+        }
+        
+        return JSValueMakeUndefined(ctx);
+    }
+    
+    NSString *s = [[NSString alloc] initWithData:jsonData encoding:NSUTF8StringEncoding];
+    
+    JSStringRef jsString = JSStringCreateWithUTF8CString([s UTF8String]);
+    JSValueRef jsStringRef = JSValueMakeString(ctx, jsString);
+    JSStringRelease(jsString);
+    
+    return jsStringRef;
+    
+}
+
+
+
 - (JSValueRef)getProperty:(NSString*)propertyName inObject:(FJSValue*)valueFromJSObject exception:(JSValueRef *)exception {
     FJSTrace(@"%s:%d", __FUNCTION__, __LINE__);
     
     if ([propertyName isEqualToString:@"toString"] || [propertyName isEqualToString:@"Symbol.toStringTag"]/* || [propertyName isEqualToString:@"Symbol.toPrimitive"]*/) {
         // This can be used in a debugger.
         return [valueFromJSObject toJSString];
+    }
+    
+    if ([propertyName isEqualToString:@"toJSON"]) {
+        JSStringRef toJSONFunctionName = JSStringCreateWithCFString(CFSTR("toJSON"));
+        JSObjectRef toJSONFunction = JSObjectMakeFunctionWithCallback([self jsContext], toJSONFunctionName, &FJSToJSON);
+        JSStringRelease(toJSONFunctionName);
+        return toJSONFunction;
     }
     
     // FIXME: package this up in FJSValue, or maybe some other function?

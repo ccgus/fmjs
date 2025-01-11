@@ -36,6 +36,8 @@ int FJSSimpleTestsDeallocHappend;
 int FJSSimpleTestsMethodCalled;
 int FJSTestCGImageRefExampleCounter;
 
+NSArray * FJSReturnArrayOfDictionaries(void);
+
 @interface FJSTestClass : NSObject
 @property (assign) int passedInt;
 @property (strong) NSString *randomString;
@@ -2079,13 +2081,16 @@ int FJSTestCGImageRefExampleCounter;
     
     NSString *s = [v toObject];
     
-    debug(@"v: '%@'", v);
-    
-    debug(@"s: '%@'", s);
-    
     XCTAssert([s isKindOfClass:[NSString class]]);
     
-#pragma message "FIXME: turn it back to a dictionary and compare it to FJSReturnArrayOfDictionaries()"
+    NSData *d = [s dataUsingEncoding:NSUTF8StringEncoding];
+    
+    NSError *outErr;
+    NSArray *ar = [NSJSONSerialization JSONObjectWithData:d options:0 error:&outErr];
+    
+    XCTAssert([ar isKindOfClass:[NSArray class]]);
+    
+    XCTAssert([ar isEqualToArray:FJSReturnArrayOfDictionaries()]);
     
     [runtime shutdown];
     

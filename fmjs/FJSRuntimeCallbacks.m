@@ -195,7 +195,7 @@ static JSValueRef FJSToJSON(JSContextRef ctx, JSObjectRef function, JSObjectRef 
     
     NSError *error;
     NSData *jsonData = [NSJSONSerialization dataWithJSONObject:objectUnwrapped
-                                                      options:NSJSONWritingPrettyPrinted
+                                                      options:NSJSONWritingWithoutEscapingSlashes
                                                         error:&error];
     
     if (!jsonData) {
@@ -211,13 +211,13 @@ static JSValueRef FJSToJSON(JSContextRef ctx, JSObjectRef function, JSObjectRef 
         return JSValueMakeUndefined(ctx);
     }
     
+    // This is a silly way to do the conversion, but until I've got a full stack of NS to JSValueRef conversions, it's quick and easy and works.
     NSString *s = [[NSString alloc] initWithData:jsonData encoding:NSUTF8StringEncoding];
-    
     JSStringRef jsString = JSStringCreateWithUTF8CString([s UTF8String]);
-    JSValueRef jsStringRef = JSValueMakeString(ctx, jsString);
+    JSValueRef jsv = JSValueMakeFromJSONString(ctx, jsString);
     JSStringRelease(jsString);
     
-    return jsStringRef;
+    return jsv;
     
 }
 

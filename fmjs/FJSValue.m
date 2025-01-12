@@ -274,7 +274,10 @@ static BOOL FJSCaptureJSValueInstancesForDebugging;
 
 + (instancetype)valueWithInstance:(CFTypeRef)instance inRuntime:(FJSRuntime*)runtime {
     
-    if (!instance || [(__bridge id)instance isKindOfClass:[NSNull class]]) {
+    // Don't check for NSNull class - because it's still and object and we need it to return an object?
+    // I really need to write some docs on how this is handled.
+    //  || [(__bridge id)instance isKindOfClass:[NSNull class]]
+    if (!instance) {
         return [self valueWithNullInRuntime:runtime];
     }
 
@@ -575,15 +578,13 @@ static BOOL FJSCaptureJSValueInstancesForDebugging;
     
     if ([self isInstance]) {
         
-        if ([[self toObject] isKindOfClass:[NSArray class]]) {
+        id instance = [self toObject];
+        
+        if ([instance isKindOfClass:[NSArray class]]) {
             return [self toJSArray];
         }
         
-        // This method is still a work in progress.
-        FMAssert([[self toObject] isKindOfClass:[NSString class]]);
-        
-        ret = [self toJSString];
-        
+        return FJSNativeObjectToJSValue(instance, [[self runtime] jsContext]);
     }
     
     return ret;

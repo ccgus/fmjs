@@ -95,7 +95,15 @@ static JSValueRef FJSPrototypeForOBJCInstance(JSContextRef ctx, id instance, NSS
             
             id instance = [objectValue instance];
             
-            return [instance isKindOfClass:[NSArray class]] || [instance isKindOfClass:[NSDictionary class]];
+            if ([instance isKindOfClass:[NSArray class]] ||
+                [instance isKindOfClass:[NSDictionary class]] ||
+                [instance isKindOfClass:[NSString class]] ||
+                [instance isKindOfClass:[NSNumber class]] ||
+                [instance isKindOfClass:[NSNull class]]) {
+                return YES;
+            }
+            
+            return NO;
             
         }
         
@@ -173,12 +181,25 @@ static JSValueRef FJSToJSON(JSContextRef ctx, JSObjectRef function, JSObjectRef 
         return JSValueMakeBoolean(ctx, false);
     }
     
-    // FIXME: look at the arguments - is it a string prefix or something?
-    
     FJSRuntime *runtime = [FJSRuntime runtimeInContext:ctx];
     FJSValue *valueFromJSObject = [FJSValue valueWithJSValueRef:object inRuntime:runtime];
     
     id objectUnwrapped = [valueFromJSObject instance];
+    
+    // FIXME: look at the arguments - is it a string prefix or something?
+    
+    if ([objectUnwrapped isKindOfClass:[NSString class]] ||
+        [objectUnwrapped isKindOfClass:[NSNumber class]]) {
+        return [valueFromJSObject nativeJSValueRef];
+    }
+    
+    // FIXME: document that NSNull is converted to null on JSON serialization
+    if ([objectUnwrapped isKindOfClass:[NSNull class]]) {
+        return JSValueMakeNull(ctx);
+    }
+    
+    FMAssert([objectUnwrapped isKindOfClass:[NSArray class]] || [objectUnwrapped isKindOfClass:[NSDictionary class]]);
+    
     
     if (![NSJSONSerialization isValidJSONObject:objectUnwrapped]) {
         

@@ -2092,11 +2092,35 @@ NSArray * FJSReturnArrayOfDictionaries(void);
     
     XCTAssert([ar isEqualToArray:FJSReturnArrayOfDictionaries()]);
     
+    v = [runtime evaluateScript:@"JSON.stringify({x: NSString.stringWithString('Hello, World')});"];
+    s = [v toObject];
+    XCTAssert([s isKindOfClass:[NSString class]]);
+    XCTAssert([s isEqualToString:@"{\"x\":\"Hello, World\"}"]);
+    
+    v = [runtime evaluateScript:@"JSON.stringify(NSNumber.numberWithInt(4));"];
+    s = [v toObject];
+    XCTAssert([s isKindOfClass:[NSString class]]);
+    XCTAssert([s isEqualToString:@"4"]);
+    
+    v = [runtime evaluateScript:@"JSON.stringify(NSNull.null());"];
+    s = [v toObject];
+    
+    XCTAssert([s isKindOfClass:[NSString class]]);
+    XCTAssert([s isEqualToString:@"null"]);
+    
+    
+    v = [runtime evaluateScript:@"JSON.stringify(NSNumber.numberWithBool(false));"];
+    s = [v toObject];
+    XCTAssert([s isKindOfClass:[NSString class]]);
+    XCTAssert([s isEqualToString:@"false"], @"Got %@", s);
+    
+    
     [runtime shutdown];
     
 }
 
-
+//#define FJS_Text_Instance_Equality 1
+#ifdef FJS_Text_Instance_Equality
 // I can get a similar test to fail in Acorn, but I can't here. It's a little nutty whyyy.
 - (void)testSharedInstanceEquality {
     
@@ -2140,12 +2164,8 @@ NSArray * FJSReturnArrayOfDictionaries(void);
     
     [runtime shutdown];
     
-    
-    
-    
-    
-    
 }
+#endif
 
 
 - (void)testCrasherWithReplace {

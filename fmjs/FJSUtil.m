@@ -357,7 +357,8 @@ JSValueRef FJSNativeObjectToJSValue(id o, JSContextRef context) {
     
     else if ([o isKindOfClass:[NSNumber class]]) {
         
-        if (FJSCharEquals([o objCType], @encode(BOOL))) {
+        // a BOOL is a char on macOS as well.
+        if (FJSCharEquals([o objCType], @encode(BOOL)) || FJSCharEquals([o objCType], @encode(char))) {
             return JSValueMakeBoolean(context, [o boolValue]);
         }
         else {
@@ -372,7 +373,6 @@ JSValueRef FJSNativeObjectToJSValue(id o, JSContextRef context) {
         JSStringRelease(string);
         return value;
     }
-    
 //    else if ([o isKindOfClass:[NSNull class]]) {
 //        return JSValueMakeNull(context);
 //    }

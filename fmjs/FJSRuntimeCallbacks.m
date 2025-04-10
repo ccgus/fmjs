@@ -214,14 +214,18 @@ static JSValueRef FJSToJSON(JSContextRef ctx, JSObjectRef function, JSObjectRef 
         return JSValueMakeUndefined(ctx);
     }
     
-    NSError *error;
-    NSData *jsonData = [NSJSONSerialization dataWithJSONObject:objectUnwrapped
-                                                      options:NSJSONWritingWithoutEscapingSlashes
-                                                        error:&error];
+    NSError *error = nil;
+    NSData *jsonData = nil;
+    
+    if (@available(macOS 10.15, *)) {
+        jsonData = [NSJSONSerialization dataWithJSONObject:objectUnwrapped
+                                                   options:NSJSONWritingWithoutEscapingSlashes
+                                                     error:&error];
+    }
     
     if (!jsonData) {
         
-        NSString *reason = [NSString stringWithFormat:@"%@", [error localizedDescription]];
+        NSString *reason = [NSString stringWithFormat:@"%@", error ? @"Unavailable JSON API" : [error localizedDescription]];
         
         NSException *e = [NSException exceptionWithName:@"toJSONException" reason:reason userInfo:nil];
         

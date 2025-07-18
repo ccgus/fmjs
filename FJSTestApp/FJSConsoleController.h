@@ -27,6 +27,7 @@ extern NSString *FJSConsoleControllerIsRequestingInterpreterReloadNotification;
 - (void)setupHandlersForRuntime:(FJSRuntime*)rt;
 
 - (void)appendToConsole:(NSString*)string;
+- (void)appendToConsole:(NSString*)string inputType:(FJSConsoleEntryType)inputType;
 
 - (IBAction)clearConsole:(nullable id)sender;
 - (void)clear;

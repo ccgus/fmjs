@@ -15,6 +15,7 @@ FOUNDATION_EXPORT double FMJSVersionNumber;
 FOUNDATION_EXPORT const unsigned char FMJSVersionString[];
 
 #ifdef DEBUG
+#ifndef debug
     #define debug(...) NSLog(__VA_ARGS__)
     #define FMAssert assert
 
@@ -29,7 +30,7 @@ FOUNDATION_EXPORT const unsigned char FMJSVersionString[];
             }\
         }
     #endif
-
+#endif
 #else
     #define debug(...)
     #define FMAssert(...)

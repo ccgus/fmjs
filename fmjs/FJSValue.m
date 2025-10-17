@@ -83,7 +83,7 @@ static BOOL FJSCaptureJSValueInstancesForDebugging;
         
         // FIXME: Gus write a test for this.
         if ([(__bridge id _Nonnull)(_cValue.value.pointerValue) isKindOfClass:[FJSValue class]]) {
-            debug(@"%p NOPE", (__bridge void *)self);
+            //debug(@"%p NOPE", (__bridge void *)self);
         }
         else {
             

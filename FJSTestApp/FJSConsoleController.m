@@ -286,6 +286,17 @@ NSString *FJSConsoleControllerIsRequestingInterpreterReloadNotification = @"FJSC
     
     [rt setExceptionHandler:^(FJSRuntime * _Nonnull runtime, NSException * _Nonnull exception) {
         [weakSelf appendToConsole:[NSString stringWithFormat:@"%@: %@", [exception description], [exception userInfo]] inputType:FJSConsoleEntryTypeError];
+        
+        // defaults write com.flyingmeat.Acorn8 FJSConsoleControllerAlertOnExceptions 1
+        if ([[NSUserDefaults standardUserDefaults] boolForKey:@"FJSConsoleControllerAlertOnExceptions"]) {
+            NSAlert *alert = [[NSAlert alloc] init];
+            alert.alertStyle = NSAlertStyleCritical;
+            alert.messageText = @"FMJS Exception";
+            alert.informativeText = [exception description];
+            [alert addButtonWithTitle:@"OK"];
+            [alert runModal];
+        }
+        
     }];
     
     [rt setPrintHandler:^(FJSRuntime * _Nonnull runtime, NSString * _Nonnull stringToPrint) {

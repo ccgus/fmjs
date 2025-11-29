@@ -222,7 +222,7 @@ NSString *FJSConsoleControllerIsRequestingInterpreterReloadNotification = @"FJSC
         }
         else {
             
-            NSString *msg = NSLocalizedString(@"Unknown command: '%@'", @"Unknown command: '%@'");
+            NSString *msg = NSLocalizedString(@"Unknown command: “%@”", @"Unknown command: “%@”");
             
             msg = [NSString stringWithFormat:msg, [_consoleInputField stringValue]];
             

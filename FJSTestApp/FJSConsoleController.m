@@ -134,7 +134,7 @@ NSString *FJSConsoleControllerIsRequestingInterpreterReloadNotification = @"FJSC
 #endif
     
     
-    [self appendToConsole:NSLocalizedString(@"Copied to clipboard!.", @"Copied to clipboard!.") inputType:FJSConsoleEntryTypeInformative];
+    [self appendToConsole:NSLocalizedString(@"Copied to clipboard!", @"Copied to clipboard!") inputType:FJSConsoleEntryTypeInformative];
 }
 
 - (IBAction)reloadInterpreter:(id)sender {

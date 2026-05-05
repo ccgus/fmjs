@@ -107,6 +107,10 @@ static JSValueRef FJSPrototypeForOBJCInstance(JSContextRef ctx, id instance, NSS
             
         }
         
+        // FIXME: If we're an array, should we do something smart here? Return a JS iterator for it?
+        if ([propertyName isEqualToString:@"Symbol.iterator"]) {
+            return JSValueMakeUndefined([self contextRef]);
+        }
         
         if (![propertyName isEqualToString:@"Symbol.toPrimitive"]) {
             @try {
@@ -254,6 +258,11 @@ static JSValueRef FJSToJSON(JSContextRef ctx, JSObjectRef function, JSObjectRef 
     if ([propertyName isEqualToString:@"toString"] || [propertyName isEqualToString:@"Symbol.toStringTag"]/* || [propertyName isEqualToString:@"Symbol.toPrimitive"]*/) {
         // This can be used in a debugger.
         return [valueFromJSObject toJSString];
+    }
+
+    // FIXME: Need to be on the lookout for arrays?
+    if ([propertyName isEqualToString:@"Symbol.iterator"]) {
+        return JSValueMakeUndefined([self jsContext]);
     }
     
     if ([propertyName isEqualToString:@"toJSON"]) {

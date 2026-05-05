@@ -344,6 +344,13 @@ NSString *FJSConsoleControllerIsRequestingInterpreterReloadNotification = @"FJSC
             [[self window] makeKeyAndOrderFront:nil];
         }
         
+        if (inputType == FJSConsoleEntryTypeOutput) {
+            if ([self consoleDelegate] && [[self consoleDelegate] respondsToSelector:@selector(consoleController:didWriteToConsole:)]) {
+                [[self consoleDelegate] consoleController:self didWriteToConsole:string];
+            }
+        }
+        
+        
     });
     
 }

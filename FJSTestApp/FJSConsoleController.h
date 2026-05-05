@@ -20,6 +20,7 @@ extern NSString *FJSConsoleControllerIsRequestingInterpreterReloadNotification;
 @property (weak) IBOutlet NSTextField *consoleInputField;
 @property (weak) IBOutlet NSButton    *consoleInputImageWidgetButton;
 @property (weak) IBOutlet FJSColoredView *consoleBottomHack;
+@property (weak) id consoleDelegate;
 
 + (instancetype)consoleControllerWithRuntime:(FJSRuntime*)runtime;
 + (instancetype)sharedConsoleController;
@@ -38,6 +39,10 @@ extern NSString *FJSConsoleControllerIsRequestingInterpreterReloadNotification;
 
 @interface FJSConsoleInputField : NSTextField
 
+@end
+
+@interface NSObject (FJSConsoleControllerOutputDelegate)
+- (void)consoleController:(FJSConsoleController*)controller didWriteToConsole:(NSString*)out;
 @end
 
 NS_ASSUME_NONNULL_END

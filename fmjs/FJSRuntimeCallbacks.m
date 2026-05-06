@@ -107,9 +107,11 @@ static JSValueRef FJSPrototypeForOBJCInstance(JSContextRef ctx, id instance, NSS
             
         }
         
-        // FIXME: If we're an array, should we do something smart here? Return a JS iterator for it?
         if ([propertyName isEqualToString:@"Symbol.iterator"]) {
-            return JSValueMakeUndefined([self contextRef]);
+            if ([[objectValue instance] isKindOfClass:[NSArray class]]) {
+                return YES;
+            }
+            return NO;
         }
         
         if (![propertyName isEqualToString:@"Symbol.toPrimitive"]) {
@@ -245,11 +247,76 @@ static JSValueRef FJSToJSON(JSContextRef ctx, JSObjectRef function, JSObjectRef 
     JSStringRef jsString = JSStringCreateWithUTF8CString([s UTF8String]);
     JSValueRef jsv = JSValueMakeFromJSONString(ctx, jsString);
     JSStringRelease(jsString);
-    
+
     return jsv;
-    
+
 }
 
+
+// `next` callback for the iterator returned by FJSArraySymbolIteratorFactory.
+// State (_arr, _idx) is stashed as DontEnum properties on the iterator itself, which
+// `thisObject` points to. Reads route through JSObjectGetPropertyAtIndex so the existing
+// NSArray subscript path (FJSStringIsNumber + objectAtIndexedSubscript:) handles wrapping.
+static JSValueRef FJSArrayIteratorNext(JSContextRef ctx, JSObjectRef function, JSObjectRef thisObject, size_t argumentCount, const JSValueRef arguments[], JSValueRef *exception) {
+
+    JSStringRef arrKey    = JSStringCreateWithUTF8CString("_arr");
+    JSStringRef idxKey    = JSStringCreateWithUTF8CString("_idx");
+    JSStringRef valueKey  = JSStringCreateWithUTF8CString("value");
+    JSStringRef doneKey   = JSStringCreateWithUTF8CString("done");
+    JSStringRef lengthKey = JSStringCreateWithUTF8CString("length");
+
+    JSValueRef arrVal  = JSObjectGetProperty(ctx, thisObject, arrKey, exception);
+    JSValueRef idxVal  = JSObjectGetProperty(ctx, thisObject, idxKey, exception);
+    JSObjectRef arrObj = JSValueToObject(ctx, arrVal, exception);
+    double idx         = JSValueToNumber(ctx, idxVal, exception);
+
+    JSValueRef lenVal = JSObjectGetProperty(ctx, arrObj, lengthKey, exception);
+    double len        = JSValueToNumber(ctx, lenVal, exception);
+
+    JSObjectRef result = JSObjectMake(ctx, NULL, NULL);
+
+    if (idx < len) {
+        JSValueRef item = JSObjectGetPropertyAtIndex(ctx, arrObj, (unsigned)idx, exception);
+        JSObjectSetProperty(ctx, result, valueKey, item, kJSPropertyAttributeNone, exception);
+        JSObjectSetProperty(ctx, result, doneKey, JSValueMakeBoolean(ctx, false), kJSPropertyAttributeNone, exception);
+        JSObjectSetProperty(ctx, thisObject, idxKey, JSValueMakeNumber(ctx, idx + 1), kJSPropertyAttributeNone, exception);
+    }
+    else {
+        JSObjectSetProperty(ctx, result, valueKey, JSValueMakeUndefined(ctx), kJSPropertyAttributeNone, exception);
+        JSObjectSetProperty(ctx, result, doneKey, JSValueMakeBoolean(ctx, true), kJSPropertyAttributeNone, exception);
+    }
+
+    JSStringRelease(arrKey);
+    JSStringRelease(idxKey);
+    JSStringRelease(valueKey);
+    JSStringRelease(doneKey);
+    JSStringRelease(lengthKey);
+
+    return result;
+}
+
+
+// Returned from `arr[Symbol.iterator]` when `arr` wraps an NSArray. Invoked as `arr[Symbol.iterator]()`
+// so JSC sets `thisObject` to the array; we capture it on a fresh iterator object alongside an index.
+static JSValueRef FJSArraySymbolIteratorFactory(JSContextRef ctx, JSObjectRef function, JSObjectRef thisObject, size_t argumentCount, const JSValueRef arguments[], JSValueRef *exception) {
+
+    JSObjectRef iterator = JSObjectMake(ctx, NULL, NULL);
+
+    JSStringRef arrKey = JSStringCreateWithUTF8CString("_arr");
+    JSObjectSetProperty(ctx, iterator, arrKey, thisObject, kJSPropertyAttributeDontEnum, exception);
+    JSStringRelease(arrKey);
+
+    JSStringRef idxKey = JSStringCreateWithUTF8CString("_idx");
+    JSObjectSetProperty(ctx, iterator, idxKey, JSValueMakeNumber(ctx, 0), kJSPropertyAttributeDontEnum, exception);
+    JSStringRelease(idxKey);
+
+    JSStringRef nextKey = JSStringCreateWithUTF8CString("next");
+    JSObjectRef nextFn  = JSObjectMakeFunctionWithCallback(ctx, nextKey, &FJSArrayIteratorNext);
+    JSObjectSetProperty(ctx, iterator, nextKey, nextFn, kJSPropertyAttributeDontEnum, exception);
+    JSStringRelease(nextKey);
+
+    return iterator;
+}
 
 
 - (JSValueRef)getProperty:(NSString*)propertyName inObject:(FJSValue*)valueFromJSObject exception:(JSValueRef *)exception {
@@ -260,8 +327,13 @@ static JSValueRef FJSToJSON(JSContextRef ctx, JSObjectRef function, JSObjectRef 
         return [valueFromJSObject toJSString];
     }
 
-    // FIXME: Need to be on the lookout for arrays?
     if ([propertyName isEqualToString:@"Symbol.iterator"]) {
+        if ([valueFromJSObject isInstance] && [[valueFromJSObject toObject] isKindOfClass:[NSArray class]]) {
+            JSStringRef name = JSStringCreateWithUTF8CString("[Symbol.iterator]");
+            JSObjectRef factory = JSObjectMakeFunctionWithCallback([self jsContext], name, &FJSArraySymbolIteratorFactory);
+            JSStringRelease(name);
+            return factory;
+        }
         return JSValueMakeUndefined([self jsContext]);
     }
     

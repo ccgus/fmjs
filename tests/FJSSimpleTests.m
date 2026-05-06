@@ -339,6 +339,44 @@ NSArray * FJSReturnArrayOfDictionaries(void);
     
 }
 
+- (void)testNSArrayForOfIteration {
+
+    FJSRuntime *runtime = [[FJSRuntime alloc] init];
+
+    runtime[@"arr"] = @[@"a", @"b", @"c"];
+
+    // Symbol.iterator should be present and produce an iterator we can drive manually.
+    XCTAssert([[runtime evaluateScript:@"typeof arr[Symbol.iterator] === 'function';"] toBOOL]);
+    XCTAssert([[runtime evaluateScript:@"typeof arr[Symbol.iterator]().next === 'function';"] toBOOL]);
+
+    // The basic for...of contract.
+    FJSValue *concatenated = [runtime evaluateScript:@"var s = ''; for (var x of arr) { s += x; } s;"];
+    XCTAssertEqualObjects([concatenated toObject], @"abc");
+
+    // Each call returns a fresh iterator.
+    FJSValue *twice = [runtime evaluateScript:
+        @"var a = ''; var b = '';"
+        @"for (var x of arr) { a += x; }"
+        @"for (var y of arr) { b += y; }"
+        @"a + ':' + b;"];
+    XCTAssertEqualObjects([twice toObject], @"abc:abc");
+
+    // Spread / Array.from also exercise Symbol.iterator.
+    FJSValue *spreadJoined = [runtime evaluateScript:@"[...arr].join('-');"];
+    XCTAssertEqualObjects([spreadJoined toObject], @"a-b-c");
+
+    // Empty arrays should immediately yield {done: true}.
+    runtime[@"empty"] = @[];
+    FJSValue *emptyDone = [runtime evaluateScript:@"empty[Symbol.iterator]().next().done;"];
+    XCTAssertTrue([emptyDone toBOOL]);
+
+    // Non-array instances stay non-iterable (Symbol.iterator should be undefined).
+    runtime[@"str"] = @"hello";
+    XCTAssert([[runtime evaluateScript:@"typeof str[Symbol.iterator] === 'undefined';"] toBOOL]);
+
+    [runtime shutdown];
+}
+
 - (void)testSymbolLookup {
     
     // Make sure bridge stuff is loaded first.

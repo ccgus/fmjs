@@ -570,7 +570,7 @@ APPKIT_EXTERN const CGRect FJSRuntimeTestCGRect;
     
     [rt evaluateScript:@"print(CGRectMake(324,12,23,1));"];
     
-    XCTAssert(![foundString isEqualToString:NSStringFromRect(CGRectMake(324,12,23,1))]);
+    XCTAssert([foundString isEqualToString:NSStringFromRect(CGRectMake(324,12,23,1))]);
     
     
     [rt evaluateScript:@"print(NSStringFromRect(CGRectMake(324,12,23,1)));"];
@@ -578,6 +578,31 @@ APPKIT_EXTERN const CGRect FJSRuntimeTestCGRect;
     
     [rt shutdown];
 }
+
+
+
+- (void)testPrintNSRect {
+    
+    FJSRuntime *runtime = [FJSRuntime new];
+    
+    __block NSString *stringPrinted;
+    
+    [runtime setPrintHandler:^(FJSRuntime * _Nonnull rt, NSString * _Nonnull stringToPrint) {
+        stringPrinted = stringToPrint;
+    }];
+    
+    [runtime evaluateScript: @"var r = NSMakeRect(1,2,3,4);"
+                             @"print(r)\n"
+                             @"r=null;"];
+    
+    XCTAssert([stringPrinted isEqualToString:NSStringFromRect(NSMakeRect(1, 2, 3, 4))]);
+    
+    [runtime shutdown];
+    
+}
+
+
+
 
 + (NSSize)returnSize {
     return NSMakeSize(16, 12);
@@ -611,11 +636,11 @@ APPKIT_EXTERN const CGRect FJSRuntimeTestCGRect;
     [rt evaluateScript:@"print(FJSStructTests.returnSize() + '');"];
     
     XCTAssert([foundString isEqualToString:NSStringFromSize(CGSizeMake(16, 12))]);
+    XCTAssert([foundString isEqualToString:@"{16, 12}"]);
     
     
-    // Just try and cause a crash here.
-    [rt evaluateScript:@"FJSStructTests.printString(FJSStructTests.returnRect());"];
-    XCTAssert(hadException);
+    [rt evaluateScript:@"print(FJSStructTests.returnRect());"];
+    XCTAssert([foundString isEqualToString:@"{{45, 67}, {143, -14}}"]);
     
     
     // Let's print it this time.

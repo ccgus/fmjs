@@ -24,6 +24,10 @@
 
 static NSMutableDictionary *FJSFFIStructureLookup;
 
+static BOOL FJSRuntimeTypeIsObject(NSString *runtimeType) {
+    return [runtimeType hasPrefix:@"@"];
+}
+
 @implementation FJSFFI
 
 
@@ -36,6 +40,17 @@ static NSMutableDictionary *FJSFFIStructureLookup;
     [ffi setRuntime:runtime];
     
     return ffi;
+}
+
+- (FJSValue *)argumentValue:(FJSValue *)argument coercedForSymbol:(FJSSymbol *)argSymbol keepingAlive:(NSMutableArray *)coercedArguments {
+    
+    if ([argument isStruct] && FJSRuntimeTypeIsObject([argSymbol runtimeType])) {
+        FJSValue *coercedArgument = [FJSValue valueWithInstance:(__bridge CFTypeRef)[argument structToString] inRuntime:_runtime];
+        [coercedArguments addObject:coercedArgument];
+        return coercedArgument;
+    }
+    
+    return argument;
 }
 
 - (nullable FJSValue*)objcInvoke {
@@ -90,6 +105,7 @@ static NSMutableDictionary *FJSFFIStructureLookup;
             return [FJSValue valueWithUndefinedInRuntime:_runtime];
         }
         
+        NSMutableArray *coercedArguments = [NSMutableArray array];
         NSInteger currentArgIndex = 0;
         for (FJSValue *v in arguments) {
             NSInteger objcIndex = currentArgIndex + 2;
@@ -105,7 +121,8 @@ static NSMutableDictionary *FJSFFIStructureLookup;
                     [v pushJSValueToNativeType:[argSymbol runtimeType]];
                 }
                 
-                void *arg = [v objectStorageForSymbol:argSymbol];
+                FJSValue *argumentValue = [self argumentValue:v coercedForSymbol:argSymbol keepingAlive:coercedArguments];
+                void *arg = [argumentValue objectStorageForSymbol:argSymbol];
                 
                 [invocation setArgument:arg atIndex:objcIndex];
             }
@@ -216,7 +233,7 @@ static NSMutableDictionary *FJSFFIStructureLookup;
             
             if (![[argSym runtimeType] isEqualToString:symbolRTType]) {
                 
-                BOOL looksReasonable = ([[argSym runtimeType] isEqualToString:@"@"] && [symbolRTType hasPrefix:@"^{C"]);
+                BOOL looksReasonable = (FJSRuntimeTypeIsObject([argSym runtimeType]) && ([symbolRTType hasPrefix:@"^{C"] || [symbolRTType hasPrefix:@"{"]));
                 if (!looksReasonable && [symbolRTType hasPrefix:@"{C"]) {
                     // This is a horrible hack. How can we fix the general case for this?
                     // got {CGSize=dd} when {CGSize="width"d"height"d} was needed.
@@ -375,6 +392,8 @@ static NSMutableDictionary *FJSFFIStructureLookup;
         ffiArgumentCount++;
     }
     
+    NSMutableArray *coercedArguments = [NSMutableArray array];
+    
     if (ffiArgumentCount > 0) {
         ffiArgs = malloc(sizeof(ffi_type *) * ffiArgumentCount);
         ffiValues = malloc(sizeof(void *) * ffiArgumentCount);
@@ -384,7 +403,6 @@ static NSMutableDictionary *FJSFFIStructureLookup;
             ffiValues[ffiArgIndex] = [_f objectStorage];
             ffiArgIndex++;
         }
-        
         
         for (NSInteger symbolArgIndex = 0; ffiArgIndex < ffiArgumentCount; ffiArgIndex++, symbolArgIndex++) {
             FJSValue *arg     = [_args objectAtIndex:symbolArgIndex];
@@ -405,9 +423,10 @@ static NSMutableDictionary *FJSFFIStructureLookup;
                 //FMAssert(NO);
             }
             
-            ffi_type *type         = [arg FFITypeWithHint:[argSym runtimeType]];
+            FJSValue *argumentValue = [self argumentValue:arg coercedForSymbol:argSym keepingAlive:coercedArguments];
+            ffi_type *type         = [argumentValue FFITypeWithHint:[argSym runtimeType]];
             ffiArgs[ffiArgIndex]   = type;
-            ffiValues[ffiArgIndex] = [arg objectStorage];
+            ffiValues[ffiArgIndex] = [argumentValue objectStorage];
             //[FJSFFI describeFFIType:type];
         }
     }
@@ -752,5 +771,3 @@ static NSMutableDictionary *FJSFFIStructureLookup;
 }
 
 @end
-
-

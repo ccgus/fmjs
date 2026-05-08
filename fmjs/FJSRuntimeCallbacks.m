@@ -18,6 +18,7 @@ static void FJS_getPropertyNames(JSContextRef ctx, JSObjectRef object, JSPropert
 static bool FJS_hasInstance(JSContextRef ctx, JSObjectRef constructor, JSValueRef possibleInstance, JSValueRef* exception);
 
 static JSValueRef FJSPrototypeForOBJCInstance(JSContextRef ctx, id instance, NSString *name);
+static NSString * const FJSDynamicObjCMethodName = @"ƒ";
 
 @implementation FJSRuntime (JSCallbacks)
 
@@ -88,6 +89,10 @@ static JSValueRef FJSPrototypeForOBJCInstance(JSContextRef ctx, id instance, NSS
         FJSSymbol *symbol = [FJSSymbol symbolForName:propertyName inObject:[objectValue instance]];
         
         if (symbol) {
+            return YES;
+        }
+        
+        if ([propertyName isEqualToString:FJSDynamicObjCMethodName]) {
             return YES;
         }
         
@@ -342,6 +347,16 @@ static JSValueRef FJSArraySymbolIteratorFactory(JSContextRef ctx, JSObjectRef fu
         JSObjectRef toJSONFunction = JSObjectMakeFunctionWithCallback([self jsContext], toJSONFunctionName, &FJSToJSON);
         JSStringRelease(toJSONFunctionName);
         return toJSONFunction;
+    }
+    
+    if ([propertyName isEqualToString:FJSDynamicObjCMethodName] && [valueFromJSObject isInstance] && ![FJSSymbol symbolForName:propertyName inObject:[valueFromJSObject instance]]) {
+        FJSSymbol *sym = [FJSSymbol new];
+        [sym setName:FJSDynamicObjCMethodName];
+        [sym setSymbolType:@"method"];
+        
+        FJSValue *value = [FJSValue valueWithSymbol:sym inRuntime:self];
+        
+        return [self newJSValueForWrapper:value];
     }
     
     // FIXME: package this up in FJSValue, or maybe some other function?
@@ -639,6 +654,51 @@ static JSValueRef FJSArraySymbolIteratorFactory(JSContextRef ctx, JSObjectRef fu
     return returnRef;
 }
 
+- (JSValueRef)invokeDynamicObjCMethodOnObject:(FJSValue*)object withArguments:(NSArray*)args exception:(JSValueRef *)exception {
+    
+    if (![object isInstance] || [args count] != 1) {
+        NSString *reason = @"objc() expects one object argument and must be called on an Objective-C instance.";
+        [self reportNSException:[NSException exceptionWithName:FMJavaScriptExceptionName reason:reason userInfo:nil]];
+        return JSValueMakeUndefined([self contextRef]);
+    }
+    
+    FJSValue *methodDescription = [args firstObject];
+    NSArray *argumentNames = [methodDescription propertyNames];
+    
+    if (![argumentNames count]) {
+        NSString *reason = @"objc() could not find any selector parts in its argument.";
+        [self reportNSException:[NSException exceptionWithName:FMJavaScriptExceptionName reason:reason userInfo:nil]];
+        return JSValueMakeUndefined([self contextRef]);
+    }
+    
+    NSMutableString *methodName = [NSMutableString string];
+    NSMutableArray *methodArguments = [NSMutableArray arrayWithCapacity:[argumentNames count]];
+    
+    for (NSString *argumentName in argumentNames) {
+        [methodName appendFormat:@"%@:", argumentName];
+        
+        FJSValue *argumentValue = [methodDescription objectForKeyedSubscript:argumentName];
+        if (!argumentValue) {
+            NSString *reason = [NSString stringWithFormat:@"objc() could not read argument named %@.", argumentName];
+            [self reportNSException:[NSException exceptionWithName:FMJavaScriptExceptionName reason:reason userInfo:nil]];
+            return JSValueMakeUndefined([self contextRef]);
+        }
+        
+        [methodArguments addObject:argumentValue];
+    }
+    
+    FJSSymbol *symbol = [FJSSymbol symbolForName:methodName inObject:[object instance]];
+    if (!symbol) {
+        NSString *reason = [NSString stringWithFormat:@"objc() could not find Objective-C method %@ on %@.", methodName, [object instance]];
+        [self reportNSException:[NSException exceptionWithName:FMJavaScriptExceptionName reason:reason userInfo:nil]];
+        return JSValueMakeUndefined([self contextRef]);
+    }
+    
+    FJSValue *function = [FJSValue valueWithSymbol:symbol inRuntime:self];
+    
+    return [self invokeFunction:function onObject:object withArguments:methodArguments exception:exception];
+}
+
 - (JSValueRef)convertObject:(FJSValue*)valueObject toType:(JSType)type exception:(JSValueRef*)exception {
     FJSTrace(@"%s:%d", __FUNCTION__, __LINE__);
     
@@ -806,7 +866,9 @@ static JSValueRef FJS_callAsFunction(JSContextRef context, JSObjectRef functionJ
         [args addObject:arg];
     }
     
-    
+    if ([[[functionToCall symbol] name] isEqualToString:FJSDynamicObjCMethodName]) {
+        return [runtime invokeDynamicObjCMethodOnObject:objectToCall withArguments:args exception:exception];
+    }
     
 #ifdef DEBUG
     if (!([functionToCall isCFunction] || [functionToCall isClassMethod] || [functionToCall isInstanceMethod] || [functionToCall isBlock])) {
@@ -894,4 +956,3 @@ static JSValueRef FJSPrototypeForOBJCInstance(JSContextRef ctx, id instance, NSS
     
     return nil;
 }
-

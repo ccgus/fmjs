@@ -113,6 +113,11 @@ NSArray * FJSReturnArrayOfDictionaries(void);
     return d + f;
 }
 
+// This intentionally doesn't do what it says
+- (double)float:(float)f addDouble:(double)d {
+    return d - f;
+}
+
 - (void)dealloc {
     FJSSimpleTestsDeallocHappend++;
 }
@@ -1910,6 +1915,44 @@ NSArray * FJSReturnArrayOfDictionaries(void);
     
 }
 
+- (void)testStringEquality {
+    
+    
+    FJSRuntime *runtime = [FJSRuntime new];
+    
+    runtime[@"string1"] = @"Foo";
+    
+    XCTAssert([[runtime evaluateScript:@"string1 == 'Foo'"] toBOOL]);
+    // XCTAssert([[runtime evaluateScript:@"string1 === 'Foo'"] toBOOL]); // We can't do strict equality if string1 continues to be an NSString :(
+    XCTAssert([[runtime evaluateScript:@"String(string1) === 'Foo'"] toBOOL]);
+    XCTAssert([[runtime evaluateScript:@"string1.isEqualToString('Foo')"] toBOOL]);
+    
+    [runtime shutdown];
+}
+
+- (void)testExperimentalMethodCall {
+    
+    FJSRuntime *runtime = [[FJSRuntime alloc] init];
+    
+    XCTAssert([runtime evaluateScript:@"var c = FJSTestClass.new();"]);
+    
+    //
+    FJSValue *df = [runtime evaluateScript:@"c.ƒ({addDouble: 120, float: 4.5})"];
+    
+    XCTAssert(df);
+    XCTAssert(FJSEqualFloats([df toDouble], 124.5));
+    
+    df = [runtime evaluateScript:@"c.ƒ({float: 10, addDouble: 12})"];
+    
+    XCTAssert(df);
+    XCTAssert(FJSEqualFloats([df toDouble], 2));
+    
+    [runtime evaluateScript:@"c = null;"];
+    
+    [runtime shutdown];
+    
+    
+}
 
 - (void)testObjectForKeyedSubscriptStuff {
     

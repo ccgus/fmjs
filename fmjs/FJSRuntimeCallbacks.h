@@ -15,6 +15,7 @@
 
 - (JSValueRef)convertObject:(FJSValue*)valueObject toType:(JSType)type exception:(JSValueRef*)outException;
 - (JSValueRef)invokeFunction:(FJSValue*)function onObject:(FJSValue*)object withArguments:(NSArray*)args exception:(JSValueRef *)outException;
+- (JSValueRef)invokeDynamicObjCMethodOnObject:(FJSValue*)object withArguments:(NSArray*)args exception:(JSValueRef *)outException;
 
 - (BOOL)setValue:(FJSValue*)arg forProperty:(NSString*)propertyName inObject:(FJSValue*)object exception:(JSValueRef*)outException;
 - (JSValueRef)getProperty:(NSString*)propertyName inObject:(FJSValue*)object exception:(JSValueRef *)outException;

@@ -660,7 +660,7 @@ static JSValueRef FJSArraySymbolIteratorFactory(JSContextRef ctx, JSObjectRef fu
  
  Support for calling a method `- (void)foo:(int)x bar:(NSString*)b;` like so:
  instance.ƒ({foo: 120, bar: 'abc'})"
- w
+ 
  ECMAScript says the keys will stay in order if they are strings:
  <https://tc39.es/ecma262/#sec-ordinaryownpropertykeys>
  

@@ -654,6 +654,29 @@ static JSValueRef FJSArraySymbolIteratorFactory(JSContextRef ctx, JSObjectRef fu
     return returnRef;
 }
 
+
+
+/*
+ 
+ Support for calling a method `- (void)foo:(int)x bar:(NSString*)b;` like so:
+ instance.ƒ({foo: 120, bar: 'abc'})"
+ w
+ ECMAScript says the keys will stay in order if they are strings:
+ <https://tc39.es/ecma262/#sec-ordinaryownpropertykeys>
+ 
+ 10.1.11.1 OrdinaryOwnPropertyKeys ( obj )
+ The abstract operation OrdinaryOwnPropertyKeys takes argument obj (an Object) and returns a List of property keys. It performs the following steps when called:
+ 
+ 1. Let keys be a new empty List.
+ 2. For each own property key propertyKey of obj such that propertyKey is an array index, in ascending numeric index order, do
+    a. Append propertyKey to keys.
+ 3. For each own property key propertyKey of obj such that propertyKey is a String and propertyKey is not an array index, in ascending chronological order of property creation, do
+    a. Append propertyKey to keys.
+ 4. For each own property key propertyKey of obj such that propertyKey is a Symbol, in ascending chronological order of property creation, do
+    a. Append propertyKey to keys.
+ 5. Return keys.
+
+ */
 - (JSValueRef)invokeDynamicObjCMethodOnObject:(FJSValue*)object withArguments:(NSArray*)args exception:(JSValueRef *)exception {
     
     if (![object isInstance] || [args count] != 1) {

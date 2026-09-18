@@ -56,6 +56,19 @@ NSArray * FJSReturnArrayOfDictionaries(void);
     return self;
 }
 
+- (instancetype)initWithPassedInt:(int)i {
+    self = [self init];
+    if (self) {
+        _passedInt = i;
+    }
+    
+    return self;
+}
+
+- (instancetype)newCopyWithPassedInt:(int)i {
+    return [[FJSTestClass alloc] initWithPassedInt:i];
+}
+
 + (instancetype)sharedInstance {
     static FJSTestClass *tc;
     static dispatch_once_t onceToken;
@@ -494,6 +507,41 @@ NSArray * FJSReturnArrayOfDictionaries(void);
     XCTAssert(FJSSimpleTestsDeallocHappend == 4, @"Got %d deallocs", FJSSimpleTestsDeallocHappend);
     XCTAssert(![FJSValue countOfLiveInstances], @"Got %ld instances still around", [FJSValue countOfLiveInstances]); // If this fails, make sure you're calling shutdown on all your runtimes.
     
+}
+
+- (void)testOwnershipPrefixMethodsDontLeak {
+    
+    // Methods whose names start with alloc/new/copy/mutableCopy/init return +1; the bridge must balance that or the object leaks.
+    
+    FJSSimpleTestsInitHappend = 0;
+    FJSSimpleTestsDeallocHappend = 0;
+    
+    __weak __attribute__((objc_precise_lifetime)) FJSTestClass *weakInited;
+    __weak __attribute__((objc_precise_lifetime)) FJSTestClass *weakNewed;
+    
+    @autoreleasepool {
+        
+        [FJSRuntime setUseSynchronousGarbageCollectForDebugging:YES];
+        
+        FJSRuntime *runtime = [[FJSRuntime alloc] init];
+        
+        [runtime evaluateScript:@"var a = FJSTestClass.alloc().initWithPassedInt_(42); var b = a.newCopyWithPassedInt_(43);"];
+        
+        weakInited = [[runtime evaluateScript:@"a;"] toObject];
+        weakNewed  = [[runtime evaluateScript:@"b;"] toObject];
+        XCTAssertEqual([weakInited passedInt], 42);
+        XCTAssertEqual([weakNewed passedInt], 43);
+        XCTAssertEqual(FJSSimpleTestsInitHappend, 2);
+        
+        [runtime evaluateScript:@"a = null; b = null;"];
+        [runtime garbageCollect];
+        [runtime shutdown];
+    }
+    
+    XCTAssert(!weakInited, @"initWithPassedInt: result leaked");
+    XCTAssert(!weakNewed, @"newCopyWithPassedInt: result leaked");
+    XCTAssertEqual(FJSSimpleTestsDeallocHappend, 2);
+    XCTAssert(![FJSValue countOfLiveInstances], @"Got %ld instances still around", [FJSValue countOfLiveInstances]);
 }
 
 - (void)testInitAndDealoc {

@@ -423,15 +423,35 @@
     return [[[FJSSymbolManager sharedManager] cfTypeToSymbolLUT] objectForKey:cftype];
 }
 
+// Cocoa's ownership rule: a selector is in the init/new/copy/mutableCopy family when it starts with that
+// word and the next character isn't a lowercase letter (so initWithFoo: and newThing count, but initialize doesn't).
+static BOOL FJSSelectorHasOwnershipPrefix(NSString *selectorName, NSString *prefix) {
+    
+    if (![selectorName hasPrefix:prefix]) {
+        return NO;
+    }
+    
+    if ([selectorName length] == [prefix length]) {
+        return YES;
+    }
+    
+    unichar next = [selectorName characterAtIndex:[prefix length]];
+    return ![[NSCharacterSet lowercaseLetterCharacterSet] characterIsMember:next];
+}
+
 - (BOOL)returnsRetained {
     
     if (_cfTypeReturnsRetained) {
         return YES;
     }
     
-    // FIXME: Maybe look up the actual +1 rules. Isn't it create anywhere in the name? Holy shit I wish bridge.xml files had returns_retained in there.
+    // alloc is deliberately left out: its +1 is held by the FJSValue wrapping it, and init returning self would otherwise be counted twice.
     if ([_symbolType isEqualToString:@"method"]) {
-        return ([_name isEqualToString:@"new"] || [_name isEqualToString:@"init"] || [_name isEqualToString:@"copy"] || [_name isEqualToString:@"mutableCopy"] || [_name hasPrefix:@"create"]);
+        return (FJSSelectorHasOwnershipPrefix(_name, @"init") ||
+                FJSSelectorHasOwnershipPrefix(_name, @"new") ||
+                FJSSelectorHasOwnershipPrefix(_name, @"copy") ||
+                FJSSelectorHasOwnershipPrefix(_name, @"mutableCopy") ||
+                [_name hasPrefix:@"create"]);
     }
     
     NSLog(@"Programming error: asking if returnsRetained on a symbol of type: %@", _symbolType);

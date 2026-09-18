@@ -1062,6 +1062,8 @@ static BOOL FJSCaptureJSValueInstancesForDebugging;
     JSObjectRef arrayRef = JSObjectMakeArray([[self runtime] contextRef], [ar count], elements, &exception);
     [[self runtime] reportPossibleJSException:exception];
     
+    free(elements);
+    
     return arrayRef;
 }
 

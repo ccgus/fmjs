@@ -69,10 +69,34 @@ static void FJSTypedArrayBytesDeallocator(void* bytes, void* deallocatorContext)
 
 
 
+static size_t FJSTypedArrayElementSize(JSTypedArrayType type) {
+    switch (type) {
+        case kJSTypedArrayTypeInt8Array:
+        case kJSTypedArrayTypeUint8Array:
+        case kJSTypedArrayTypeUint8ClampedArray:
+            return 1;
+        case kJSTypedArrayTypeInt16Array:
+        case kJSTypedArrayTypeUint16Array:
+            return 2;
+        case kJSTypedArrayTypeInt32Array:
+        case kJSTypedArrayTypeUint32Array:
+        case kJSTypedArrayTypeFloat32Array:
+            return 4;
+        case kJSTypedArrayTypeFloat64Array:
+            return 8;
+        default:
+            return 1;
+    }
+}
+
 - (FJSValue*)toTypedArray:(JSTypedArrayType)type runtime:(FJSRuntime*)runtime {
     
-    JSObjectRef ar = JSObjectMakeTypedArray([runtime contextRef], type, [self length], NULL);
-    memcpy(JSObjectGetTypedArrayBytesPtr([runtime contextRef], ar, nil), [self bytes], [self length]);
+    // JSObjectMakeTypedArray takes a count of elements, not bytes.
+    size_t elementSize = FJSTypedArrayElementSize(type);
+    size_t elementCount = [self length] / elementSize;
+    
+    JSObjectRef ar = JSObjectMakeTypedArray([runtime contextRef], type, elementCount, NULL);
+    memcpy(JSObjectGetTypedArrayBytesPtr([runtime contextRef], ar, nil), [self bytes], elementCount * elementSize);
     return [FJSValue valueWithJSValueRef:ar inRuntime:runtime];
 }
 
@@ -120,19 +144,16 @@ static void FJSTypedArrayBytesDeallocator(void* bytes, void* deallocatorContext)
     
     // FIXME: Can we check the types here? var a = new Int8Array([-122, 343, -567]); NSData.dataFromInt16Array(a); will segfault when you grab the values because the types aren't matching.
     
-    JSValueRef outErr;
+    JSValueRef outErr = NULL;
     JSObjectRef jsArrayObject = [array JSObjectRef];
     
-#ifdef DEBUG
+    // The bytes pointer is the start of the backing ArrayBuffer, so views created with an offset need it applied.
     size_t byteOffset = JSObjectGetTypedArrayByteOffset([runtime contextRef], jsArrayObject, &outErr);
-    FMAssert(!byteOffset);
-#endif
-    
     size_t len = JSObjectGetTypedArrayByteLength([runtime contextRef], jsArrayObject, &outErr);
     
     void *b = JSObjectGetTypedArrayBytesPtr([runtime contextRef], jsArrayObject, &outErr);
     
-    NSData *d = [NSData dataWithBytes:b length:len];
+    NSData *d = [NSData dataWithBytes:(b ? (char *)b + byteOffset : NULL) length:(b ? len : 0)];
     
     return [FJSValue valueWithInstance:(__bridge CFTypeRef _Nonnull)(d) inRuntime:runtime];
 }
@@ -195,7 +216,7 @@ static void FJSTypedArrayBytesDeallocator(void* bytes, void* deallocatorContext)
             @"Uint16Array": @(kJSTypedArrayTypeUint16Array),
             @"Uint32Array": @(kJSTypedArrayTypeUint32Array),
             @"Float32Array": @(kJSTypedArrayTypeFloat32Array),
-            @"kJSTypedArrayTypeFloat64Array": @(kJSTypedArrayTypeFloat64Array),
+            @"Float64Array": @(kJSTypedArrayTypeFloat64Array),
             @"ArrayBuffer": @(kJSTypedArrayTypeArrayBuffer),
             [NSNull null]: @(kJSTypedArrayTypeNone),
         };

@@ -324,6 +324,44 @@
 }
 
 
+- (void)testTypedArrayLengthsMatchElementCount {
+    
+    FJSRuntime *runtime = [[FJSRuntime alloc] init];
+    
+    uint16 ui16[] = {115, 116, 117};
+    NSData *ui16d = [NSData dataWithBytes:&ui16 length:sizeof(ui16)];
+    runtime[@"ui16d"] = ui16d;
+    XCTAssertEqual([[runtime evaluateScript:@"ui16d.toUint16Array().length"] toLong], 3);
+    XCTAssertEqual([[runtime evaluateScript:@"ui16d.toUint16Array().byteLength"] toLong], 6);
+    
+    double f64[] = {1.23, 2.34, .01};
+    NSData *f64d = [NSData dataWithBytes:&f64 length:sizeof(f64)];
+    runtime[@"f64d"] = f64d;
+    XCTAssertEqual([[runtime evaluateScript:@"f64d.toFloat64Array().length"] toLong], 3);
+    XCTAssertEqual([[runtime evaluateScript:@"f64d.toTypedArrayOfType(Float64Array).length"] toLong], 3);
+    XCTAssert(FJSEqualFloats([[runtime evaluateScript:@"f64d.toTypedArrayOfType(Float64Array)[1]"] toDouble], 2.34));
+    
+    runtime[@"ui16d"] = nil;
+    runtime[@"f64d"] = nil;
+    [runtime shutdown];
+}
+
+- (void)testDataFromTypedArrayViewWithByteOffset {
+    
+    FJSRuntime *runtime = [[FJSRuntime alloc] init];
+    
+    FJSValue *v = [runtime evaluateScript:@"var backing = new Int16Array([1, 2, 3, 4]); var view = new Int16Array(backing.buffer, 4); NSData.dataFromInt16Array(view);"];
+    NSData *d = [v toObject];
+    XCTAssert([d isKindOfClass:[NSData class]]);
+    XCTAssertEqual([d length], (NSUInteger)4);
+    sint16 *values = (sint16 *)[d bytes];
+    XCTAssertEqual(values[0], 3);
+    XCTAssertEqual(values[1], 4);
+    
+    [runtime shutdown];
+}
+
+
 - (void)testCGContextDataAccess {
     
     FJSRuntime *runtime = [[FJSRuntime alloc] init];

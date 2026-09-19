@@ -302,6 +302,28 @@ static const void * const kDispatchQueueRecursiveSpecificKey = &kDispatchQueueRe
         
         JSPropertyNameArrayRelease(jsNames);
         
+        // JSC makes the useful bits of an Error non-enumerable, so they don't show up above. Ask for them by name.
+        for (NSString *name in @[@"name", @"message", @"line", @"column", @"sourceURL", @"stack"]) {
+            
+            if ([userInfo objectForKey:name]) {
+                continue;
+            }
+            
+            JSStringRef jsName = JSStringCreateWithCFString((__bridge CFStringRef)name);
+            JSValueRef jsValueRef = JSObjectGetProperty(_jsContext, jsObject, jsName, NULL);
+            JSStringRelease(jsName);
+            
+            if (!jsValueRef || JSValueIsUndefined(_jsContext, jsValueRef)) {
+                continue;
+            }
+            
+            JSStringRef valueJS = JSValueToStringCopy(_jsContext, jsValueRef, NULL);
+            if (valueJS) {
+                [userInfo setObject:(NSString *)CFBridgingRelease(JSStringCopyCFString(kCFAllocatorDefault, valueJS)) forKey:name];
+                JSStringRelease(valueJS);
+            }
+        }
+        
         [self reportNSException:[NSException exceptionWithName:FMJavaScriptExceptionName reason:error userInfo:userInfo]];
     }
 

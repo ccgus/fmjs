@@ -1470,6 +1470,32 @@ NSArray * FJSReturnArrayOfDictionaries(void);
     [runtime shutdown];
 }
 
+- (void)testRuntimeExceptionsCarryLocation {
+    
+    FJSRuntime *runtime = [FJSRuntime new];
+    
+    __block NSException *caught = nil;
+    [runtime setExceptionHandler:^(FJSRuntime * _Nonnull rt, NSException * _Nonnull exception) {
+        caught = exception;
+    }];
+    
+    [runtime evaluateScript:@"var x = 1;\nvar y = 2;\nnope();\n" withSourceURL:[NSURL fileURLWithPath:@"/tmp/whatever.js"]];
+    
+    XCTAssertNotNil(caught);
+    XCTAssertTrue([[caught reason] containsString:@"nope"], @"%@", [caught reason]);
+    XCTAssertEqualObjects([[caught userInfo] objectForKey:@"line"], @"3");
+    XCTAssertNotNil([[caught userInfo] objectForKey:@"column"]);
+    XCTAssertTrue([[[caught userInfo] objectForKey:@"sourceURL"] hasSuffix:@"whatever.js"], @"%@", [caught userInfo]);
+    XCTAssertNotNil([[caught userInfo] objectForKey:@"stack"]);
+    
+    // Thrown values that aren't Error objects still get reported.
+    caught = nil;
+    [runtime evaluateScript:@"throw 'just a string';"];
+    XCTAssertEqualObjects([caught reason], @"just a string");
+    
+    [runtime shutdown];
+}
+
 - (void)testStringToNumber {
     
     FJSRuntime *runtime = [FJSRuntime new];

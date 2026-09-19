@@ -1409,6 +1409,23 @@ NSArray * FJSReturnArrayOfDictionaries(void);
     [runtime shutdown];
 }
 
+- (void)testNSNotFoundValue {
+    
+    // Apple's Foundation.bridgesupport clamps NSNotFound to -1, which breaks the `location == NSNotFound` idiom.
+    
+    FJSRuntime *runtime = [FJSRuntime new];
+    
+    XCTAssertEqual([[runtime evaluateScript:@"NSNotFound;"] toDouble], (double)NSNotFound);
+    XCTAssertTrue([[runtime evaluateScript:@"NSString.stringWithString_('hello').rangeOfString_('zz').location == NSNotFound;"] toBOOL]);
+    XCTAssertFalse([[runtime evaluateScript:@"NSString.stringWithString_('hello').rangeOfString_('ll').location == NSNotFound;"] toBOOL]);
+    XCTAssertEqual([[runtime evaluateScript:@"NSAnyEventMask;"] toDouble], (double)NSUIntegerMax);
+    
+    // Ones that really are -1 need to stay that way.
+    XCTAssertEqual([[runtime evaluateScript:@"NSOrderedAscending;"] toLong], -1);
+    
+    [runtime shutdown];
+}
+
 - (void)testStringToNumber {
     
     FJSRuntime *runtime = [FJSRuntime new];

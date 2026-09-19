@@ -139,6 +139,22 @@ static FJSSymbolManager *FJSSymbolManagerSharedInstance = nil;
 // In the case of the radar tag, the following is what's passed in:
 //    elementName == radar, namespaceURI == http://xml.apple.com/radar, qualifiedName == radar:radar
 // If namespace processing >isn't< on, the xmlns:radar="http://xml.apple.com/radar" is returned as an attribute pair, the elementName is 'radar:radar' and there is no qualifiedName.
+// Apple's bridgesupport generator clamps NSIntegerMax / NSUIntegerMax enums to -1, so `location == NSNotFound`
+// would never be true in JS. Use the compiled constants for the ones we know about.
++ (NSDictionary *)enumValueOverrides {
+    static NSDictionary *overrides;
+    static dispatch_once_t onceToken;
+    dispatch_once(&onceToken, ^{
+        overrides = @{
+            @"NSNotFound":             [NSString stringWithFormat:@"%ld", (long)NSNotFound],
+            @"NSAnyEventMask":         [NSString stringWithFormat:@"%lu", (unsigned long)NSUIntegerMax],
+            @"NSTextCheckingAllTypes": [NSString stringWithFormat:@"%lu", (unsigned long)NSUIntegerMax],
+        };
+    });
+    
+    return overrides;
+}
+
 - (void)parser:(NSXMLParser *)parser didStartElement:(NSString *)elementName namespaceURI:(nullable NSString *)namespaceURI qualifiedName:(nullable NSString *)qName attributes:(NSDictionary<NSString *, NSString *> *)attributeDict {
     
     
@@ -166,7 +182,12 @@ static FJSSymbolManager *FJSSymbolManagerSharedInstance = nil;
     
     if ([elementName isEqualToString:@"enum"]) {
         
-        if ([attributeDict objectForKey:@"value64"]) {
+        NSString *knownValue = [[FJSSymbolManager enumValueOverrides] objectForKey:[sym name]];
+        
+        if (knownValue) {
+            [sym setRuntimeValue:knownValue];
+        }
+        else if ([attributeDict objectForKey:@"value64"]) {
             [sym setRuntimeValue:[attributeDict objectForKey:@"value64"]];
         }
         else {

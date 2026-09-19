@@ -549,9 +549,20 @@ static const void * const kDispatchQueueRecursiveSpecificKey = &kDispatchQueueRe
     
 }
 
+// JSC scans the stack conservatively, so a stale pointer to a wrapper left over from an earlier evaluation on this
+// thread can keep that wrapper (and the FJSValue it owns) alive through a collection. Zero out a chunk of the stack
+// below us before collecting so the collector's own frames don't inherit that garbage.
+__attribute__((noinline)) static void FJSScrubStackBeforeGC(void) {
+    volatile char pad[64 * 1024];
+    memset((void *)pad, 0, sizeof(pad));
+    __asm__ __volatile__("" : : "r"(pad) : "memory"); // Keep the optimizer from deciding the memset is dead.
+}
+
 - (void)garbageCollect {
     
     [self dispatchOnQueue:^{
+        
+        FJSScrubStackBeforeGC();
         
         if (FMJSUseSynchronousGarbageCollectForDebugging) {
         

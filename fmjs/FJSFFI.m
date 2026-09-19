@@ -160,13 +160,15 @@ static BOOL FJSRuntimeTypeIsObject(NSString *runtimeType) {
             CFTypeRef cfobject = nil;
             [invocation getReturnValue:&cfobject];
             
-            if (cfobject) {
-                FMAssert(cfobject != (__bridge CFTypeRef)[(__bridge id)cfobject class]);
+            if (cfobject && object_isClass((__bridge id)cfobject)) {
+                // An id-typed method can hand back a Class (say, objectAtIndex: on an array of classes). Classes aren't retained or released.
+                returnFValue = [FJSValue valueWithClass:(__bridge Class)cfobject inRuntime:_runtime];
+            }
+            else {
+                returnFValue = isInFJSRuntimeCall ? (__bridge id)cfobject : [FJSValue valueWithInstance:cfobject inRuntime:_runtime];
             }
             
-            returnFValue = isInFJSRuntimeCall ? (__bridge id)cfobject : [FJSValue valueWithInstance:cfobject inRuntime:_runtime];
-            
-            if (cfobject && [functionSymbol returnsRetained]) {
+            if (cfobject && !object_isClass((__bridge id)cfobject) && [functionSymbol returnsRetained]) {
                 // FJSTrace(@"objcInvoke Releasing %@", cfobject);
                 // We're already +2 on the object now. Time to bring it back down with CFRelease
                 CFRelease(cfobject);
@@ -227,6 +229,9 @@ static BOOL FJSRuntimeTypeIsObject(NSString *runtimeType) {
         if ([v isJSNative]) {
             
         }
+        else if ([v isClass] && ([[argSym runtimeType] isEqualToString:@"#"] || FJSRuntimeTypeIsObject([argSym runtimeType]))) {
+            // A Class value's symbol is the class symbol from bridgesupport, which has no runtime type. Classes are objects too, so let them through for @ as well.
+        }
         else if (jsSymbol) {
             
             NSString *symbolRTType = [jsSymbol runtimeType];
@@ -251,7 +256,7 @@ static BOOL FJSRuntimeTypeIsObject(NSString *runtimeType) {
                 if (!looksReasonable) {
                     
                     debug(@"Bad argument at index %ld", idx);
-                    NSString *reason = [NSString stringWithFormat:@"Argument at index %ld is of the wrong type. Got %@ when %@ was needed.", idx, [argSym runtimeType], [jsSymbol runtimeType]];
+                    NSString *reason = [NSString stringWithFormat:@"Argument at index %ld is of the wrong type. Got %@ when %@ was needed.", idx, [jsSymbol runtimeType], [argSym runtimeType]];
                     
                     if (outError) {
                         *outError = [NSError errorWithDomain:FMJavaScriptExceptionName code:2 userInfo:@{NSLocalizedDescriptionKey : reason}];

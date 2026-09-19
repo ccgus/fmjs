@@ -1383,6 +1383,32 @@ NSArray * FJSReturnArrayOfDictionaries(void);
     [runtime shutdown];
 }
 
+- (void)testPassingClassAsArgument {
+    
+    FJSRuntime *runtime = [FJSRuntime new];
+    
+    __block NSException *caught = nil;
+    [runtime setExceptionHandler:^(FJSRuntime * _Nonnull rt, NSException * _Nonnull exception) {
+        caught = exception;
+    }];
+    
+    // A Class where a Class (#) is expected.
+    XCTAssertTrue([[runtime evaluateScript:@"NSString.stringWithString_('x').isKindOfClass_(NSString);"] toBOOL]);
+    XCTAssertNil(caught, @"%@", caught);
+    XCTAssertFalse([[runtime evaluateScript:@"NSString.stringWithString_('x').isKindOfClass_(NSArray);"] toBOOL]);
+    XCTAssertNil(caught, @"%@", caught);
+    
+    // A Class where an object (@) is expected, since a Class is an object too.
+    XCTAssertEqual([[runtime evaluateScript:@"NSArray.arrayWithObject_(NSString).count();"] toLong], 1);
+    XCTAssertNil(caught, @"%@", caught);
+    // Wrapper identity isn't preserved, so compare by name rather than ===.
+    XCTAssertEqualObjects([[runtime evaluateScript:@"NSArray.arrayWithObject_(NSString).objectAtIndex_(0).className();"] toObject], @"NSString");
+    XCTAssertTrue([[runtime evaluateScript:@"NSArray.arrayWithObject_(NSString).objectAtIndex_(0).isEqual_(NSString);"] toBOOL]);
+    XCTAssertNil(caught, @"%@", caught);
+    
+    [runtime shutdown];
+}
+
 - (void)testStringToNumber {
     
     FJSRuntime *runtime = [FJSRuntime new];

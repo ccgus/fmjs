@@ -1426,6 +1426,50 @@ NSArray * FJSReturnArrayOfDictionaries(void);
     [runtime shutdown];
 }
 
+- (void)testInstanceOf {
+    
+    FJSRuntime *runtime = [FJSRuntime new];
+    
+    __block NSException *caught = nil;
+    [runtime setExceptionHandler:^(FJSRuntime * _Nonnull rt, NSException * _Nonnull exception) {
+        caught = exception;
+    }];
+    
+    XCTAssertTrue([[runtime evaluateScript:@"NSString.stringWithString_('x') instanceof NSString;"] toBOOL]);
+    XCTAssertTrue([[runtime evaluateScript:@"NSString.stringWithString_('x') instanceof NSObject;"] toBOOL]);
+    XCTAssertFalse([[runtime evaluateScript:@"NSString.stringWithString_('x') instanceof NSArray;"] toBOOL]);
+    XCTAssertFalse([[runtime evaluateScript:@"'plain js string' instanceof NSString;"] toBOOL]);
+    XCTAssertFalse([[runtime evaluateScript:@"({}) instanceof NSString;"] toBOOL]);
+    XCTAssertFalse([[runtime evaluateScript:@"NSString instanceof NSString;"] toBOOL]);
+    XCTAssertNil(caught, @"%@", caught);
+    
+    // Asking a class about a property it doesn't have is a normal question, not an error.
+    XCTAssertFalse([[runtime evaluateScript:@"'nopeNotAThing' in NSString;"] toBOOL]);
+    XCTAssertTrue([[runtime evaluateScript:@"'stringWithString:' in NSString;"] toBOOL]);
+    XCTAssertNil(caught, @"%@", caught);
+    
+    [runtime shutdown];
+}
+
+- (void)testToStringIsCallable {
+    
+    FJSRuntime *runtime = [FJSRuntime new];
+    
+    __block NSException *caught = nil;
+    [runtime setExceptionHandler:^(FJSRuntime * _Nonnull rt, NSException * _Nonnull exception) {
+        caught = exception;
+    }];
+    
+    XCTAssertEqualObjects([[runtime evaluateScript:@"NSString.stringWithString_('abc').toString();"] toObject], @"abc");
+    XCTAssertEqualObjects([[runtime evaluateScript:@"NSNumber.numberWithInt_(42).toString();"] toObject], @"42");
+    XCTAssertEqualObjects([[runtime evaluateScript:@"NSMakeRect(1, 2, 3, 4).toString();"] toObject], @"{{1, 2}, {3, 4}}");
+    XCTAssertEqualObjects([[runtime evaluateScript:@"NSString.toString();"] toObject], @"NSString");
+    XCTAssertEqualObjects([[runtime evaluateScript:@"`${NSString.stringWithString_('tpl')}`;"] toObject], @"tpl");
+    XCTAssertNil(caught, @"%@", caught);
+    
+    [runtime shutdown];
+}
+
 - (void)testStringToNumber {
     
     FJSRuntime *runtime = [FJSRuntime new];

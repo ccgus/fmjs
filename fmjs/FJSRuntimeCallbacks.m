@@ -18,6 +18,7 @@ static void FJS_getPropertyNames(JSContextRef ctx, JSObjectRef object, JSPropert
 static bool FJS_hasInstance(JSContextRef ctx, JSObjectRef constructor, JSValueRef possibleInstance, JSValueRef* exception);
 
 static JSValueRef FJSPrototypeForOBJCInstance(JSContextRef ctx, id instance, NSString *name);
+static JSValueRef FJSToString(JSContextRef ctx, JSObjectRef function, JSObjectRef object, size_t argumentCount, const JSValueRef arguments[], JSValueRef* exception);
 static NSString * const FJSDynamicObjCMethodName = @"ƒ";
 
 @implementation FJSRuntime (JSCallbacks)
@@ -54,6 +55,10 @@ static NSString * const FJSDynamicObjCMethodName = @"ƒ";
 
 - (BOOL)object:(FJSValue*)objectValue hasProperty:(NSString *)propertyName {
     FJSTrace(@"%s:%d", __FUNCTION__, __LINE__);
+    
+    if ([propertyName isEqualToString:@"toString"]) {
+        return YES; // Everything we wrap can describe itself; see getProperty.
+    }
     
     if ([objectValue isInstance]) {
         
@@ -137,7 +142,7 @@ static NSString * const FJSDynamicObjCMethodName = @"ƒ";
             return YES;
         }
         
-        FMAssert(NO);
+        // JS asks about all sorts of things we don't have (Symbol.hasInstance for instanceof, for one). That's a no, not an error.
     }
     
     
@@ -184,6 +189,15 @@ static NSString * const FJSDynamicObjCMethodName = @"ƒ";
 }
 
 
+
+static JSValueRef FJSToString(JSContextRef ctx, JSObjectRef function, JSObjectRef object, size_t argumentCount, const JSValueRef arguments[], JSValueRef* exception)
+{
+    // Same string you'd get from "" + obj, so toString() and string coercion agree.
+    FJSRuntime *runtime = [FJSRuntime runtimeInContext:ctx];
+    FJSValue *valueFromJSObject = [FJSValue valueWithJSValueRef:object inRuntime:runtime];
+    
+    return [runtime convertObject:valueFromJSObject toType:kJSTypeString exception:exception];
+}
 
 static JSValueRef FJSToJSON(JSContextRef ctx, JSObjectRef function, JSObjectRef object, size_t argumentCount, const JSValueRef arguments[], JSValueRef* exception)
 {
@@ -327,7 +341,14 @@ static JSValueRef FJSArraySymbolIteratorFactory(JSContextRef ctx, JSObjectRef fu
 - (JSValueRef)getProperty:(NSString*)propertyName inObject:(FJSValue*)valueFromJSObject exception:(JSValueRef *)exception {
     FJSTrace(@"%s:%d", __FUNCTION__, __LINE__);
     
-    if ([propertyName isEqualToString:@"toString"] || [propertyName isEqualToString:@"Symbol.toStringTag"]/* || [propertyName isEqualToString:@"Symbol.toPrimitive"]*/) {
+    if ([propertyName isEqualToString:@"toString"]) {
+        JSStringRef toStringFunctionName = JSStringCreateWithCFString(CFSTR("toString"));
+        JSObjectRef toStringFunction = JSObjectMakeFunctionWithCallback([self jsContext], toStringFunctionName, &FJSToString);
+        JSStringRelease(toStringFunctionName);
+        return toStringFunction;
+    }
+    
+    if ([propertyName isEqualToString:@"Symbol.toStringTag"]/* || [propertyName isEqualToString:@"Symbol.toPrimitive"]*/) {
         // This can be used in a debugger.
         return [valueFromJSObject toJSString];
     }
@@ -862,7 +883,23 @@ static JSObjectRef FJS_callAsConstructor(JSContextRef ctx, JSObjectRef construct
 static bool FJS_hasInstance(JSContextRef ctx, JSObjectRef constructor, JSValueRef possibleInstance, JSValueRef* exception) {
     FJSTrace(@"%s:%d", __FUNCTION__, __LINE__);
     
-    return NO;
+    // `x instanceof NSFoo` - only meaningful when the left side wraps an ObjC instance and the right side wraps a class.
+    FJSValue *constructorValue = (__bridge FJSValue *)JSObjectGetPrivate(constructor);
+    if (![constructorValue isKindOfClass:[FJSValue class]] || ![constructorValue isClass]) {
+        return NO;
+    }
+    
+    if (!JSValueIsObject(ctx, possibleInstance)) {
+        return NO;
+    }
+    
+    JSObjectRef possibleInstanceObject = JSValueToObject(ctx, possibleInstance, NULL);
+    FJSValue *instanceValue = possibleInstanceObject ? (__bridge FJSValue *)JSObjectGetPrivate(possibleInstanceObject) : nil;
+    if (![instanceValue isKindOfClass:[FJSValue class]] || ![instanceValue isInstance]) {
+        return NO;
+    }
+    
+    return [[instanceValue instance] isKindOfClass:[constructorValue rtClass]];
 }
 
 

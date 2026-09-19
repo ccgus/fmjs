@@ -19,7 +19,7 @@ NS_ASSUME_NONNULL_BEGIN
 
 @property (strong) NSString *symbolType;
 @property (strong) NSString *name;
-@property (strong) NSString *runtimeType;
+@property (nonatomic, strong) NSString *runtimeType;
 @property (strong) NSString *runtimeValue;
 @property (assign) SEL selector;
 @property (strong) NSMutableArray *arguments;

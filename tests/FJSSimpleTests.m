@@ -69,6 +69,24 @@ NSArray * FJSReturnArrayOfDictionaries(void);
     return [[FJSTestClass alloc] initWithPassedInt:i];
 }
 
+static int FJSTestImageDataFreedCount;
+static void FJSTestImageDataRelease(void *info, const void *data, size_t size) {
+    FJSTestImageDataFreedCount++;
+    free((void *)data);
+}
+
+// Returns +1, like Acorn's newImageRef… methods. Scripts are expected to CGImageRelease it.
+- (CGImageRef)newTestImageRef {
+    size_t w = 4, h = 4, bytesPerRow = w * 4;
+    void *bytes = calloc(bytesPerRow * h, 1);
+    CGDataProviderRef provider = CGDataProviderCreateWithData(NULL, bytes, bytesPerRow * h, FJSTestImageDataRelease);
+    CGColorSpaceRef cs = CGColorSpaceCreateDeviceRGB();
+    CGImageRef img = CGImageCreate(w, h, 8, 32, bytesPerRow, cs, kCGImageAlphaPremultipliedLast, provider, NULL, false, kCGRenderingIntentDefault);
+    CGColorSpaceRelease(cs);
+    CGDataProviderRelease(provider);
+    return img;
+}
+
 + (instancetype)sharedInstance {
     static FJSTestClass *tc;
     static dispatch_once_t onceToken;
@@ -542,6 +560,34 @@ NSArray * FJSReturnArrayOfDictionaries(void);
     XCTAssert(!weakNewed, @"newCopyWithPassedInt: result leaked");
     XCTAssertEqual(FJSSimpleTestsDeallocHappend, 2);
     XCTAssert(![FJSValue countOfLiveInstances], @"Got %ld instances still around", [FJSValue countOfLiveInstances]);
+}
+
+- (void)testNewPrefixedMethodReturningCFTypeIsOwnedByScript {
+    
+    // A new…/create… method returning a CF type hands its +1 to the script, same as a C Create function does.
+    // The script releases it; the bridge's own retain/release pair must stay balanced on top of that.
+    
+    FJSTestImageDataFreedCount = 0;
+    
+    @autoreleasepool {
+        
+        [FJSRuntime setUseSynchronousGarbageCollectForDebugging:YES];
+        FJSRuntime *runtime = [[FJSRuntime alloc] init];
+        
+        __block NSException *caught = nil;
+        [runtime setExceptionHandler:^(FJSRuntime * _Nonnull rt, NSException * _Nonnull exception) {
+            caught = exception;
+        }];
+        
+        FJSValue *w = [runtime evaluateScript:@"var tc = FJSTestClass.new(); var img = tc.newTestImageRef(); var w = CGImageGetWidth(img); CGImageRelease(img); img = null; tc = null; w;"];
+        XCTAssertEqual([w toLong], 4);
+        XCTAssertNil(caught, @"%@", caught);
+        
+        [runtime garbageCollect];
+        [runtime shutdown];
+    }
+    
+    XCTAssertEqual(FJSTestImageDataFreedCount, 1);
 }
 
 - (void)testInitAndDealoc {

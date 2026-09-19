@@ -168,7 +168,11 @@ static BOOL FJSRuntimeTypeIsObject(NSString *runtimeType) {
                 returnFValue = isInFJSRuntimeCall ? (__bridge id)cfobject : [FJSValue valueWithInstance:cfobject inRuntime:_runtime];
             }
             
-            if (cfobject && !object_isClass((__bridge id)cfobject) && [functionSymbol returnsRetained]) {
+            // An init/new/copy method returning an ObjC object hands us a +1 nobody in JS can release, so consume it here.
+            // A CF type returned from a new…/create… method is different: by convention (matching C Create functions), the
+            // script owns that +1 and releases it with CGImageRelease & co. Our own retain above stays balanced by dealloc.
+            BOOL returnsObjCObject = FJSCharEquals(returnType, @encode(id));
+            if (cfobject && returnsObjCObject && !object_isClass((__bridge id)cfobject) && [functionSymbol returnsRetained]) {
                 // FJSTrace(@"objcInvoke Releasing %@", cfobject);
                 // We're already +2 on the object now. Time to bring it back down with CFRelease
                 CFRelease(cfobject);

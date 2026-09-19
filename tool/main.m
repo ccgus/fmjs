@@ -156,8 +156,7 @@ void FJSToolExecuteScriptWithArguments(NSString *script, NSString *path, NSArray
     rt[@"process"] = process;
     
     @try {
-        [FJSValue setCaptureJSValueInstancesForDebugging:YES];
-        [rt evaluateScript:script withSourceURL:[NSURL fileURLWithPath:path]];
+        [rt evaluateScript:script withSourceURL:(path ? [NSURL fileURLWithPath:path] : nil)];
     }
     @catch (NSException *e) {
         if ([e userInfo] != nil) {

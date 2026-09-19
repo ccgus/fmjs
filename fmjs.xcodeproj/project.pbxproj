@@ -881,6 +881,7 @@
 					"$(inherited)",
 					"$(SYSTEM_LIBRARY_DIR)/Frameworks/CoreGraphics.framework/Versions/A/Resources/BridgeSupport",
 				);
+				MACOSX_DEPLOYMENT_TARGET = 12.0;
 				OTHER_LDFLAGS = "-lffi";
 				PRODUCT_BUNDLE_IDENTIFIER = com.flyingmeat.fmjs.tests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
@@ -904,6 +905,7 @@
 					"$(inherited)",
 					"$(SYSTEM_LIBRARY_DIR)/Frameworks/CoreGraphics.framework/Versions/A/Resources/BridgeSupport",
 				);
+				MACOSX_DEPLOYMENT_TARGET = 12.0;
 				OTHER_LDFLAGS = "-lffi";
 				PRODUCT_BUNDLE_IDENTIFIER = com.flyingmeat.fmjs.tests;
 				PRODUCT_NAME = "$(TARGET_NAME)";

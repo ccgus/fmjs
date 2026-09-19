@@ -471,6 +471,24 @@ static BOOL FJSSelectorHasOwnershipPrefix(NSString *selectorName, NSString *pref
 }
 
 
+- (void)setRuntimeType:(NSString *)runtimeType {
+    
+    // Method signatures carry qualifiers in front of the real type, like 'r*' for const char * or 'o^@' for an out
+    // NSError**. Nothing downstream wants those, so strip them here where every runtime type comes through.
+    static NSCharacterSet *qualifiers;
+    static dispatch_once_t onceToken;
+    dispatch_once(&onceToken, ^{
+        qualifiers = [NSCharacterSet characterSetWithCharactersInString:@"rnNoORVA"];
+    });
+    
+    NSUInteger idx = 0;
+    while (idx < [runtimeType length] && [qualifiers characterIsMember:[runtimeType characterAtIndex:idx]]) {
+        idx++;
+    }
+    
+    _runtimeType = idx ? [runtimeType substringFromIndex:idx] : runtimeType;
+}
+
 - (void)unmangleArgs {
     
     // ^{__CFAllocator=}'/>

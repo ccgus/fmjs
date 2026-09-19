@@ -31,6 +31,7 @@
 @property (weak) id weakInstance;
 @property (assign) BOOL madePointerMemory;
 @property (assign) size_t madePointerMemorySize;
+@property (assign) BOOL madeCStringMemory;
 
 @property (assign) BOOL isWeakReference;
 
@@ -101,6 +102,11 @@ static BOOL FJSCaptureJSValueInstancesForDebugging;
     if (_madePointerMemory) {
         FMAssert(_cValue.type == _C_STRUCT_B);
         free(_cValue.value.pointerValue);
+    }
+    
+    if (_madeCStringMemory) {
+        FMAssert(_cValue.type == _C_CHARPTR);
+        free(_cValue.value.cStringLocation);
     }
     
 #ifdef DEBUG
@@ -660,6 +666,18 @@ static BOOL FJSCaptureJSValueInstancesForDebugging;
                 break;
             }
                 
+            case _C_CHARPTR: {
+                if (_cValue.value.cStringLocation) {
+                    JSStringRef string = JSStringCreateWithUTF8CString(_cValue.value.cStringLocation);
+                    _jsValRef = JSValueMakeString([_runtime contextRef], string);
+                    JSStringRelease(string);
+                }
+                else {
+                    _jsValRef = JSValueMakeNull([_runtime contextRef]);
+                }
+                break;
+            }
+                
             case _C_VOID:
                 _jsValRef = JSValueMakeUndefined([_runtime contextRef]);
                 break;
@@ -1136,6 +1154,10 @@ static BOOL FJSCaptureJSValueInstancesForDebugging;
         return [self instance];
     }
     
+    if (_cValue.type == _C_CHARPTR) {
+        return _cValue.value.cStringLocation ? [NSString stringWithUTF8String:_cValue.value.cStringLocation] : nil;
+    }
+    
     if (_cValue.value.pointerValue) {
         
         // return types like CFURLRef can end up down here.
@@ -1238,6 +1260,25 @@ static BOOL FJSCaptureJSValueInstancesForDebugging;
         return YES;
     }
     
+    
+    if ([type isEqualToString:@"*"]) {
+        
+        _cValue.type = _C_CHARPTR;
+        
+        if (JSValueIsNull([_runtime contextRef], _jsValRef) || JSValueIsUndefined([_runtime contextRef], _jsValRef)) {
+            _cValue.value.cStringLocation = NULL;
+            return YES;
+        }
+        
+        JSStringRef resultStringJS = JSValueToStringCopy([_runtime contextRef], _jsValRef, NULL);
+        NSString *o = (NSString *)CFBridgingRelease(JSStringCopyCFString(kCFAllocatorDefault, resultStringJS));
+        JSStringRelease(resultStringJS);
+        
+        // The callee gets a pointer into this, so it has to outlive the call. dealloc frees it.
+        _cValue.value.cStringLocation = strdup([o UTF8String]);
+        _madeCStringMemory = YES;
+        return YES;
+    }
     
     if ([type isEqualToString:@":"]) {
         

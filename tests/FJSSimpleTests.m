@@ -1356,6 +1356,33 @@ NSArray * FJSReturnArrayOfDictionaries(void);
     [runtime shutdown];
 }
 
+- (void)testCStringArgumentsAndReturnValues {
+    
+    // const char * shows up as 'r*' in method signatures; the bridge needs to handle both the qualifier and the char* itself.
+    
+    FJSRuntime *runtime = [FJSRuntime new];
+    
+    __block NSException *caught = nil;
+    [runtime setExceptionHandler:^(FJSRuntime * _Nonnull rt, NSException * _Nonnull exception) {
+        caught = exception;
+    }];
+    
+    FJSValue *v = [runtime evaluateScript:@"NSString.stringWithUTF8String_('hello there');"];
+    XCTAssertNil(caught, @"%@", caught);
+    XCTAssertEqualObjects([v toObject], @"hello there");
+    
+    v = [runtime evaluateScript:@"NSString.stringWithString_('abc').UTF8String();"];
+    XCTAssertNil(caught, @"%@", caught);
+    XCTAssertEqualObjects([v toObject], @"abc");
+    XCTAssert([[runtime evaluateScript:@"typeof NSString.stringWithString_('abc').UTF8String() === 'string';"] toBOOL]);
+    
+    // Round trip through a JS string operation, so the returned char* really became a JS string.
+    v = [runtime evaluateScript:@"NSString.stringWithString_('abc').UTF8String() + 'def';"];
+    XCTAssertEqualObjects([v toObject], @"abcdef");
+    
+    [runtime shutdown];
+}
+
 - (void)testStringToNumber {
     
     FJSRuntime *runtime = [FJSRuntime new];
@@ -2242,7 +2269,6 @@ NSArray * FJSReturnArrayOfDictionaries(void);
     s = [v toObject];
     XCTAssert([s isKindOfClass:[NSString class]]);
     XCTAssert([s isEqualToString:@"false"], @"Got %@", s);
-    
     
     [runtime shutdown];
     
